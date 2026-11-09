@@ -170,7 +170,33 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .btnrow .btn { flex: 1 1 auto; }
 
 .thumb { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid var(--glass-line); background: var(--field); flex: none; }
-.pending { display: flex; align-items: center; gap: 12px; }
+.scanbox { display: flex; flex-direction: column; gap: 10px; }
+.frame { position: relative; height: 230px; border-radius: 16px; overflow: hidden; background: #0b0f17; }
+.frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.cn { position: absolute; width: 26px; height: 26px; border: 3px solid var(--accent); }
+.cn.tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
+.cn.tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; border-top-right-radius: 8px; }
+.cn.bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; border-bottom-left-radius: 8px; }
+.cn.br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
+.beam { position: absolute; left: 0; right: 0; top: 0; height: 3px; opacity: 0; background: linear-gradient(90deg, transparent, #5ac8fa 20%, #fff 50%, #5ac8fa 80%, transparent); box-shadow: 0 0 16px 4px rgba(90, 200, 250, .8); }
+.beam::after { content: ""; position: absolute; left: 0; right: 0; bottom: 3px; height: 70px; background: linear-gradient(0deg, rgba(90, 200, 250, .35), rgba(90, 200, 250, 0)); }
+.frame.scanning .beam { opacity: 1; animation: sweep 1.7s ease-in-out infinite alternate; }
+.frame.scanning::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(90,200,250,.06) 0 2px, transparent 2px 6px); pointer-events: none; }
+.frame:not(.scanning) .cn { border-color: var(--good); }
+@keyframes sweep { from { top: 0; } to { top: calc(100% - 3px); } }
+@media (prefers-reduced-motion: reduce) { .frame.scanning .beam { animation: none; top: 50%; } }
+.chart { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.donut { position: relative; width: 150px; height: 150px; flex: none; margin: 0 auto; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.15; }
+.donut .mid b { font-size: 1.1rem; font-family: var(--font-display); }
+.donut .mid span { font-size: .7rem; color: var(--ink-soft); }
+.legend { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 6px; }
+.legend div { display: flex; align-items: center; gap: 8px; font-size: .85rem; }
+.legend i { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+.legend .n { flex: 1; min-width: 0; }
+.legend .v { font-weight: 600; text-align: right; }
+.legend small { color: var(--ink-soft); font-weight: 400; display: block; font-size: .72rem; }
 
 .list { display: flex; flex-direction: column; gap: 10px; }
 .item { border-radius: 20px; padding: 12px; display: flex; gap: 12px; align-items: center; }
@@ -228,8 +254,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   <section id="v-scan" class="wrap" aria-label="Carica scontrino" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Scontrino</h2><span></span></div>
     <section class="card">
-      <div class="pending" id="pending" hidden>
-        <img class="thumb" id="pendImg" alt="Foto dello scontrino">
+      <div class="scanbox" id="pending" hidden>
+        <div class="frame" id="frame"><img id="pendImg" alt="Foto dello scontrino"><div class="beam"></div><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i></div>
         <div class="hint" id="ocrStatus" aria-live="polite"></div>
       </div>
       <div class="btnrow">
@@ -290,6 +316,10 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <div class="card" style="gap:8px">
       <div class="sumline"><span class="label" id="logTotLabel">Totale speso</span><b class="num" id="logTot"></b></div>
       <div class="cats" id="catSum"></div>
+    </div>
+    <div class="card" id="chartCard" hidden>
+      <div class="label">Spese per tipologia</div>
+      <div class="chart"><div class="donut" id="donut" role="img" aria-label="Grafico delle spese per tipologia"></div><div class="legend" id="legend"></div></div>
     </div>
     <div class="list" id="list"></div>
   </section>
@@ -357,7 +387,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
 <script>
 (function () {
-  var CATS = ['Cibo', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
+  var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
   var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup'];
   var KEY = 'texascash.v1';
@@ -416,16 +446,16 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     for (i = 0; i < d.length; i += 4) { v = Math.max(0, Math.min(255, ((d[i] - lo) * 255 / span) | 0)); d[i] = d[i + 1] = d[i + 2] = v; }
     g.putImageData(im, 0, 0);
   }
-  function shrink(file, max, enhance) {
+  function shrink(file, max, enhance, upscale) {
     return new Promise(function (res) {
       var url = URL.createObjectURL(file), img = new Image();
       img.onload = function () {
-        var m = max || 1400, sc = Math.min(1, m / Math.max(img.width, img.height));
+        var m = max || 1400, sc = upscale ? Math.min(3, m / Math.max(img.width, img.height)) : Math.min(1, m / Math.max(img.width, img.height));
         var c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         if (enhance) { try { enhanceCanvas(c); } catch (e) {} }
         URL.revokeObjectURL(url);
-        c.toBlob(function (b) { b ? res(b) : res(file); }, 'image/jpeg', 0.72);
+        c.toBlob(function (b) { b ? res(b) : res(file); }, enhance ? 'image/png' : 'image/jpeg', 0.72);   // per la lettura niente JPEG: toglie i dettagli delle cifre
       };
       img.onerror = function () { URL.revokeObjectURL(url); res(file); };
       img.src = url;
@@ -536,7 +566,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   };
 
   /* ---------- carica scontrino ---------- */
-  var ocrSource = null, pendingPhoto = null, ocrWorker = null, ocrRun = 0;
+  var ocrSource = null, ocrFile = null, pendingPhoto = null, ocrWorker = null, ocrRun = 0;
   function absUrl(p) { return new URL(p, location.href).href; }
   function loadScript(src) { return new Promise(function (res, rej) { var el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); }); }
   function getWorker() {
@@ -571,30 +601,44 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   });
   $('oTot').addEventListener('input', eurHint);
 
+  var scanStart = 0;
+  function scanning(on) { $('frame').classList.toggle('scanning', on); }
   function resetScan() {
-    ocrRun++; ocrSource = null; pendingPhoto = null;
+    ocrRun++; scanning(false); ocrSource = null; pendingPhoto = null;
     $('pending').hidden = true; ocrStatus('');
     setFields({}); $('descScan').value = '';
   }
   function handlePhoto(file) {
     if (!file) return;
     var run = ++ocrRun;
-    $('pending').hidden = false; ocrStatus('Preparo la lettura…');
+    $('pending').hidden = false; scanning(true); scanStart = Date.now(); ocrStatus('Preparo la lettura…');
     shrink(file).then(function (b) { pendingPhoto = b; $('pendImg').src = URL.createObjectURL(b); });
+    ocrFile = file; ocrSource = null;
     shrink(file, 2200, true).then(function (b) { ocrSource = b; readReceipt(run); });
   }
   function readReceipt(run) {
     if (!ocrSource) return;
     ocrStatus('Preparo la lettura…');
-    getWorker().then(function (w) { return w.recognize(ocrSource); }).then(function (res) {
-      if (run !== ocrRun) return;
-      var r = parseReceipt(res.data.text);
+    var first = null, w0 = null;
+    getWorker().then(function (w) { w0 = w; return w.recognize(ocrSource); }).then(function (res) {
+      if (run !== ocrRun) return null;
+      first = parseReceipt(res.data.text); setFields(first);
+      if (isConsistent(first)) return first;                                    // subtotale + tasse = totale: lettura affidabile
+      ocrStatus('Seconda lettura per più precisione…');
+      return shrink(ocrFile, 2200, true, true).then(function (b2) { return w0.recognize(b2); }).then(function (res2) {
+        if (run !== ocrRun) return null;
+        return mergeResults([first, parseReceipt(res2.data.text)]);
+      });
+    }).then(function (r) {
+      if (!r || run !== ocrRun) return;
+      setTimeout(function () { if (run === ocrRun) scanning(false); }, Math.max(0, 1800 - (Date.now() - scanStart)));   // l'animazione dura almeno un paio di secondi
       setFields(r);
-      var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length;
-      ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (r.notes.length ? ' ' + r.notes.join(' ') : '') : 'Non ho trovato importi: scrivili a mano.');
+      var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length, notes = (r.notes || []).slice();
+      if (found && !isConsistent(r) && !notes.length) notes.push('Controlla gli importi: subtotale + tasse non fa il totale.');
+      ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (notes.length ? ' ' + notes.join(' ') : '') : 'Non ho trovato importi: scrivili a mano.');
     }).catch(function (e) {
       console.error('ocr', e);
-      if (run === ocrRun) ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.');
+      if (run === ocrRun) { scanning(false); ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.'); }
     });
   }
   $('goScan').onclick = function () {
@@ -623,6 +667,28 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   };
 
   /* ---------- registro ---------- */
+  var CAT_COLORS = { Cibo: '#ff9f0a', Vestiti: '#bf5af2', Regali: '#ff375f', Souvenir: '#ffd60a', Benzina: '#8e8e93', Hotel: '#0a84ff', Attrazioni: '#30d158', Altro: '#64d2ff' };
+  function renderChart() {
+    var by = {}, card = $('chartCard'); st.expenses.forEach(function (e) { by[e.cat] = (by[e.cat] || 0) + e.usd; });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), tot = spentTotal();
+    card.hidden = !keys.length || logTab !== 'spese'; if (card.hidden) return;
+    var off = 0, svg = '<svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(120,130,150,.22)" stroke-width="6.5"></circle>';
+    keys.forEach(function (k) {
+      var p = by[k] / tot * 100, gap = keys.length > 1 ? Math.min(.6, p / 3) : 0;
+      svg += '<circle cx="21" cy="21" r="15.9155" fill="none" stroke="' + (CAT_COLORS[k] || '#8e8e93') + '" stroke-width="6.5" stroke-dasharray="' + (p - gap) + ' ' + (100 - p + gap) + '" stroke-dashoffset="' + (-off) + '"></circle>';
+      off += p;
+    });
+    $('donut').innerHTML = svg + '</svg><div class="mid"><b class="num">' + usd(tot) + '</b><span>' + keys.length + (keys.length === 1 ? ' tipologia' : ' tipologie') + '</span></div>';
+    var lg = $('legend'); lg.innerHTML = '';
+    keys.forEach(function (k) {
+      var d = document.createElement('div');
+      d.innerHTML = '<i></i><span class="n"></span><span class="v num"></span>';
+      d.querySelector('i').style.background = CAT_COLORS[k] || '#8e8e93';
+      d.querySelector('.n').textContent = k;
+      d.querySelector('.v').innerHTML = usd(by[k]) + '<small>' + Math.round(by[k] / tot * 100) + '%</small>';
+      lg.appendChild(d);
+    });
+  }
   var logTab = 'spese';
   function setTab(t) { logTab = t; renderLog(); }
   $('tabSpese').onclick = function () { setTab('spese'); };
@@ -653,8 +719,9 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   }
   function renderLog() {
     $('tabSpese').setAttribute('aria-pressed', String(logTab === 'spese')); $('tabRic').setAttribute('aria-pressed', String(logTab === 'ric'));
-    if (logTab === 'ric') { renderTopupLog(); return; }
+    if (logTab === 'ric') { $('chartCard').hidden = true; renderTopupLog(); return; }
     $('logTotLabel').textContent = 'Totale speso';
+    renderChart();
     var byCat = {};
     st.expenses.forEach(function (e) { byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
     $('logTot').innerHTML = usd(spentTotal()) + ' · ' + eur(spentTotal() * st.rate);

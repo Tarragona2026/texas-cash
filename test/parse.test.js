@@ -15,7 +15,17 @@ const cases = [
   ['tea non e tip', 'Iced Tea 2.75\nTop Sirloin 24.50\nSubtotal 27.25\nTax 2.25\nTotal 29.50', { subtotal: 27.25, tax: 2.25, tip: null, total: 29.5 }],
   ['servizio incluso', 'Subtotal 100.00\nTax 8.25\nService Charge 18.00\nTotal 126.25', { subtotal: 100, tax: 8.25, tip: 18, total: 126.25 }],
   ['riga Rate Sales Amount non e il totale', 'Sub Total $122.75\nTax $10.75\nTotal $133.50\nRate Sales Amount\n8.7500 $122.75 $10.74', { subtotal: 122.75, tax: 10.75, total: 133.5 }],
+  ['gratuity suggerita con percentuali', 'Sub Total: 88.00\nTax: 7.81\nTOTAL: 95.81\nSuggested Gratuity\n18% GRATUIT 15.84\n20% GRATUIT 17.60\n22% GRATUIT 19.36\nGratuity is Not Included', { subtotal: 88, tax: 7.81, tip: null, total: 95.81 }],
+  ['percentuali senza intestazione', 'Subtotal 88.00\nTax 7.81\nTotal 95.81\n18% GRATUIT 15.84\n20% GRATUIT 17.60\n22% GRATUIT 19.36', { subtotal: 88, tax: 7.81, tip: null, total: 95.81 }],
+  ['punto decimale perso', 'SUBTOTAL 6399\nTAX 384\nBALANCE 6783\nAMOUNT PAD 6783', { subtotal: 63.99, tax: 3.84, total: 67.83 }],
+  ['punto perso con spazio', 'Subtotal 4599\nTotal tax 275\nTOTAL 4874', { subtotal: 45.99, tax: 2.75, total: 48.74 }],
+  ['fax al posto di tax', 'Sub Total: 88.00\nfax: 7.81\nTOTAL: 95.81', { subtotal: 88, tax: 7.81, total: 95.81 }],
+  ['subtotale letto male corretto', 'Sub Total $33.16\nSales Tax $3.47\nOrder Total $42.63', { subtotal: 39.16, tax: 3.47, total: 42.63 }],
+  ['totale mancante ricavato', 'Sub Total $27.43\nSales Tax $2.43', { subtotal: 27.43, tax: 2.43, total: 29.86 }],
+  ['balance come totale', 'SUBTOTAL 63.99\nTAX 3.84\n****BALANCE 67.83\nAMOUNT PAID 67.83', { subtotal: 63.99, tax: 3.84, total: 67.83 }],
 ];
+const {mergeResults}=require('../ocr.js');
+(function(){ const a=parseReceipt('Sub Total 83.00\nTax 1.81\nTotal 95.81'), b=parseReceipt('Sub Total 88.00\nTax 7.81\nTotal 95.81'); const m=mergeResults([a,b]); [['subtotal',88],['tax',7.81],['total',95.81]].forEach(([k,v])=>{ if(m[k]!==v){ console.log('FAIL merge',k,v,m[k]); process.exitCode=1; } }); })();
 let bad = 0;
 cases.forEach(([n, text, exp]) => {
   const r = parseReceipt(text);
