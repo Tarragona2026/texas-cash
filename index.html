@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Texas Cash</title>
+<title>Xmas in Texas</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Texas Cash">
+<meta name="apple-mobile-web-app-title" content="Xmas TX">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#14213d">
 <link rel="manifest" href="manifest.json">
@@ -205,9 +205,9 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
   <!-- HOME -->
   <section id="v-home" class="wrap" aria-label="Home">
-    <section class="hero glass" aria-label="Texas Cash e plafond rimasto">
+    <section class="hero glass" aria-label="Xmas in Texas e plafond rimasto">
       <div class="hero-top">
-        <div><h1>Texas Cash</h1><div class="hello" id="hello"></div></div>
+        <div><h1>Xmas in Texas</h1><div class="hello" id="hello"></div></div>
         <div class="remain"><div class="label">Plafond rimasto</div><div class="budget-left num" id="left">$0</div></div>
       </div>
       <div class="bar" role="progressbar" aria-label="Plafond usato" id="barwrap"><i id="bar"></i></div>
@@ -774,7 +774,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     if (!st.user) { toast('Scrivi prima il tuo nome'); $('sUser').focus(); return; }
     if (!st.expenses.length && !st.topups.length) { toast('Il registro è vuoto'); return; }
     var d = new Date(), safe = st.user.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'utente';
-    var name = 'texas-cash_' + safe + '_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.csv';
+    var name = 'xmas-in-texas_' + safe + '_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.csv';
     saveFile(name, 'text/csv', buildCsv()).then(function (ok) { if (ok) { st.lastExport = Date.now(); persist(); toast('Registro pronto: ' + name); } });
   };
 
@@ -788,7 +788,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     })).then(function (ps) {
       var photos = {}; ps.forEach(function (p) { if (p && p[1]) photos[p[0]] = p[1]; });
       var data = JSON.stringify({ app: 'texascash', v: 1, state: st, photos: photos });
-      return saveFile('texas-cash-backup-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json', data);
+      return saveFile('xmas-in-texas-backup-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json', data);
     }).then(function (ok) { if (ok) { st.lastBackup = Date.now(); persist(); backupInfo(); toast('Backup pronto'); } });
   };
   $('bkPick').onclick = function () { $('bkImport').value = ''; $('bkImport').click(); };

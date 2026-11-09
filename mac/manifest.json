@@ -1,6 +1,6 @@
 {
-  "name": "Texas Cash Mac",
-  "short_name": "Texas Cash Mac",
+  "name": "Xmas in Texas Mac",
+  "short_name": "Xmas TX Mac",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
