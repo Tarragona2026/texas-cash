@@ -91,6 +91,7 @@ summary .d { text-transform: capitalize; }
   <div><h1>Xmas in Texa$ Mac</h1><div class="sub" id="sub">Trascina qui i file CSV ricevuti dagli iPhone, oppure usa Importa file.</div></div>
   <div style="display:flex; gap:10px; flex-wrap:wrap">
     <button class="btn" id="pick" type="button">Importa file</button>
+    <button class="btn ghost" id="pdf" type="button">Scarica PDF</button>
     <button class="btn ghost" id="reset" type="button">Azzera tutto</button>
   </div>
   <input type="file" id="file" accept=".csv,text/csv" multiple hidden>
@@ -100,6 +101,9 @@ summary .d { text-transform: capitalize; }
 <div class="drop" id="drop" hidden>Rilascia i file CSV</div>
 <div id="toastHost"></div>
 
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
+<script src="report.js"></script>
 <script>
 (function () {
   var KEY = 'texascash.mac.v1';
@@ -297,6 +301,18 @@ summary .d { text-transform: capitalize; }
   window.addEventListener('dragleave', function (e) { e.preventDefault(); depth = Math.max(0, depth - 1); if (!depth) $('drop').hidden = true; });
   window.addEventListener('dragover', function (e) { e.preventDefault(); });
   window.addEventListener('drop', function (e) { e.preventDefault(); depth = 0; $('drop').hidden = true; if (e.dataTransfer && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+  $('pdf').onclick = function () {
+    var names = Object.keys(st.people);
+    if (!names.length) { toast('Importa prima almeno un file'); return; }
+    if (!(window.jspdf && window.jspdf.jsPDF && window.buildReport)) { toast('PDF non disponibile: apro la stampa'); window.print(); return; }
+    try {
+      var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      var when = d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+      var doc = window.buildReport(window.jspdf.jsPDF, st.people, st.comments, when);
+      var name = 'xmas-in-texas_riepilogo_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.pdf';
+      doc.save(name); toast('PDF scaricato: ' + name);
+    } catch (e) { console.error(e); toast('Non sono riuscito a creare il PDF'); }
+  };
   var rsArmed = false;
   $('reset').onclick = function () {
     var b = $('reset');
