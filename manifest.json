@@ -1,6 +1,6 @@
 {
-  "name": "Xmas in Texas",
-  "short_name": "Xmas TX",
+  "name": "Xmas in Texa$",
+  "short_name": "Xmas Texa$",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
