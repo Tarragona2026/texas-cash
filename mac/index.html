@@ -72,7 +72,12 @@ summary { display: flex; justify-content: space-between; gap: 10px; cursor: poin
 summary::-webkit-details-marker { display: none; }
 summary .d { text-transform: capitalize; }
 .items { padding: 6px 0 2px 10px; display: flex; flex-direction: column; gap: 3px; font-size: .84rem; color: var(--ink-soft); }
-.items div { display: flex; justify-content: space-between; gap: 8px; }
+.items .erow { display: flex; justify-content: space-between; gap: 8px; }
+.exp { padding: 2px 0; }
+.cbtn { border: 0; background: none; color: var(--accent); font-size: .78rem; padding: 2px 0; cursor: pointer; font-weight: 600; }
+.cnote { display: block; width: 100%; text-align: left; border: 0; background: var(--field); border-radius: 10px; padding: 6px 10px; margin-top: 2px; font-size: .82rem; color: var(--ink); white-space: pre-wrap; cursor: pointer; }
+.cedit textarea { width: 100%; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); padding: 8px; font: inherit; font-size: .85rem; resize: vertical; margin-top: 4px; color: var(--ink); }
+.crow { display: flex; gap: 6px; margin-top: 6px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip { font-size: .75rem; border-radius: 999px; padding: 2px 9px; background: var(--field); border: 1px solid var(--glass-line); }
 .drop { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 35%, transparent); font-family: var(--font-display); font-size: 2rem; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.4); }
@@ -98,8 +103,9 @@ summary .d { text-transform: capitalize; }
 <script>
 (function () {
   var KEY = 'texascash.mac.v1';
-  var st = { people: {}, deleted: [] };
+  var st = { people: {}, deleted: [], comments: {} };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && s0.people) st = s0; } catch (e) {}
+  if (!st.comments) st.comments = {};
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
   var $ = function (id) { return document.getElementById(id); };
   function f(n) { return n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -150,6 +156,32 @@ summary .d { text-transform: capitalize; }
     });
     return Object.keys(byUser);
   }
+  function ekey(u, e) { return [u, e.data, e.ora, e.usd.toFixed(2), e.desc].join('|'); }
+  /* commento a una spesa: resta salvato anche se reimporti il file del telefono */
+  function expItem(u, e) {
+    var k = ekey(u, e), box = el('div', 'exp'), cm = el('div', 'cm');
+    box.appendChild(el('div', 'erow', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.desc || e.cat)) + '</span><span class="num">' + usd(e.usd) + '</span>'));
+    box.appendChild(cm);
+    function view() {
+      cm.innerHTML = ''; cm.className = 'cm';
+      var t = st.comments[k], b = el('button', t ? 'cnote' : 'cbtn'); b.type = 'button';
+      if (t) { b.textContent = t; b.title = 'Modifica il commento'; } else b.textContent = '+ Commento';
+      b.onclick = edit; cm.appendChild(b);
+    }
+    function edit() {
+      cm.innerHTML = ''; cm.className = 'cm cedit';
+      var ta = document.createElement('textarea'); ta.rows = 2; ta.value = st.comments[k] || ''; ta.placeholder = 'Scrivi un commento…'; ta.setAttribute('aria-label', 'Commento alla spesa');
+      var row = el('div', 'crow'), ok = el('button', 'btn small', 'Salva'), no = el('button', 'btn ghost small', 'Annulla');
+      ok.type = no.type = 'button';
+      ok.onclick = function () { var v = ta.value.trim(); if (v) st.comments[k] = v; else delete st.comments[k]; persist(); view(); };
+      no.onclick = view;
+      ta.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') view(); });
+      row.appendChild(ok); row.appendChild(no);
+      if (st.comments[k]) { var del = el('button', 'btn ghost small', 'Elimina'); del.type = 'button'; del.onclick = function () { delete st.comments[k]; persist(); view(); }; row.appendChild(del); }
+      cm.appendChild(ta); cm.appendChild(row); ta.focus();
+    }
+    view(); return box;
+  }
   function tkey(u, t) { return [u, t.data, t.ora, t.usd.toFixed(2), t.desc].join('|'); }
 
   /* calcoli */
@@ -195,7 +227,7 @@ summary .d { text-transform: capitalize; }
       var items = d[k], det = el('details'), tot = sum(items, 'usd');
       det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + usd(tot) + '</span>'));
       var it = el('div', 'items');
-      items.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { it.appendChild(el('div', '', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.desc || e.cat)) + '</span><span class="num">' + usd(e.usd) + '</span>')); });
+      items.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { it.appendChild(expItem(name, e)); });
       det.appendChild(it); box.appendChild(det);
     });
     col.appendChild(box);
@@ -232,8 +264,8 @@ summary .d { text-transform: capitalize; }
       items.forEach(function (e) { per[e.who] = (per[e.who] || 0) + e.usd; });
       det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + usd(sum(items, 'usd')) + '</span>'));
       var it = el('div', 'items');
-      Object.keys(per).forEach(function (w) { it.appendChild(el('div', '', '<span>' + esc(w) + '</span><span class="num">' + usd(per[w]) + '</span>')); });
-      it.appendChild(el('div', '', '<span>Totale progressivo</span><span class="num">' + usd(cum[k]) + '</span>'));
+      Object.keys(per).forEach(function (w) { it.appendChild(el('div', 'erow', '<span>' + esc(w) + '</span><span class="num">' + usd(per[w]) + '</span>')); });
+      it.appendChild(el('div', 'erow', '<span>Totale progressivo</span><span class="num">' + usd(cum[k]) + '</span>'));
       det.appendChild(it); box.appendChild(det);
     });
     col.appendChild(box);
@@ -269,7 +301,7 @@ summary .d { text-transform: capitalize; }
   $('reset').onclick = function () {
     var b = $('reset');
     if (!rsArmed) { rsArmed = true; b.textContent = 'Conferma azzera'; setTimeout(function () { rsArmed = false; b.textContent = 'Azzera tutto'; }, 3000); return; }
-    st = { people: {}, deleted: [] }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
+    st = { people: {}, deleted: [], comments: {} }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
   };
   render();
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
