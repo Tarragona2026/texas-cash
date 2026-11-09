@@ -171,6 +171,7 @@ input[type=text], select {
         <div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="spent"></span><span class="num" id="leftEur"></span></div>
       </div>
       <div class="bar" role="progressbar" aria-label="Plafond usato" id="barwrap"><i id="bar"></i></div>
+      <button class="btn ghost small" id="goTopup" type="button">Ricarica plafond</button>
     </section>
     <div class="subbtns">
       <button class="btn ghost" id="goLog" type="button">Registro <span id="cnt"></span></button>
@@ -240,11 +241,24 @@ input[type=text], select {
   <!-- REGISTRO -->
   <section id="v-log" class="wrap" aria-label="Registro" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Registro</h2><span></span></div>
+    <div class="chips" role="tablist" aria-label="Sezioni del registro"><button type="button" class="chip" id="tabSpese" role="tab" aria-pressed="true">Spese</button><button type="button" class="chip" id="tabRic" role="tab" aria-pressed="false">Ricariche</button></div>
     <div class="card" style="gap:8px">
-      <div class="sumline"><span class="label">Totale speso</span><b class="num" id="logTot"></b></div>
+      <div class="sumline"><span class="label" id="logTotLabel">Totale speso</span><b class="num" id="logTot"></b></div>
       <div class="cats" id="catSum"></div>
     </div>
     <div class="list" id="list"></div>
+  </section>
+
+  <!-- RICARICA PLAFOND -->
+  <section id="v-topup" class="wrap" aria-label="Ricarica plafond" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Ricarica</h2><span></span></div>
+    <section class="card">
+      <div class="field price"><label class="label" for="tuAmount">Importo da aggiungere</label><div class="money"><span>$</span><input id="tuAmount" type="text" inputmode="decimal" placeholder="100"></div></div>
+      <input id="tuNote" type="text" placeholder="Nota (facoltativa)" autocomplete="off">
+      <div class="chips" id="tuQuick"><button type="button" class="chip" data-v="50">+50</button><button type="button" class="chip" data-v="100">+100</button><button type="button" class="chip" data-v="200">+200</button></div>
+      <button class="btn" id="tuSave" type="button">Aggiungi al plafond</button>
+      <div class="hint" id="tuInfo"></div>
+    </section>
   </section>
 
   <!-- IMPOSTAZIONI -->
@@ -252,7 +266,6 @@ input[type=text], select {
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
     <section class="card">
       <div class="field"><label class="label" for="sUser">Nome utente</label><input id="sUser" type="text" autocomplete="off" placeholder="es. Matteo"></div>
-      <div class="field"><label class="label" for="plafond">Plafond</label><div class="money"><span>$</span><input id="plafond" type="text" inputmode="decimal" placeholder="es. 1500"></div></div>
       <div class="field"><label class="label" for="tax">Tasse</label><div class="pct"><input id="tax" type="text" inputmode="decimal"><span>%</span></div></div>
       <div class="field">
         <label class="label" for="rate">Cambio (euro per 1 dollaro)</label>
@@ -263,7 +276,7 @@ input[type=text], select {
     </section>
     <section class="card">
       <div class="label">Invia registro</div>
-      <div class="hint">Scarica un file CSV con tutte le tue spese: nome, giorno, ora, descrizione, categoria e importi in dollari ed euro.</div>
+      <div class="hint">Scarica un file CSV con spese e ricariche: nome, tipo, giorno, ora, descrizione, categoria e importi in dollari ed euro.</div>
       <button class="btn" id="exportCsv" type="button">Invia registro</button>
       <div class="hint" id="exportInfo"></div>
     </section>
@@ -287,9 +300,9 @@ input[type=text], select {
 (function () {
   var CATS = ['Cibo', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
-  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings'];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup'];
   var KEY = 'texascash.v1';
-  var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [] };
+  var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
 
@@ -375,6 +388,7 @@ input[type=text], select {
     if (v === 'calc') renderCalc();
     if (v === 'log') renderLog();
     if (v === 'settings') fillSettings();
+    if (v === 'topup') renderTopup();
   }
   function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
   window.addEventListener('hashchange', function () { show(hashView()); });
@@ -382,22 +396,29 @@ input[type=text], select {
   $('goCalc').onclick = function () { go('calc'); };
   $('goLog').onclick = function () { go('log'); };
   $('goSettings').onclick = function () { go('settings'); };
+  $('goTopup').onclick = function () { go('topup'); };
 
   /* ---------- home e plafond ---------- */
   function spentTotal() { return st.expenses.reduce(function (a, e) { return a + e.usd; }, 0); }
+  function topupTotal() { return st.topups.reduce(function (a, t) { return a + t.usd; }, 0); }
+  /* chi aveva già un plafond fisso lo ritrova come prima ricarica */
+  if (!st.topups.length && st.plafond > 0) {
+    var first = st.expenses.reduce(function (m, e) { return Math.min(m, e.ts); }, Date.now());
+    st.topups.push({ id: newId(), ts: first - 1000, usd: st.plafond, note: 'Plafond iniziale' }); st.plafond = 0; persist();
+  }
   function renderHome() {
     $('hello').textContent = st.user ? 'Ciao, ' + st.user : 'Scrivi il tuo nome in Impostazioni';
     $('cnt').textContent = st.expenses.length ? '(' + st.expenses.length + ')' : '';
-    var sp = spentTotal(), pl = st.plafond, left = pl - sp, bar = $('bar'), lf = $('left');
+    var sp = spentTotal(), pl = topupTotal(), left = pl - sp, bar = $('bar'), lf = $('left');
     if (pl > 0) {
       var pct = Math.min(100, sp / pl * 100), cls = pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
       lf.textContent = (left < 0 ? '-' : '') + usd(Math.abs(left)); lf.className = 'budget-left num ' + cls; lf.style.fontSize = '';
       bar.style.width = pct + '%'; bar.className = cls === 'good' ? '' : cls;
-      $('spent').textContent = 'Speso ' + usd(sp) + ' di ' + usd(pl);
+      $('spent').textContent = 'Speso ' + usd(sp) + ' · Ricaricato ' + usd(pl);
       $('leftEur').textContent = (left < 0 ? '-' : '') + eur(Math.abs(left) * st.rate) + ' · ' + Math.round(pct) + '% usato';
       $('barwrap').setAttribute('aria-valuenow', Math.round(pct));
     } else {
-      lf.textContent = 'Imposta il plafond in Impostazioni'; lf.className = 'budget-left'; lf.style.fontSize = '1.1rem';
+      lf.textContent = 'Ricarica il plafond'; lf.className = 'budget-left'; lf.style.fontSize = '1.1rem';
       bar.style.width = '0'; $('spent').textContent = 'Speso ' + usd(sp); $('leftEur').textContent = '';
     }
   }
@@ -542,7 +563,38 @@ input[type=text], select {
   };
 
   /* ---------- registro ---------- */
+  var logTab = 'spese';
+  function setTab(t) { logTab = t; renderLog(); }
+  $('tabSpese').onclick = function () { setTab('spese'); };
+  $('tabRic').onclick = function () { setTab('ric'); };
+  function renderTopupLog() {
+    var list = $('list'); list.innerHTML = '';
+    $('logTotLabel').textContent = 'Totale ricaricato';
+    $('logTot').innerHTML = usd(topupTotal()) + ' · ' + eur(topupTotal() * st.rate);
+    $('catSum').innerHTML = '<span class="num">Rimasto ' + usd(topupTotal() - spentTotal()) + '</span>';
+    if (!st.topups.length) { list.innerHTML = '<div class="empty">Nessuna ricarica ancora.<br>Usa Ricarica plafond dalla home.</div>'; return; }
+    st.topups.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (t) {
+      var el = document.createElement('div'); el.className = 'item';
+      var body = document.createElement('div'); body.className = 'body';
+      body.innerHTML = '<span class="t"></span><span class="m"></span>';
+      body.firstChild.textContent = t.note || 'Ricarica';
+      body.lastChild.textContent = dateStr(t.ts);
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost small'; del.textContent = 'Elimina'; del.style.marginTop = '6px'; del.style.alignSelf = 'flex-start';
+      var armed = false;
+      del.onclick = function () {
+        if (!armed) { armed = true; del.textContent = 'Conferma?'; setTimeout(function () { armed = false; del.textContent = 'Elimina'; }, 3000); return; }
+        st.topups = st.topups.filter(function (x) { return x.id !== t.id; }); persist(); renderLog();
+      };
+      body.appendChild(del);
+      var amt = document.createElement('div'); amt.className = 'amt num';
+      amt.innerHTML = '<b>+' + usd(t.usd) + '</b><small>' + eur(t.usd * st.rate) + '</small>';
+      el.appendChild(body); el.appendChild(amt); list.appendChild(el);
+    });
+  }
   function renderLog() {
+    $('tabSpese').setAttribute('aria-pressed', String(logTab === 'spese')); $('tabRic').setAttribute('aria-pressed', String(logTab === 'ric'));
+    if (logTab === 'ric') { renderTopupLog(); return; }
+    $('logTotLabel').textContent = 'Totale speso';
     var byCat = {};
     st.expenses.forEach(function (e) { byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
     $('logTot').innerHTML = usd(spentTotal()) + ' · ' + eur(spentTotal() * st.rate);
@@ -598,13 +650,11 @@ input[type=text], select {
   /* ---------- impostazioni ---------- */
   function fillSettings() {
     $('sUser').value = st.user || '';
-    $('plafond').value = st.plafond ? fx(st.plafond) : '';
     $('tax').value = String(st.tax).replace('.', ',');
     $('rate').value = String(Math.round(st.rate * 10000) / 10000).replace('.', ',');
     setRateInfo(); backupInfo(); exportInfo();
   }
   $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
-  $('plafond').addEventListener('input', function () { st.plafond = num($('plafond').value); persist(); });
   $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
   $('rate').addEventListener('input', function () { var v = num($('rate').value); if (v) { st.rate = v; st.rateManual = true; persist(); setRateInfo(); } });
 
@@ -633,16 +683,22 @@ input[type=text], select {
   function two2(n) { return n == null ? '' : (Math.round(n * 100) / 100).toFixed(2); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function buildCsv() {
-    var head = ['utente', 'data', 'ora', 'descrizione', 'categoria', 'subtotale_usd', 'tasse_usd', 'mancia_usd', 'totale_usd', 'totale_eur', 'cambio_eur_per_usd', 'origine', 'foto_scontrino'];
+    var head = ['utente', 'tipo', 'data', 'ora', 'descrizione', 'categoria', 'subtotale_usd', 'tasse_usd', 'mancia_usd', 'totale_usd', 'totale_eur', 'cambio_eur_per_usd', 'origine', 'foto_scontrino'];
     var rows = [head];
-    st.expenses.slice().sort(function (a, b) { return a.ts - b.ts; }).forEach(function (e) {
-      var d = new Date(e.ts);
-      rows.push([st.user, d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
+    var all = st.expenses.map(function (e) { return { k: 'spesa', e: e }; }).concat(st.topups.map(function (t) { return { k: 'ricarica', e: t }; }));
+    all.sort(function (a, b) { return a.e.ts - b.e.ts; }).forEach(function (x) {
+      var e = x.e, d = new Date(e.ts);
+      if (x.k === 'ricarica') {
+        rows.push([st.user, 'ricarica', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
+          e.note || 'Ricarica plafond', 'Ricarica', '', '', '', two2(e.usd), two2(e.usd * st.rate), st.rate.toFixed(4), '', '']);
+        return;
+      }
+      rows.push([st.user, 'spesa', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
         e.desc, e.cat, two2(e.sub), two2(e.tax), two2(e.tip), two2(e.usd), two2(e.eur), e.usd ? (e.eur / e.usd).toFixed(4) : '', e.src || '', e.photo ? 'si' : 'no']);
     });
     return rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
   }
-  function exportInfo() { $('exportInfo').textContent = st.expenses.length + (st.expenses.length === 1 ? ' spesa nel registro.' : ' spese nel registro.'); }
+  function exportInfo() { $('exportInfo').textContent = st.expenses.length + ' spese e ' + st.topups.length + ' ricariche nel registro.'; }
   function saveFile(name, mime, text) {
     var file = new File([text], name, { type: mime });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -659,7 +715,7 @@ input[type=text], select {
   }
   $('exportCsv').onclick = function () {
     if (!st.user) { toast('Scrivi prima il tuo nome'); $('sUser').focus(); return; }
-    if (!st.expenses.length) { toast('Il registro è vuoto'); return; }
+    if (!st.expenses.length && !st.topups.length) { toast('Il registro è vuoto'); return; }
     var d = new Date(), safe = st.user.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'utente';
     var name = 'texas-cash_' + safe + '_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.csv';
     saveFile(name, 'text/csv', buildCsv()).then(function (ok) { if (ok) { st.lastExport = Date.now(); persist(); toast('Registro pronto: ' + name); } });
@@ -691,6 +747,23 @@ input[type=text], select {
       });
     }).catch(function () { toast('File di backup non valido'); });
   });
+
+  /* ---------- ricarica plafond ---------- */
+  function renderTopup() {
+    $('tuInfo').textContent = 'Ricaricato finora ' + usd(topupTotal()) + ' · speso ' + usd(spentTotal()) + ' · rimasto ' + usd(topupTotal() - spentTotal()) + '.';
+  }
+  $('tuQuick').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.chip'); if (!b) return;
+    $('tuAmount').value = fx(num($('tuAmount').value) + Number(b.dataset.v));
+  });
+  $('tuSave').onclick = function () {
+    var v = num($('tuAmount').value);
+    if (!v) { toast('Inserisci l\'importo della ricarica'); return; }
+    st.topups.push({ id: newId(), ts: Date.now(), usd: r2(v), note: $('tuNote').value.trim() }); persist();
+    $('tuAmount').value = ''; $('tuNote').value = '';
+    toast('Ricaricati ' + usd(r2(v)));
+    go('home');
+  };
 
   /* ---------- avvio ---------- */
   $('cat').innerHTML = $('catScan').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
