@@ -1,6 +1,6 @@
 {
-  "name": "Xmas in Texa$ Mac",
-  "short_name": "Xmas Texa$ Mac",
+  "name": "Xmas in Texa$",
+  "short_name": "Xmas Texa$",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
