@@ -332,6 +332,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="exportInfo"></div>
     </section>
     <section class="card">
+      <div class="field"><label class="label" for="sBg">Sfondo della home</label>
+        <select id="sBg" aria-label="Sfondo della home"></select>
+        <div class="hint">Di solito cambia da solo in base al giorno del viaggio. Fuori dalle date del viaggio ruotano tutte le foto. Qui puoi vedere in anteprima un giorno.</div></div>
+    </section>
+    <section class="card">
       <details><summary>Crediti delle foto</summary><div class="credits" id="credits"></div></details>
     </section>
     <section class="card">
@@ -825,23 +830,31 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   /* ---------- sfondo del giorno ---------- */
   var DAYS = {"12-22": {"imgs": ["u_12-22_1", "u_12-22_2", "u_12-22_3"], "txt": "Arrivo a Houston e cena a casa"}, "12-23": {"imgs": ["u_12-23_1", "u_12-23_2", "u_12-23_3"], "txt": "H‑E‑B, pranzo di compleanno e outlet"}, "12-24": {"imgs": ["xmas-houston_0", "bluebonnet_0", "sunset-texas_1"], "txt": "Preparativi e cena di Natale a casa"}, "12-25": {"imgs": ["u_12-25_1", "u_12-25_2", "u_12-25_3"], "txt": "Regali e relax a casa"}, "12-26": {"imgs": ["u_12-26_1", "u_12-26_2", "u_12-26_3"], "txt": "Space Center Houston, Kemah e Galveston"}, "12-27": {"imgs": ["u_12-27_1", "u_12-27_2", "u_12-27_3"], "txt": "Galveston, The Galleria e rientro a casa"}, "12-28": {"imgs": ["u_12-28_1", "u_12-28_2", "u_12-28_3"], "txt": "Austin, BBQ e sosta a Smithville"}, "12-29": {"imgs": ["u_12-29_1", "u_12-29_2", "u_12-29_3"], "txt": "Bastrop, Cypress Outlets e stivali texani"}, "12-30": {"imgs": ["u_12-30_1", "u_12-30_2", "u_12-30_3"], "txt": "CorkScrew BBQ, Old Town Spring e Shogun"}, "12-31": {"imgs": ["u_12-31_1", "u_12-31_2", "u_12-31_3"], "txt": "Colazione al diner e preparativi per Capodanno"}, "01-01": {"imgs": ["sunset-texas_0", "sunset-texas_1", "lostpines_0"], "txt": "Relax a casa"}, "01-02": {"imgs": ["u_01-02_1", "u_01-02_2", "u_01-02_3"], "txt": "Woodson’s, Costco e musica country"}, "01-03": {"imgs": ["u_01-03_1", "u_01-03_2", "u_01-03_3"], "txt": "Pranzo, partita NBA e cena di Leslie"}, "01-04": {"imgs": ["u_01-04_1", "u_01-04_2", "u_01-04_3"], "txt": "Partenza da Houston IAH"}};
   var PHOTO_CREDITS = {"houston": {"c": "Houston, Texas Skyline 2017 – Jason Villanueva, CC BY-SA 4.0 (Wikimedia Commons)"}, "sunset-texas_0": {"c": "The open skies of Texas - Flickr - illusionbreak – Joe Diaz from San Antonio, US, CC BY-SA 2.0 (Wikimedia Commons)"}, "xmas-houston_0": {"c": "Houston Christmas (early) (303930490) – Ed Schipul from Houston, TX, US, CC BY-SA 2.0 (Wikimedia Commons)"}, "bluebonnet_0": {"c": "Bluebonnets and Indian Paintbrush Field Sunset – 8bit12man, CC BY 4.0 (Wikimedia Commons)"}, "sunset-texas_1": {"c": "Sunset on the 1st of June - In Explore June 2015 - Flickr - illusionbreak – Joe Diaz from San Antonio, US, CC BY-SA 2.0 (Wikimedia Commons)"}, "lostpines_0": {"c": "Lost pines hwy 21 – Larry D. Moore, CC BY 4.0 (Wikimedia Commons)"}, "texas": {"c": "Bluebonnets Wildflower Center Austin Texas 2024 – Larry D. Moore, CC BY 4.0 (Wikimedia Commons)"}, "bbq": {"c": "Plate of brisket, BBQ ribs, pulled pork, South Texas beans and pickled jalapeños from the Pinkerton's BBQ San Antonio location – Gatorfan252525, CC BY-SA 4.0 (Wikimedia Commons)"}, "u_12-22_1": {"c": "Houston di notte — skyline – fonte: cdn.wallpapersafari.com"}, "u_12-22_2": {"c": "Houston di notte — skyline – fonte: culinaryschools.org"}, "u_12-22_3": {"c": "Houston di notte — skyline – fonte: wallpapercat.com"}, "u_12-23_1": {"c": "H‑E‑B a Spring – fonte: img.p.mapq.st"}, "u_12-23_2": {"c": "Houston Premium Outlets, Cypress – fonte: dynamic-media-cdn.tripadvisor.com"}, "u_12-23_3": {"c": "Steakhouse — idea per il compleanno – fonte: img02.restaurantguru.com"}, "u_12-25_1": {"c": "Natale in famiglia e regali – fonte: static.showit.co"}, "u_12-25_2": {"c": "Natale in famiglia e regali – fonte: rightathome.net"}, "u_12-25_3": {"c": "Natale in famiglia e regali – fonte: assets.dmagstatic.com"}, "u_12-26_1": {"c": "Mission Control Apollo restaurata — NASA – fonte: nasa.gov"}, "u_12-26_2": {"c": "Rocket Park — razzi e Saturn V – fonte: backstreetnomad.com"}, "u_12-26_3": {"c": "Kemah Boardwalk sul waterfront – fonte: landrysinc.com"}, "u_12-27_1": {"c": "Galveston — spiaggia e Pleasure Pier – fonte: images.contentstack.io"}, "u_12-27_2": {"c": "Houston Galleria — pista di pattinaggio – fonte: mallshouston.com"}, "u_12-27_3": {"c": "Galveston — spiaggia e Pleasure Pier – fonte: theconciergelounge.com"}, "u_12-28_1": {"c": "BBQ texano ad Austin – fonte: austintexasthings.com"}, "u_12-28_2": {"c": "Downtown Austin di sera – fonte: jsg.utexas.edu"}, "u_12-28_3": {"c": "Smithville — centro storico – fonte: ci.smithville.tx.us"}, "u_12-29_1": {"c": "Bastrop — centro storico e fiume – fonte: images.squarespace-cdn.com"}, "u_12-29_2": {"c": "Houston Premium Outlets, Cypress – fonte: mallshouston.com"}, "u_12-29_3": {"c": "Stivali da cowboy texani – fonte: authentictexas.com"}, "u_12-30_1": {"c": "CorkScrew BBQ — ingresso – fonte: houstonchronicle.com"}, "u_12-30_2": {"c": "Old Town Spring — negozi storici – fonte: upload.wikimedia.org"}, "u_12-30_3": {"c": "Shogun — hibachi e sushi (sede da confermare) – fonte: img-us.didaudo.net"}, "u_12-31_1": {"c": "Colazione americana al diner – fonte: cdn.babyseo.ai"}, "u_12-31_2": {"c": "Colazione classica all’americana – fonte: patriotsdiner.com"}, "u_12-31_3": {"c": "Tavola e festa di Capodanno a casa – fonte: i0.wp.com"}, "u_01-02_1": {"c": "Costco — magazzino e spesa – fonte: images.squarespace-cdn.com"}, "u_01-02_2": {"c": "Musica country dal vivo a Houston – fonte: res.cloudinary.com"}, "u_01-02_3": {"c": "Musica country dal vivo a Houston – fonte: media.bizj.us"}, "u_01-03_1": {"c": "Houston Rockets al Toyota Center – fonte: res.klook.com"}, "u_01-03_2": {"c": "Houston Rockets al Toyota Center – fonte: images.gametime.co"}, "u_01-03_3": {"c": "Ristorante italiano — immagine di riferimento per Il Postino – fonte: thevendry.com"}, "u_01-04_1": {"c": "Aeroporto George Bush Intercontinental (IAH) – fonte: images.ctfassets.net"}, "u_01-04_2": {"c": "Aeroporto George Bush Intercontinental (IAH) – fonte: s.hdnux.com"}, "u_01-04_3": {"c": "Aeroporto George Bush Intercontinental (IAH) – fonte: images.ctfassets.net"}};
-  var DEFAULT_IMGS = ['houston', 'texas', 'bbq'];
+  function dayName(k) { var p = k.split('-'); return Number(p[1]) + (p[0] === '12' ? ' dicembre' : ' gennaio'); }
+  function allImgs() { var s = {}; Object.keys(DAYS).forEach(function (k) { DAYS[k].imgs.forEach(function (n) { s[n] = 1; }); }); return Object.keys(s); }
   function todayKey() { var d = new Date(); return pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  var bgState = { imgs: [], i: 0, front: 'bgA', timer: null };
+  function bgStep() {
+    var s = bgState, next = s.front === 'bgA' ? 'bgB' : 'bgA', el = $(next), key = s.imgs[s.i % s.imgs.length], im = new Image();
+    im.onload = function () { el.style.backgroundImage = 'url(img/' + key + '.jpg)'; el.classList.add('on'); $(s.front).classList.remove('on'); s.front = next; };
+    im.src = 'img/' + key + '.jpg'; s.i++;
+  }
+  function applyBackground() {
+    var pick = st.bgDay || 'auto', k = pick === 'auto' ? todayKey() : pick, day = pick === 'all' ? null : DAYS[k];
+    var imgs = day ? day.imgs : allImgs();
+    for (var j = imgs.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)), t = imgs[j]; imgs[j] = imgs[r]; imgs[r] = t; }
+    $('today').textContent = day ? (pick === 'auto' ? 'Oggi: ' : 'Anteprima ' + dayName(k) + ': ') + day.txt : '';
+    bgState.imgs = imgs; bgState.i = 0;
+    if (bgState.timer) clearInterval(bgState.timer);
+    bgStep();
+    if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) bgState.timer = setInterval(bgStep, 14000);
+  }
   function setupBackground() {
-    var day = DAYS[todayKey()], imgs = day ? day.imgs : DEFAULT_IMGS, i = 0, front = 'bgA';
-    $('today').textContent = day ? 'Oggi: ' + day.txt : '';
-    function step() {
-      var next = front === 'bgA' ? 'bgB' : 'bgA', el = $(next), key = imgs[i % imgs.length];
-      var im = new Image();
-      im.onload = function () {
-        el.style.backgroundImage = 'url(img/' + key + '.jpg)';
-        el.classList.add('on'); $(front).classList.remove('on'); front = next;
-      };
-      im.src = 'img/' + key + '.jpg'; i++;
-    }
-    i = Math.floor(Math.random() * imgs.length);
-    step();
-    if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(step, 14000);
+    var sel = $('sBg'); sel.innerHTML = '<option value="auto">Automatico (in base alla data)</option><option value="all">Tutte le foto</option>' +
+      Object.keys(DAYS).map(function (k) { return '<option value="' + k + '">' + dayName(k) + ' – ' + DAYS[k].txt.replace(/</g, '&lt;') + '</option>'; }).join('');
+    sel.value = st.bgDay || 'auto';
+    sel.addEventListener('change', function () { st.bgDay = sel.value === 'auto' ? '' : sel.value; persist(); applyBackground(); });
+    applyBackground();
     var box = $('credits'); box.innerHTML = '';
     Object.keys(PHOTO_CREDITS).forEach(function (k) {
       var p = PHOTO_CREDITS[k], d = document.createElement('div');
