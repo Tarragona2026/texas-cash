@@ -16,35 +16,36 @@
 /* Layout: una schermata alla volta sopra uno sfondo fotografico fisso che cambia ogni giorno (3 foto dei luoghi del programma).
    Stile liquid glass: pannelli di vetro sfocato e traslucido, chiaro o scuro in automatico come l'iPhone. */
 :root {
-  --bg: #cfd8e6;
-  --ink: #0e1a30;
-  --ink-soft: #384764;
-  --glass: rgba(255, 255, 255, .58);
-  --glass-strong: rgba(255, 255, 255, .78);
-  --glass-line: rgba(255, 255, 255, .75);
-  --glass-shadow: 0 8px 30px rgba(10, 25, 55, .18);
-  --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(255, 255, 255, .25);
-  --field: rgba(255, 255, 255, .62);
-  --scrim: linear-gradient(180deg, rgba(255,255,255,.10), rgba(220,230,245,.35));
-  --scrim-inner: rgba(235, 241, 250, .55);
-  --accent: #c0391f;
+  --bg: #f2f2f7;
+  --ink: #1c1c1e;
+  --ink-soft: #636366;
+  --glass: rgba(255, 255, 255, .72);
+  --glass-strong: rgba(255, 255, 255, .88);
+  --glass-line: rgba(255, 255, 255, .7);
+  --glass-shadow: 0 6px 24px rgba(0, 0, 0, .12);
+  --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .9);
+  --field: rgba(118, 118, 128, .12);
+  --scrim: linear-gradient(180deg, rgba(242,242,247,.15), rgba(242,242,247,.45));
+  --scrim-inner: rgba(242, 242, 247, .62);
+  --accent: #007aff;
   --accent-ink: #ffffff;
-  --good: #14733f;
-  --warn: #9a5b00;
-  --bad: #c0391f;
-  --font-display: Rockwell, "Roboto Slab", Georgia, serif;
+  --indigo: #5e5ce6;
+  --good: #248a3d;
+  --warn: #b25000;
+  --bad: #d70015;
+  --font-display: -apple-system, "SF Pro Rounded", "SF Pro Display", system-ui, sans-serif;
   --font-body: -apple-system, "SF Pro Text", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0a111d; --ink: #f1f4fa; --ink-soft: #aab6cc;
-    --glass: rgba(20, 30, 50, .55); --glass-strong: rgba(24, 36, 60, .78); --glass-line: rgba(255, 255, 255, .20);
-    --glass-shadow: 0 10px 34px rgba(0, 0, 0, .45);
-    --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 -1px 0 rgba(255, 255, 255, .04);
-    --field: rgba(255, 255, 255, .10);
-    --scrim: linear-gradient(180deg, rgba(5,10,20,.25), rgba(5,10,20,.55));
-    --scrim-inner: rgba(6, 12, 24, .62);
-    --accent: #ff7157; --accent-ink: #220d08; --good: #55d196; --warn: #f0b04a; --bad: #ff7157;
+    --bg: #000000; --ink: #ffffff; --ink-soft: #aeaeb2;
+    --glass: rgba(44, 44, 46, .62); --glass-strong: rgba(44, 44, 46, .9); --glass-line: rgba(255, 255, 255, .16);
+    --glass-shadow: 0 8px 30px rgba(0, 0, 0, .5);
+    --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .16);
+    --field: rgba(118, 118, 128, .24);
+    --scrim: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.55));
+    --scrim-inner: rgba(0, 0, 0, .62);
+    --accent: #0a84ff; --accent-ink: #ffffff; --indigo: #7d7aff; --good: #30d158; --warn: #ff9f0a; --bad: #ff453a;
     color-scheme: dark;
   }
 }
@@ -73,8 +74,8 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.8rem; margin: 0; letter-spacing: .01em; }
-h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.8rem; margin: 0; letter-spacing: -.02em; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; margin: 0; letter-spacing: -.01em; }
 
 /* vetro */
 .glass, .card, .item, .empty {
@@ -84,36 +85,44 @@ h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; marg
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass, .card, .item, .empty { background: var(--glass-strong); }
 }
-.card { border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.card { border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); font-weight: 700; }
 .hint { font-size: .85rem; color: var(--ink-soft); }
 
 input[type=text], select {
-  background: var(--field); border: 1px solid var(--glass-line); border-radius: 14px; padding: 10px 12px; min-height: 44px; width: 100%; min-width: 0;
-  box-shadow: inset 0 1px 2px rgba(10, 25, 55, .08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  background: var(--field); border: 0; border-radius: 12px; padding: 10px 12px; min-height: 44px; width: 100%; min-width: 0;
 }
 input::placeholder { color: var(--ink-soft); opacity: .8; }
 
 .topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
 .topbar h2 { text-align: center; text-shadow: 0 1px 8px rgba(255,255,255,.35); }
-.back { justify-self: start; white-space: nowrap; min-height: 40px; padding: 0 14px 0 10px; border-radius: 999px; font-weight: 700; color: var(--ink); font-size: .95rem; border: 1px solid var(--glass-line); background: var(--glass); box-shadow: var(--glass-hi);
+.back { justify-self: start; white-space: nowrap; min-height: 40px; padding: 0 14px 0 10px; border-radius: 999px; font-weight: 600; color: var(--accent); font-size: .95rem; border: 1px solid var(--glass-line); background: var(--glass); box-shadow: var(--glass-hi);
   -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
 
 /* home */
-.hero { border-radius: 24px; padding: 14px 18px; display: flex; flex-direction: column; gap: 2px; }
-.hello { color: var(--ink-soft); }
-.today { font-size: .85rem; color: var(--ink); font-weight: 600; margin-top: 4px; }
-.bigbtns { display: flex; flex-direction: column; gap: 12px; }
-.bigbtn {
-  position: relative; overflow: hidden; min-height: 100px; border-radius: 26px; border: 1px solid var(--glass-line); font-family: var(--font-display); font-weight: 700; font-size: 1.4rem;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px;
-  box-shadow: var(--glass-shadow), var(--glass-hi); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
-}
-.bigbtn::after { content: ""; position: absolute; inset: 0 0 50% 0; background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0)); pointer-events: none; }
-.bigbtn small { font-family: var(--font-body); font-weight: 600; font-size: .85rem; opacity: .9; }
-.bigbtn.primary { background: color-mix(in srgb, var(--accent) 82%, transparent); color: var(--accent-ink); }
-.bigbtn.secondary { background: color-mix(in srgb, var(--ink) 74%, transparent); color: var(--bg); }
-.subbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hero { border-radius: 22px; padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 6px; }
+.hero-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.hero h1 { font-size: 1.25rem; }
+.hello { color: var(--ink-soft); font-size: .8rem; }
+.remain { text-align: right; }
+.remain .label { font-size: .65rem; }
+.hero .budget-left { font-size: 1.7rem; }
+.hero .bar { height: 6px; }
+.hero-foot { display: flex; justify-content: space-between; gap: 10px; font-size: .75rem; color: var(--ink-soft); flex-wrap: wrap; }
+.today { font-size: .75rem; color: var(--ink); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile { min-height: 150px; border-radius: 26px; border: 0; color: #fff; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; text-align: left; padding: 16px; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -.01em; box-shadow: 0 8px 22px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.35); }
+.tile svg { width: 38px; height: 38px; }
+.tile small { display: block; font-family: var(--font-body); font-weight: 500; font-size: .78rem; opacity: .92; margin-top: 2px; letter-spacing: 0; }
+.tile.blue { background: linear-gradient(180deg, #2b95ff, #007aff); }
+.tile.indigo { background: linear-gradient(180deg, #7c7aff, #5e5ce6); }
+.tile:active { transform: scale(.98); }
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.dock .in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-radius: 28px; padding: 6px; background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--glass-shadow), var(--glass-hi); -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); }
+.dock button { min-height: 54px; border: 0; background: transparent; border-radius: 22px; color: var(--ink-soft); font-weight: 600; font-size: .72rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.dock button:active { background: var(--field); color: var(--accent); }
+.dock svg { width: 24px; height: 24px; }
+#v-home { padding-bottom: 96px; }
 
 .budget { gap: 10px; }
 .budget-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -136,9 +145,9 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.chip { flex: 1 1 0; min-width: 3.4rem; min-height: 44px; border-radius: 14px; border: 1px solid var(--glass-line); background: var(--field); font-weight: 700; box-shadow: var(--glass-hi); }
+.chip { flex: 1 1 0; min-width: 3.4rem; min-height: 44px; border-radius: 12px; border: 0; background: var(--field); font-weight: 600; }
 .chip.wide { flex-basis: 100%; }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: .95rem; }
 .toggle input { width: 22px; height: 22px; accent-color: var(--accent); }
 
@@ -151,11 +160,11 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .total { padding: 14px 0; }
 .total .k { color: var(--ink); font-weight: 700; }
 .total .v { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1.05; }
-.total .v small { font-family: var(--font-body); font-size: 1rem; font-weight: 700; color: var(--accent); margin-top: 2px; }
+.total .v small { font-family: var(--font-body); font-size: 1rem; font-weight: 600; color: var(--accent); margin-top: 2px; }
 
-.btn { position: relative; overflow: hidden; min-height: 48px; border-radius: 16px; border: 1px solid var(--glass-line); padding: 0 18px; font-weight: 700; background: color-mix(in srgb, var(--accent) 88%, transparent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; gap: 4px; text-align: center; box-shadow: 0 4px 14px rgba(10,25,55,.18), var(--glass-hi); }
-.btn::after { content: ""; position: absolute; inset: 0 0 55% 0; background: linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,0)); pointer-events: none; }
-.btn.ghost { background: var(--glass); color: var(--ink); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); }
+.btn { min-height: 48px; border-radius: 14px; border: 0; padding: 0 18px; font-weight: 600; background: var(--accent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; gap: 4px; text-align: center; }
+.btn:active { opacity: .8; }
+.btn.ghost { background: var(--field); color: var(--accent); }
 .btn.small { min-height: 40px; padding: 0 12px; font-size: .9rem; border-radius: 14px; }
 .btnrow { display: flex; gap: 10px; flex-wrap: wrap; }
 .btnrow .btn { flex: 1 1 auto; }
@@ -196,27 +205,23 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
   <!-- HOME -->
   <section id="v-home" class="wrap" aria-label="Home">
-    <div class="hero glass">
-      <h1>Texas Cash</h1>
-      <div class="hello" id="hello"></div>
-      <div class="today" id="today"></div>
-    </div>
-    <div class="bigbtns">
-      <button class="bigbtn primary" id="goScan" type="button">Carica scontrino<small>Scatta una foto, leggo io gli importi</small></button>
-      <button class="bigbtn secondary" id="goCalc" type="button">Calcola prezzo<small>Dollari, tasse, mancia, euro</small></button>
-    </div>
-    <section class="card budget" aria-label="Plafond rimasto">
-      <div class="label">Plafond rimasto</div>
-      <div class="budget-top">
-        <div class="budget-left num" id="left">$0</div>
-        <div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="spent"></span><span class="num" id="leftEur"></span></div>
+    <section class="hero glass" aria-label="Texas Cash e plafond rimasto">
+      <div class="hero-top">
+        <div><h1>Texas Cash</h1><div class="hello" id="hello"></div></div>
+        <div class="remain"><div class="label">Plafond rimasto</div><div class="budget-left num" id="left">$0</div></div>
       </div>
       <div class="bar" role="progressbar" aria-label="Plafond usato" id="barwrap"><i id="bar"></i></div>
+      <div class="hero-foot"><span class="num" id="spent"></span><span class="num" id="leftEur"></span></div>
+      <div class="today" id="today"></div>
     </section>
-    <div class="subbtns">
-      <button class="btn ghost" id="goLog" type="button">Registro <span id="cnt"></span></button>
-      <button class="btn ghost" id="goSettings" type="button">Impostazioni</button>
+    <div class="tiles">
+      <button class="tile blue" id="goScan" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Carica scontrino<small>Foto e lettura importi</small></span></button>
+      <button class="tile indigo" id="goCalc" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/></svg><span>Calcola prezzo<small>Tasse, mancia, euro</small></span></button>
     </div>
+    <nav class="dock" aria-label="Sezioni"><div class="in">
+      <button id="goLog" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Registro <span id="cnt"></span></span></button>
+      <button id="goSettings" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg><span>Impostazioni</span></button>
+    </div></nav>
   </section>
 
   <!-- CARICA SCONTRINO -->
@@ -257,12 +262,12 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
         <label class="label" for="price">Prezzo in dollari</label>
         <div class="money"><span>$</span><input id="price" type="text" inputmode="decimal" value="" placeholder="0,00"></div>
       </div>
-      <label class="toggle"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
       <div class="field">
         <span class="label" id="tiplabel">Mancia</span>
         <div class="chips" role="group" aria-labelledby="tiplabel" id="chips"></div>
         <div class="pct" id="tipcWrap" hidden><input id="tipc" type="text" inputmode="decimal" placeholder="Percentuale" aria-label="Mancia personalizzata in percentuale"><span>%</span></div>
       </div>
+      <label class="toggle"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
     </section>
     <section class="card result" aria-label="Riepilogo" aria-live="polite">
       <div class="line"><span class="k">Prezzo senza tasse</span><span class="v num" id="rNet"></span></div>
@@ -308,7 +313,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="label">Plafond</div>
       <div class="budget-top"><div class="budget-left num" id="sLeft"></div><div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="sSpent"></span></div></div>
       <button class="btn" id="goTopup" type="button">Ricarica plafond</button>
-      <div class="hint">Le ricariche restano nel registro del telefono. Si possono eliminare solo dall'app Mac.</div>
+      <div class="hint">Le ricariche si vedono e si eliminano dalla scheda Ricariche del Registro.</div>
     </section>
     <section class="card">
       <div class="field"><label class="label" for="sUser">Nome utente</label><input id="sUser" type="text" autocomplete="off" placeholder="es. Matteo"></div>
@@ -464,8 +469,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       var pct = Math.min(100, sp / pl * 100), cls = pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
       lf.textContent = (left < 0 ? '-' : '') + usd(Math.abs(left)); lf.className = 'budget-left num ' + cls; lf.style.fontSize = '';
       bar.style.width = pct + '%'; bar.className = cls === 'good' ? '' : cls;
-      $('spent').textContent = 'Speso ' + usd(sp) + ' · Ricaricato ' + usd(pl);
-      $('leftEur').textContent = (left < 0 ? '-' : '') + eur(Math.abs(left) * st.rate) + ' · ' + Math.round(pct) + '% usato';
+      $('spent').textContent = 'Speso ' + usd(sp) + ' di ' + usd(pl);
+      $('leftEur').textContent = (left < 0 ? '-' : '') + eur(Math.abs(left) * st.rate);
       $('barwrap').setAttribute('aria-valuenow', Math.round(pct));
     } else {
       lf.textContent = 'Ricarica il plafond'; lf.className = 'budget-left'; lf.style.fontSize = '1.1rem';
@@ -622,7 +627,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     $('logTotLabel').textContent = 'Totale ricaricato';
     $('logTot').innerHTML = usd(topupTotal()) + ' · ' + eur(topupTotal() * st.rate);
     $('catSum').innerHTML = '<span class="num">Rimasto ' + usd(topupTotal() - spentTotal()) + '</span>';
-    if (!st.topups.length) { list.innerHTML = '<div class="empty">Nessuna ricarica ancora.<br>Si aggiungono da Impostazioni.</div>'; return; }
+    if (!st.topups.length) { list.innerHTML = '<div class="empty">Nessuna ricarica ancora.<br>Si aggiungono da Impostazioni, con Ricarica plafond.</div>'; return; }
     st.topups.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (t) {
       var el = document.createElement('div'); el.className = 'item';
       var body = document.createElement('div'); body.className = 'body';
@@ -631,6 +636,13 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       body.lastChild.textContent = dateStr(t.ts);
       var amt = document.createElement('div'); amt.className = 'amt num';
       amt.innerHTML = '<b>+' + usd(t.usd) + '</b><small>' + eur(t.usd * st.rate) + '</small>';
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost small'; del.textContent = 'Elimina'; del.style.marginTop = '6px'; del.style.alignSelf = 'flex-start';
+      var armed = false;
+      del.onclick = function () {
+        if (!armed) { armed = true; del.textContent = 'Conferma?'; setTimeout(function () { armed = false; del.textContent = 'Elimina'; }, 3000); return; }
+        st.topups = st.topups.filter(function (x) { return x.id !== t.id; }); persist(); renderLog();
+      };
+      body.appendChild(del);
       el.appendChild(body); el.appendChild(amt); list.appendChild(el);
     });
   }
