@@ -13,7 +13,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* Layout: app a due schede (Calcola / Registro) con barra di budget sempre in alto e tab bar in basso, pensata per iPhone. */
+/* Layout: una schermata alla volta. Home con due pulsanti grandi e plafond; Carica scontrino, Calcola prezzo, Registro e Impostazioni si aprono sopra con il tasto Indietro. */
 :root {
   --bg: #eef1f5;
   --surface: #ffffff;
@@ -42,59 +42,67 @@ body {
   background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.4;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: calc(12px + env(safe-area-inset-top, 0px)) 96px;
+  padding-block: calc(12px + env(safe-area-inset-top, 0px)) calc(32px + env(safe-area-inset-bottom, 0px));
   -webkit-text-size-adjust: 100%;
 }
+[hidden] { display: none !important; }
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 .num { font-variant-numeric: tabular-nums; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; margin: 0; letter-spacing: .01em; }
-.rate { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--ink-soft); }
-.rate input { width: 4.4rem; text-align: center; }
-
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; margin: 0; letter-spacing: .01em; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; }
 input[type=text], select {
   background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px;
   min-height: 44px; width: 100%; min-width: 0;
 }
-.rate input { width: 4.6rem; }
-.ratebar { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .8rem; color: var(--ink-soft); }
-
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); font-weight: 600; }
+.hint { font-size: .85rem; color: var(--ink-soft); }
 
-/* budget strip */
+.topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.topbar h2 { text-align: center; }
+.back { justify-self: start; min-height: 44px; padding: 0 12px 0 4px; border: 0; background: none; font-weight: 700; color: var(--accent); font-size: 1rem; }
+
+/* home */
+.hello { color: var(--ink-soft); margin-top: 2px; }
+.bigbtns { display: flex; flex-direction: column; gap: 12px; }
+.bigbtn {
+  min-height: 96px; border-radius: 18px; border: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.35rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px;
+}
+.bigbtn small { font-family: var(--font-body); font-weight: 500; font-size: .85rem; opacity: .85; }
+.bigbtn.primary { background: var(--accent); color: var(--accent-ink); }
+.bigbtn.secondary { background: var(--ink); color: var(--bg); }
+.subbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
 .budget { gap: 10px; }
 .budget-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.budget-left { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; line-height: 1.1; }
+.budget-left { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1.1; }
 .budget-left.warn { color: var(--warn); } .budget-left.bad { color: var(--bad); } .budget-left.good { color: var(--good); }
 .bar { height: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 0; background: var(--good); border-radius: 6px; transition: width .3s; }
 .bar > i.warn { background: var(--warn); } .bar > i.bad { background: var(--bad); }
 .budget-sub { display: flex; justify-content: space-between; gap: 12px; font-size: .85rem; color: var(--ink-soft); flex-wrap: wrap; }
-.plafond { display: flex; gap: 10px; align-items: center; }
-.plafond .money { flex: 1; }
 
-/* money input */
+/* fields */
 .money { position: relative; }
 .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); font-weight: 600; pointer-events: none; }
 .money input { padding-left: 32px; }
 .price input { font-size: 2rem; font-weight: 700; min-height: 64px; padding-left: 40px; }
 .price span { font-size: 1.4rem; }
-
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .pct { position: relative; }
 .pct input { padding-right: 32px; }
 .pct span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); font-weight: 600; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { flex: 1 1 0; min-width: 3.4rem; min-height: 44px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-weight: 600; }
+.chip.wide { flex-basis: 100%; }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-
 .toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: .95rem; }
 .toggle input { width: 22px; height: 22px; accent-color: var(--accent); }
 
@@ -109,7 +117,7 @@ input[type=text], select {
 .total .v { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1.05; }
 .total .v small { font-family: var(--font-body); font-size: 1rem; font-weight: 600; color: var(--accent); margin-top: 2px; }
 
-.btn { min-height: 48px; border-radius: 12px; border: 0; padding: 0 18px; font-weight: 700; background: var(--accent); color: var(--accent-ink); }
+.btn { min-height: 48px; border-radius: 12px; border: 0; padding: 0 18px; font-weight: 700; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; text-align: center; }
 .btn.ghost { background: var(--surface-2); color: var(--ink); }
 .btn.small { min-height: 40px; padding: 0 12px; font-size: .9rem; }
 .btnrow { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -135,148 +143,171 @@ input[type=text], select {
 .cats { display: flex; gap: 6px; flex-wrap: wrap; font-size: .8rem; color: var(--ink-soft); }
 .cats span { background: var(--surface-2); border-radius: 999px; padding: 3px 10px; }
 
-/* tabs */
-nav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line);
-  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
-}
-nav .in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-nav button { min-height: 46px; border-radius: 12px; border: 0; background: transparent; font-weight: 700; color: var(--ink-soft); }
-nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
-
 .viewer { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; }
 .viewer img { max-width: 100%; max-height: calc(100% - 70px); object-fit: contain; border-radius: 6px; }
 .viewer .btn { background: #fff; color: #111; }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 600; z-index: 30; max-width: 90%; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 600; z-index: 30; max-width: 90%; text-align: center; }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
 </style>
 <script src="ocr.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>Texas Cash</h1>
-    <label class="rate" for="rate">1 $ = € <input id="rate" type="text" inputmode="decimal" aria-label="Cambio euro per un dollaro"></label>
-    <div class="ratebar"><span id="rateInfo">Cambio manuale</span><button class="btn ghost small" id="rateRefresh" type="button">Aggiorna cambio</button></div>
-  </header>
 
-  <section class="card budget" aria-label="Plafond di spesa">
-    <div class="budget-top">
-      <div><div class="label">Ti restano</div><div class="budget-left num" id="left">$0</div></div>
-      <div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="spent">Speso $0</span><span class="num" id="leftEur">€0</span></div>
+  <!-- HOME -->
+  <section id="v-home" class="wrap" aria-label="Home">
+    <div>
+      <h1>Texas Cash</h1>
+      <div class="hello" id="hello"></div>
     </div>
-    <div class="bar" role="progressbar" aria-label="Plafond usato" id="barwrap"><i id="bar"></i></div>
-    <div class="plafond">
-      <label class="label" for="plafond">Plafond</label>
-      <div class="money"><span>$</span><input id="plafond" type="text" inputmode="decimal" placeholder="es. 1500"></div>
+    <div class="bigbtns">
+      <button class="bigbtn primary" id="goScan" type="button">Carica scontrino<small>Scatta una foto, leggo io gli importi</small></button>
+      <button class="bigbtn secondary" id="goCalc" type="button">Calcola prezzo<small>Dollari, tasse, mancia, euro</small></button>
+    </div>
+    <section class="card budget" aria-label="Plafond rimasto">
+      <div class="label">Plafond rimasto</div>
+      <div class="budget-top">
+        <div class="budget-left num" id="left">$0</div>
+        <div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="spent"></span><span class="num" id="leftEur"></span></div>
+      </div>
+      <div class="bar" role="progressbar" aria-label="Plafond usato" id="barwrap"><i id="bar"></i></div>
+    </section>
+    <div class="subbtns">
+      <button class="btn ghost" id="goLog" type="button">Registro <span id="cnt"></span></button>
+      <button class="btn ghost" id="goSettings" type="button">Impostazioni</button>
     </div>
   </section>
 
-  <main id="tab-calc" class="wrap" style="gap:14px">
-    <section class="card" aria-label="Calcolatore">
+  <!-- CARICA SCONTRINO -->
+  <section id="v-scan" class="wrap" aria-label="Carica scontrino" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Scontrino</h2><span></span></div>
+    <section class="card">
+      <div class="pending" id="pending" hidden>
+        <img class="thumb" id="pendImg" alt="Foto dello scontrino">
+        <div class="hint" id="ocrStatus" aria-live="polite"></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="takePhoto" type="button">Scatta foto</button>
+        <button class="btn ghost" id="pickPhoto" type="button">Dalla libreria</button>
+      </div>
+      <input id="camFile" type="file" accept="image/*" capture="environment" hidden>
+      <input id="libFile" type="file" accept="image/*" hidden>
+    </section>
+    <section class="card" aria-label="Importi dello scontrino">
+      <div class="label">Importi (puoi modificarli)</div>
+      <div class="row2">
+        <div class="field"><label class="label" for="oSub">Subtotale</label><div class="money"><span>$</span><input id="oSub" type="text" inputmode="decimal"></div></div>
+        <div class="field"><label class="label" for="oTax">Tasse</label><div class="money"><span>$</span><input id="oTax" type="text" inputmode="decimal"></div></div>
+        <div class="field"><label class="label" for="oTip">Mancia</label><div class="money"><span>$</span><input id="oTip" type="text" inputmode="decimal"></div></div>
+        <div class="field"><label class="label" for="oTot">Totale pagato</label><div class="money"><span>$</span><input id="oTot" type="text" inputmode="decimal"></div></div>
+      </div>
+      <div class="hint" id="ocrEur"></div>
+      <input id="descScan" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
+      <select id="catScan" aria-label="Categoria"></select>
+      <button class="btn" id="saveScan" type="button">Salva scontrino e spesa</button>
+    </section>
+  </section>
+
+  <!-- CALCOLA PREZZO -->
+  <section id="v-calc" class="wrap" aria-label="Calcola prezzo" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Calcola prezzo</h2><span></span></div>
+    <section class="card" aria-label="Prezzo in dollari">
       <div class="field price">
         <label class="label" for="price">Prezzo in dollari</label>
-        <div class="money"><span>$</span><input id="price" type="text" inputmode="decimal" value="42.50"></div>
+        <div class="money"><span>$</span><input id="price" type="text" inputmode="decimal" value="" placeholder="0,00"></div>
       </div>
-      <div class="row2">
-        <div class="field">
-          <label class="label" for="tax">Tasse (sales tax)</label>
-          <div class="pct"><input id="tax" type="text" inputmode="decimal"><span>%</span></div>
-        </div>
-        <div class="field">
-          <label class="label" for="tipc">Mancia personalizzata</label>
-          <div class="pct"><input id="tipc" type="text" inputmode="decimal" placeholder="altro"><span>%</span></div>
-        </div>
-      </div>
+      <label class="toggle"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
       <div class="field">
         <span class="label" id="tiplabel">Mancia</span>
         <div class="chips" role="group" aria-labelledby="tiplabel" id="chips"></div>
+        <div class="pct" id="tipcWrap" hidden><input id="tipc" type="text" inputmode="decimal" placeholder="Percentuale" aria-label="Mancia personalizzata in percentuale"><span>%</span></div>
       </div>
-      <label class="toggle"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
     </section>
-
-    <section class="card result" aria-live="polite">
+    <section class="card result" aria-label="Riepilogo" aria-live="polite">
       <div class="line"><span class="k">Prezzo senza tasse</span><span class="v num" id="rNet"></span></div>
-      <div class="line"><span class="k">Tasse</span><span class="v num" id="rTax"></span></div>
-      <div class="line"><span class="k">Mancia</span><span class="v num" id="rTip"></span></div>
+      <div class="line"><span class="k" id="rTaxK">Tasse</span><span class="v num" id="rTax"></span></div>
+      <div class="line"><span class="k" id="rTipK">Mancia</span><span class="v num" id="rTip"></span></div>
       <div class="line total"><span class="k">Totale</span><span class="v num" id="rTot"></span></div>
     </section>
-
-    <section class="card" aria-label="Salva la spesa">
+    <section class="card" aria-label="Salva nel registro">
       <div class="label">Salva nel registro</div>
       <input id="desc" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="cat" aria-label="Categoria"></select>
-      <div class="pending" id="pending" hidden>
-        <img class="thumb" id="pendImg" alt="Anteprima scontrino">
-        <button class="btn ghost small" id="pendRemove" type="button">Rimuovi foto</button>
-      </div>
-      <div class="btnrow">
-        <label class="btn ghost" style="display:grid;place-items:center;cursor:pointer" for="file">Foto scontrino</label>
-        <button class="btn" id="save" type="button">Salva spesa</button>
-      </div>
-      <input id="file" type="file" accept="image/*" hidden>
+      <button class="btn" id="save" type="button">Salva spesa</button>
     </section>
+  </section>
 
-    <section class="card" id="ocrCard" aria-label="Importi letti dallo scontrino" hidden>
-      <div class="label">Letto dallo scontrino</div>
-      <div class="budget-sub" id="ocrStatus" aria-live="polite"></div>
-      <div id="ocrFields">
-        <div class="row2">
-          <div class="field"><label class="label" for="oSub">Subtotale</label><div class="money"><span>$</span><input id="oSub" type="text" inputmode="decimal"></div></div>
-          <div class="field"><label class="label" for="oTax">Tasse</label><div class="money"><span>$</span><input id="oTax" type="text" inputmode="decimal"></div></div>
-          <div class="field"><label class="label" for="oTip">Mancia</label><div class="money"><span>$</span><input id="oTip" type="text" inputmode="decimal"></div></div>
-          <div class="field"><label class="label" for="oTot">Totale</label><div class="money"><span>$</span><input id="oTot" type="text" inputmode="decimal"></div></div>
-        </div>
-        <div class="btnrow" style="margin-top:12px">
-          <button class="btn" id="ocrApply" type="button">Usa questi valori</button>
-          <button class="btn ghost" id="ocrRetry" type="button">Rileggi</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <main id="tab-log" class="wrap" style="gap:14px" hidden>
+  <!-- REGISTRO -->
+  <section id="v-log" class="wrap" aria-label="Registro" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Registro</h2><span></span></div>
     <div class="card" style="gap:8px">
       <div class="sumline"><span class="label">Totale speso</span><b class="num" id="logTot"></b></div>
       <div class="cats" id="catSum"></div>
     </div>
     <div class="list" id="list"></div>
-    <div class="card" style="gap:10px">
-      <div class="label">Backup</div>
-      <div class="budget-sub">Salva una copia di spese e foto. Utile se cambi telefono o iOS libera spazio.</div>
+  </section>
+
+  <!-- IMPOSTAZIONI -->
+  <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
+    <section class="card">
+      <div class="field"><label class="label" for="sUser">Nome utente</label><input id="sUser" type="text" autocomplete="off" placeholder="es. Matteo"></div>
+      <div class="field"><label class="label" for="plafond">Plafond</label><div class="money"><span>$</span><input id="plafond" type="text" inputmode="decimal" placeholder="es. 1500"></div></div>
+      <div class="field"><label class="label" for="tax">Tasse</label><div class="pct"><input id="tax" type="text" inputmode="decimal"><span>%</span></div></div>
+      <div class="field">
+        <label class="label" for="rate">Cambio (euro per 1 dollaro)</label>
+        <input id="rate" type="text" inputmode="decimal">
+        <div class="budget-sub"><span id="rateInfo">Cambio manuale</span></div>
+        <button class="btn ghost small" id="rateRefresh" type="button">Aggiorna cambio</button>
+      </div>
+    </section>
+    <section class="card">
+      <div class="label">Invia registro</div>
+      <div class="hint">Scarica un file CSV con tutte le tue spese: nome, giorno, ora, descrizione, categoria e importi in dollari ed euro.</div>
+      <button class="btn" id="exportCsv" type="button">Invia registro</button>
+      <div class="hint" id="exportInfo"></div>
+    </section>
+    <section class="card">
+      <div class="label">Backup con foto</div>
+      <div class="hint">Copia completa di spese e foto degli scontrini, per cambiare telefono o se iOS libera spazio.</div>
       <div class="btnrow">
         <button class="btn ghost" id="bkExport" type="button">Salva backup</button>
-        <label class="btn ghost" style="display:grid;place-items:center;cursor:pointer" for="bkImport">Ripristina</label>
+        <button class="btn ghost" id="bkPick" type="button">Ripristina</button>
       </div>
       <input id="bkImport" type="file" accept="application/json,.json" hidden>
-      <div class="budget-sub" id="bkInfo"></div>
-    </div>
-  </main>
-</div>
+      <div class="hint" id="bkInfo"></div>
+    </section>
+  </section>
 
-<nav aria-label="Sezioni"><div class="in" role="tablist">
-  <button role="tab" id="t1" aria-selected="true" aria-controls="tab-calc" type="button">Calcola</button>
-  <button role="tab" id="t2" aria-selected="false" aria-controls="tab-log" type="button">Registro <span id="cnt"></span></button>
-</div></nav>
+</div>
 <div id="viewerHost"></div>
 <div id="toastHost"></div>
 
 <script>
 (function () {
   var CATS = ['Cibo', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
-  var TIPS = [0, 15, 18, 20, 25];
+  var TIPS = [0, 10, 15, 18, 20];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings'];
   var KEY = 'texascash.v1';
-  var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, expenses: [] };
-  try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === 'object') { for (var k in s) st[k] = s[k]; } } catch (e) {}
+  var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [] };
+  try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
 
   var $ = function (id) { return document.getElementById(id); };
-  function num(v) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) && n > 0 ? n : 0; }
+  function num(v) {
+    var s = String(v).replace(/[\s$]/g, '');
+    if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/\./g, '');
+    var n = parseFloat(s.replace(',', '.'));
+    return isFinite(n) && n > 0 ? n : 0;
+  }
   function f(n) { return n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function fx(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ','); }
   function usd(n) { return '$' + f(n); }
   function eur(n) { return '€' + f(n); }
+  function r2(n) { return Math.round(n * 100) / 100; }
+  function dateStr(ts) { return new Date(ts).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
 
-  /* photos: IndexedDB with in-memory fallback */
+  /* ---------- foto: IndexedDB con copia in memoria ---------- */
   var mem = {}, dbp = null;
   function db() {
     if (!dbp) dbp = new Promise(function (res, rej) {
@@ -314,7 +345,7 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
     g.putImageData(im, 0, 0);
   }
   function shrink(file, max, enhance) {
-    return new Promise(function (res, rej) {
+    return new Promise(function (res) {
       var url = URL.createObjectURL(file), img = new Image();
       img.onload = function () {
         var m = max || 1400, sc = Math.min(1, m / Math.max(img.width, img.height));
@@ -332,56 +363,193 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
   function toast(msg) {
     var h = $('toastHost'); h.innerHTML = '';
     var d = document.createElement('div'); d.className = 'toast'; d.textContent = msg; h.appendChild(d);
-    setTimeout(function () { if (d.parentNode) d.remove(); }, 2200);
+    setTimeout(function () { if (d.parentNode) d.remove(); }, 2400);
   }
 
-  /* calculator */
-  function calc() {
-    var p = num($('price').value), t = num($('tax').value) / 100, tipPct = st.tip / 100, r = st.rate;
-    var net = $('incl').checked ? p / (1 + t) : p;
-    var tax = net * t, tip = net * tipPct, tot = net + tax + tip;
-    return { net: net, tax: tax, tip: tip, tot: tot, r: r };
+  /* ---------- navigazione ---------- */
+  function hashView() { var h = location.hash.replace('#', ''); return VIEWS.indexOf(h) >= 0 ? h : 'home'; }
+  function show(v) {
+    VIEWS.forEach(function (x) { $('v-' + x).hidden = x !== v; });
+    window.scrollTo(0, 0);
+    if (v === 'home') renderHome();
+    if (v === 'calc') renderCalc();
+    if (v === 'log') renderLog();
+    if (v === 'settings') fillSettings();
   }
-  function two(usdv, r) { return usd(usdv) + '<small>' + eur(usdv * r) + '</small>'; }
-  function renderCalc() {
-    var c = calc();
-    $('rNet').innerHTML = two(c.net, c.r);
-    $('rTax').innerHTML = two(c.tax, c.r);
-    $('rTip').innerHTML = two(c.tip, c.r) .replace('<small>', '<small>' + st.tip + '% · ');
-    $('rTot').innerHTML = usd(c.tot) + '<small>' + eur(c.tot * c.r) + '</small>';
-    document.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.v) === st.tip)); });
-  }
+  function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
+  window.addEventListener('hashchange', function () { show(hashView()); });
+  document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go('home'); }; });
+  $('goCalc').onclick = function () { go('calc'); };
+  $('goLog').onclick = function () { go('log'); };
+  $('goSettings').onclick = function () { go('settings'); };
 
-  /* budget */
+  /* ---------- home e plafond ---------- */
   function spentTotal() { return st.expenses.reduce(function (a, e) { return a + e.usd; }, 0); }
-  function renderBudget() {
-    var sp = spentTotal(), pl = st.plafond, left = pl - sp;
-    $('spent').textContent = 'Speso ' + usd(sp);
-    var bar = $('bar'), lf = $('left');
+  function renderHome() {
+    $('hello').textContent = st.user ? 'Ciao, ' + st.user : 'Scrivi il tuo nome in Impostazioni';
+    $('cnt').textContent = st.expenses.length ? '(' + st.expenses.length + ')' : '';
+    var sp = spentTotal(), pl = st.plafond, left = pl - sp, bar = $('bar'), lf = $('left');
     if (pl > 0) {
       var pct = Math.min(100, sp / pl * 100), cls = pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
-      lf.textContent = (left < 0 ? '-' : '') + usd(Math.abs(left)); lf.className = 'budget-left num ' + cls;
+      lf.textContent = (left < 0 ? '-' : '') + usd(Math.abs(left)); lf.className = 'budget-left num ' + cls; lf.style.fontSize = '';
       bar.style.width = pct + '%'; bar.className = cls === 'good' ? '' : cls;
+      $('spent').textContent = 'Speso ' + usd(sp) + ' di ' + usd(pl);
       $('leftEur').textContent = (left < 0 ? '-' : '') + eur(Math.abs(left) * st.rate) + ' · ' + Math.round(pct) + '% usato';
       $('barwrap').setAttribute('aria-valuenow', Math.round(pct));
     } else {
-      lf.textContent = 'Imposta il plafond'; lf.className = 'budget-left'; lf.style.fontSize = '1.1rem';
-      bar.style.width = '0'; $('leftEur').textContent = '';
+      lf.textContent = 'Imposta il plafond in Impostazioni'; lf.className = 'budget-left'; lf.style.fontSize = '1.1rem';
+      bar.style.width = '0'; $('spent').textContent = 'Speso ' + usd(sp); $('leftEur').textContent = '';
     }
-    if (pl > 0) lf.style.fontSize = '';
   }
 
-  /* log */
-  function dateStr(ts) { return new Date(ts).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  /* ---------- salvataggio spese ---------- */
+  function addExpense(e) {
+    st.expenses.push(e); persist();
+  }
+  function newId() { return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  /* ---------- calcola prezzo ---------- */
+  var tipCustom = TIPS.indexOf(st.tip) < 0;
+  function calc() {
+    var p = num($('price').value), t = st.tax / 100, tp = st.tip / 100;
+    var net = $('incl').checked ? p / (1 + t) : p;
+    var tax = net * t, tip = net * tp;
+    return { net: net, tax: tax, tip: tip, tot: net + tax + tip, r: st.rate };
+  }
+  function two(v, r) { return usd(v) + '<small>' + eur(v * r) + '</small>'; }
+  function renderCalc() {
+    var c = calc(), pct = String(st.tip).replace('.', ',');
+    $('rNet').innerHTML = two(c.net, c.r);
+    $('rTax').innerHTML = two(c.tax, c.r);
+    $('rTip').innerHTML = two(c.tip, c.r);
+    $('rTaxK').textContent = 'Tasse (' + String(st.tax).replace('.', ',') + '%)';
+    $('rTipK').textContent = st.tip ? 'Mancia (' + pct + '%)' : 'Mancia';
+    $('rTot').innerHTML = usd(c.tot) + '<small>' + eur(c.tot * c.r) + '</small>';
+    document.querySelectorAll('#chips .chip').forEach(function (b) {
+      var on = b.dataset.v === 'custom' ? tipCustom : (!tipCustom && Number(b.dataset.v) === st.tip);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    $('tipcWrap').hidden = !tipCustom;
+  }
+  $('chips').innerHTML = TIPS.map(function (v) { return '<button type="button" class="chip" data-v="' + v + '" aria-pressed="false">' + (v === 0 ? 'NO' : v + '%') + '</button>'; }).join('') +
+    '<button type="button" class="chip wide" data-v="custom" aria-pressed="false">Personalizzata</button>';
+  $('chips').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.chip'); if (!b) return;
+    if (b.dataset.v === 'custom') { tipCustom = true; st.tip = num($('tipc').value); }
+    else { tipCustom = false; st.tip = Number(b.dataset.v); }
+    persist(); renderCalc();
+    if (tipCustom) $('tipc').focus();
+  });
+  $('tipc').addEventListener('input', function () { st.tip = num($('tipc').value); persist(); renderCalc(); });
+  $('price').addEventListener('input', renderCalc);
+  $('incl').addEventListener('change', renderCalc);
+  if (tipCustom) $('tipc').value = st.tip ? String(st.tip).replace('.', ',') : '';
+
+  $('save').onclick = function () {
+    var c = calc();
+    if (!c.tot) { toast('Inserisci un prezzo'); return; }
+    addExpense({ id: newId(), ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: r2(c.tot), eur: c.tot * st.rate, sub: r2(c.net), tax: r2(c.tax), tip: r2(c.tip), photo: false, src: 'calcolo' });
+    $('desc').value = ''; $('price').value = '';
+    toast('Salvata: ' + usd(r2(c.tot)));
+    go('home');
+  };
+
+  /* ---------- carica scontrino ---------- */
+  var ocrSource = null, pendingPhoto = null, ocrWorker = null, ocrRun = 0;
+  function absUrl(p) { return new URL(p, location.href).href; }
+  function loadScript(src) { return new Promise(function (res, rej) { var el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); }); }
+  function getWorker() {
+    if (!ocrWorker) {
+      ocrWorker = (window.Tesseract ? Promise.resolve() : loadScript('vendor/tesseract.min.js')).then(function () {
+        return Tesseract.createWorker('eng', 1, {
+          workerPath: absUrl('vendor/worker.min.js'), corePath: absUrl('vendor/'), langPath: absUrl('vendor/'),
+          workerBlobURL: false, gzip: true,
+          logger: function (m) { if (m.status === 'recognizing text') ocrStatus('Lettura dello scontrino… ' + Math.round(m.progress * 100) + '%'); }
+        }).then(function (w) { return w.setParameters({ tessedit_pageseg_mode: '6', preserve_interword_spaces: '1' }).then(function () { return w; }); });
+      });
+      ocrWorker.catch(function () { ocrWorker = null; });
+    }
+    return ocrWorker;
+  }
+  function ocrStatus(t) { $('ocrStatus').textContent = t; }
+  function setFields(r) {
+    $('oSub').value = r.subtotal != null ? fx(r.subtotal) : '';
+    $('oTax').value = r.tax != null ? fx(r.tax) : '';
+    $('oTip').value = r.tip != null ? fx(r.tip) : '';
+    var tot = r.subtotal != null ? r.subtotal + (r.tax || 0) + (r.tip || 0) : (r.total || 0);
+    $('oTot').value = tot ? fx(tot) : '';
+    eurHint();
+  }
+  function eurHint() { var t = num($('oTot').value); $('ocrEur').textContent = t ? '≈ ' + eur(t * st.rate) + ' al cambio di ' + String(st.rate).replace('.', ',') : ''; }
+  ['oSub', 'oTax', 'oTip'].forEach(function (id) {
+    $(id).addEventListener('input', function () {
+      var sub = num($('oSub').value);
+      if (sub > 0) $('oTot').value = fx(sub + num($('oTax').value) + num($('oTip').value));
+      eurHint();
+    });
+  });
+  $('oTot').addEventListener('input', eurHint);
+
+  function resetScan() {
+    ocrRun++; ocrSource = null; pendingPhoto = null;
+    $('pending').hidden = true; ocrStatus('');
+    setFields({}); $('descScan').value = '';
+  }
+  function handlePhoto(file) {
+    if (!file) return;
+    var run = ++ocrRun;
+    $('pending').hidden = false; ocrStatus('Preparo la lettura…');
+    shrink(file).then(function (b) { pendingPhoto = b; $('pendImg').src = URL.createObjectURL(b); });
+    shrink(file, 2200, true).then(function (b) { ocrSource = b; readReceipt(run); });
+  }
+  function readReceipt(run) {
+    if (!ocrSource) return;
+    ocrStatus('Preparo la lettura…');
+    getWorker().then(function (w) { return w.recognize(ocrSource); }).then(function (res) {
+      if (run !== ocrRun) return;
+      var r = parseReceipt(res.data.text);
+      setFields(r);
+      var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length;
+      ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (r.notes.length ? ' ' + r.notes.join(' ') : '') : 'Non ho trovato importi: scrivili a mano.');
+    }).catch(function (e) {
+      console.error('ocr', e);
+      if (run === ocrRun) ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.');
+    });
+  }
+  $('goScan').onclick = function () {
+    resetScan();
+    $('camFile').value = '';
+    $('camFile').click();          // nello stesso tocco, così iOS apre la fotocamera
+    go('scan');
+  };
+  $('takePhoto').onclick = function () { $('camFile').value = ''; $('camFile').click(); };
+  $('pickPhoto').onclick = function () { $('libFile').value = ''; $('libFile').click(); };
+  $('camFile').addEventListener('change', function () { handlePhoto($('camFile').files[0]); });
+  $('libFile').addEventListener('change', function () { handlePhoto($('libFile').files[0]); });
+
+  $('saveScan').onclick = function () {
+    var tot = num($('oTot').value);
+    if (!tot) { toast('Inserisci il totale pagato'); return; }
+    var id = newId(), hasPhoto = !!pendingPhoto;
+    var sub = num($('oSub').value), tax = num($('oTax').value), tip = num($('oTip').value);
+    var e = { id: id, ts: Date.now(), desc: $('descScan').value.trim(), cat: $('catScan').value, usd: r2(tot), eur: tot * st.rate,
+      sub: sub ? r2(sub) : null, tax: tax ? r2(tax) : null, tip: tip ? r2(tip) : null, photo: hasPhoto, src: 'scontrino' };
+    (hasPhoto ? putPhoto(id, pendingPhoto) : Promise.resolve()).then(function () {
+      addExpense(e); resetScan();
+      toast('Scontrino salvato: ' + usd(e.usd));
+      go('home');
+    });
+  };
+
+  /* ---------- registro ---------- */
   function renderLog() {
-    $('cnt').textContent = st.expenses.length ? '(' + st.expenses.length + ')' : '';
-    $('logTot').innerHTML = usd(spentTotal()) + ' · ' + eur(spentTotal() * st.rate);
     var byCat = {};
     st.expenses.forEach(function (e) { byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
+    $('logTot').innerHTML = usd(spentTotal()) + ' · ' + eur(spentTotal() * st.rate);
     $('catSum').innerHTML = Object.keys(byCat).map(function (c) { return '<span class="num">' + c + ' ' + usd(byCat[c]) + '</span>'; }).join('') || '<span>Nessuna spesa</span>';
     var list = $('list'); list.innerHTML = '';
     if (!st.expenses.length) {
-      list.innerHTML = '<div class="empty">Nessuna spesa ancora.<br>Calcola un prezzo e premi Salva spesa.</div>';
+      list.innerHTML = '<div class="empty">Nessuna spesa ancora.<br>Carica uno scontrino o calcola un prezzo e salvalo.</div>';
       return;
     }
     st.expenses.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (e) {
@@ -392,17 +560,14 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
         var im = document.createElement('img'); im.className = 'thumb'; im.alt = 'Scontrino'; pb.appendChild(im); th.appendChild(pb);
         getPhoto(e.id).then(function (b) { if (b) im.src = URL.createObjectURL(b); });
         pb.onclick = function () { openViewer(e.id); };
-      } else {
-        th.className = 'thumb noimg'; th.textContent = 'senza foto';
-      }
+      } else { th.className = 'thumb noimg'; th.textContent = 'senza foto'; }
       var body = document.createElement('div'); body.className = 'body';
       body.innerHTML = '<span class="t"></span><span class="m"></span>';
       body.firstChild.textContent = e.desc || e.cat;
       body.lastChild.textContent = e.cat + ' · ' + dateStr(e.ts);
       var acts = document.createElement('div'); acts.className = 'acts';
       if (!e.photo) {
-        var lb = document.createElement('label'); lb.className = 'btn ghost small'; lb.style.cssText = 'display:grid;place-items:center;cursor:pointer';
-        lb.textContent = 'Aggiungi foto';
+        var lb = document.createElement('label'); lb.className = 'btn ghost small'; lb.style.cursor = 'pointer'; lb.textContent = 'Aggiungi foto';
         var fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.hidden = true;
         fi.onchange = function () { if (fi.files[0]) shrink(fi.files[0]).then(function (b) { return putPhoto(e.id, b); }).then(function () { e.photo = true; persist(); renderLog(); }); };
         lb.appendChild(fi); acts.appendChild(lb);
@@ -412,7 +577,7 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
       del.onclick = function () {
         if (!armed) { armed = true; del.textContent = 'Conferma?'; setTimeout(function () { armed = false; del.textContent = 'Elimina'; }, 3000); return; }
         st.expenses = st.expenses.filter(function (x) { return x.id !== e.id; });
-        delPhoto(e.id); persist(); renderAll();
+        delPhoto(e.id); persist(); renderLog();
       };
       acts.appendChild(del); body.appendChild(acts);
       var amt = document.createElement('div'); amt.className = 'amt num';
@@ -430,122 +595,21 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
     });
   }
 
-  function renderAll() { renderCalc(); renderBudget(); renderLog(); }
-
-  /* setup */
-  $('chips').innerHTML = TIPS.map(function (v) { return '<button type="button" class="chip" data-v="' + v + '" aria-pressed="false">' + (v === 0 ? 'No' : v + '%') + '</button>'; }).join('');
-  $('cat').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
-  $('rate').value = String(st.rate).replace('.', ',');
-  $('tax').value = String(st.tax).replace('.', ',');
-  $('plafond').value = st.plafond ? String(st.plafond).replace('.', ',') : '';
-
-  $('chips').addEventListener('click', function (ev) {
-    var b = ev.target.closest('.chip'); if (!b) return;
-    st.tip = Number(b.dataset.v); $('tipc').value = ''; persist(); renderCalc();
-  });
-  $('tipc').addEventListener('input', function () {
-    var v = num($('tipc').value); if ($('tipc').value.trim() === '') return;
-    st.tip = v; persist(); renderCalc();
-  });
-  $('price').addEventListener('input', renderCalc);
-  $('incl').addEventListener('change', renderCalc);
-  $('tax').addEventListener('input', function () { var v = num($('tax').value); st.tax = v; persist(); renderCalc(); });
-  $('rate').addEventListener('input', function () { var v = num($('rate').value); if (v) { st.rate = v; st.rateManual = true; persist(); renderAll(); setRateInfo(); } });
-  $('plafond').addEventListener('input', function () { st.plafond = num($('plafond').value); persist(); renderBudget(); });
-
-  var pending = null;
-  $('file').addEventListener('change', function () {
-    var fl = $('file').files[0]; if (!fl) return;
-    shrink(fl).then(function (b) { pending = b; $('pendImg').src = URL.createObjectURL(b); $('pending').hidden = false; });
-    shrink(fl, 2200, true).then(function (b) { ocrSource = b; readReceipt(); });
-    $('file').value = '';
-  });
-
-  /* lettura importi dallo scontrino (OCR sul telefono, funziona offline) */
-  var ocrSource = null, ocrWorker = null;
-  function absUrl(p) { return new URL(p, location.href).href; }
-  function loadScript(src) { return new Promise(function (res, rej) { var el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); }); }
-  function getWorker() {
-    if (!ocrWorker) {
-      ocrWorker = (window.Tesseract ? Promise.resolve() : loadScript('vendor/tesseract.min.js')).then(function () {
-        return Tesseract.createWorker('eng', 1, {
-          workerPath: absUrl('vendor/worker.min.js'), corePath: absUrl('vendor/'), langPath: absUrl('vendor/'),
-          workerBlobURL: false, gzip: true,
-          logger: function (m) { if (m.status === 'recognizing text') ocrStatus('Lettura dello scontrino… ' + Math.round(m.progress * 100) + '%'); }
-        }).then(function (w) { return w.setParameters({ tessedit_pageseg_mode: '6', preserve_interword_spaces: '1' }).then(function () { return w; }); });
-      });
-      ocrWorker.catch(function () { ocrWorker = null; });
-    }
-    return ocrWorker;
+  /* ---------- impostazioni ---------- */
+  function fillSettings() {
+    $('sUser').value = st.user || '';
+    $('plafond').value = st.plafond ? fx(st.plafond) : '';
+    $('tax').value = String(st.tax).replace('.', ',');
+    $('rate').value = String(Math.round(st.rate * 10000) / 10000).replace('.', ',');
+    setRateInfo(); backupInfo(); exportInfo();
   }
-  function ocrStatus(t) { $('ocrStatus').textContent = t; }
-  function setOcr(r) {
-    $('oSub').value = r.subtotal != null ? f(r.subtotal) : '';
-    $('oTax').value = r.tax != null ? f(r.tax) : '';
-    $('oTip').value = r.tip != null ? f(r.tip) : '';
-    $('oTot').value = r.total != null ? f(r.total) : '';
-  }
-  function readReceipt() {
-    if (!ocrSource) return;
-    $('ocrCard').hidden = false; $('ocrFields').hidden = true; setOcr({});
-    ocrStatus('Preparo la lettura…');
-    $('ocrCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    getWorker().then(function (w) { return w.recognize(ocrSource); }).then(function (res) {
-      var r = parseReceipt(res.data.text);
-      setOcr(r); $('ocrFields').hidden = false;
-      var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length;
-      ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (r.notes.length ? ' ' + r.notes.join(' ') : '') : 'Non ho trovato importi: scrivili qui sotto o inseriscili a mano.');
-    }).catch(function (e) {
-      console.error('ocr', e);
-      $('ocrFields').hidden = false;
-      ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.');
-    });
-  }
-  $('ocrRetry').onclick = readReceipt;
-  $('ocrApply').onclick = function () {
-    var sub = num($('oSub').value), tax = num($('oTax').value), tip = num($('oTip').value), tot = num($('oTot').value);
-    var net = sub;
-    if (!net && tot) net = tot - tax - tip;
-    if (net <= 0) { toast('Serve almeno il totale'); return; }
-    $('price').value = String(Math.round(net * 100) / 100);
-    if (tax) { $('tax').value = String(Math.round(tax / net * 10000) / 100).replace('.', ','); st.tax = tax / net * 100; $('incl').checked = false; }
-    else if (!sub) { $('incl').checked = true; }
-    st.tip = Math.round(tip / net * 10000) / 100;
-    $('tipc').value = TIPS.indexOf(st.tip) >= 0 ? '' : String(st.tip).replace('.', ',');
-    persist(); renderCalc();
-    toast('Importi applicati');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-  $('pendRemove').onclick = function () { pending = null; ocrSource = null; $('pending').hidden = true; $('ocrCard').hidden = true; };
+  $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
+  $('plafond').addEventListener('input', function () { st.plafond = num($('plafond').value); persist(); });
+  $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
+  $('rate').addEventListener('input', function () { var v = num($('rate').value); if (v) { st.rate = v; st.rateManual = true; persist(); setRateInfo(); } });
 
-  $('save').onclick = function () {
-    var c = calc();
-    if (!c.tot) { toast('Inserisci un prezzo'); return; }
-    var id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    var e = { id: id, ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: Math.round(c.tot * 100) / 100, eur: c.tot * st.rate, photo: !!pending };
-    var p = pending ? putPhoto(id, pending) : Promise.resolve();
-    p.then(function () {
-      st.expenses.push(e); persist();
-      pending = null; ocrSource = null; $('pending').hidden = true; $('ocrCard').hidden = true; $('desc').value = '';
-      renderAll(); toast('Salvata: ' + usd(e.usd));
-    });
-  };
-
-  function tab(n) {
-    $('tab-calc').hidden = n !== 1; $('tab-log').hidden = n !== 2;
-    $('t1').setAttribute('aria-selected', String(n === 1)); $('t2').setAttribute('aria-selected', String(n === 2));
-    window.scrollTo(0, 0);
-  }
-  $('t1').onclick = function () { tab(1); };
-  $('t2').onclick = function () { tab(2); };
-
-  renderAll();
-  setRateInfo(); backupInfo(); fetchRate(false);
-
-  /* cambio live quando c'è rete */
   function setRateInfo() {
-    var el = $('rateInfo');
-    el.textContent = st.rateManual ? 'Cambio manuale' : st.rateDate ? 'Cambio BCE del ' + st.rateDate : 'Cambio non ancora aggiornato';
+    $('rateInfo').textContent = st.rateManual ? 'Cambio inserito a mano' : st.rateDate ? 'Cambio BCE del ' + st.rateDate : 'Cambio non ancora aggiornato';
   }
   function fetchRate(force) {
     if (st.rateManual && !force) return;
@@ -556,7 +620,7 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
         clearTimeout(to);
         if (d && d.rates && d.rates.EUR) {
           st.rate = d.rates.EUR; st.rateDate = d.date; st.rateManual = false; persist();
-          $('rate').value = String(Math.round(st.rate * 10000) / 10000).replace('.', ','); renderAll(); setRateInfo();
+          if (!$('v-settings').hidden) fillSettings();
           if (force) toast('Cambio aggiornato');
         }
       })
@@ -564,26 +628,57 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
   }
   $('rateRefresh').onclick = function () { fetchRate(true); };
 
-  /* backup */
+  /* invia registro (CSV) */
+  function csvCell(v) { v = v == null ? '' : String(v); return /[",\n\r;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function two2(n) { return n == null ? '' : (Math.round(n * 100) / 100).toFixed(2); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function buildCsv() {
+    var head = ['utente', 'data', 'ora', 'descrizione', 'categoria', 'subtotale_usd', 'tasse_usd', 'mancia_usd', 'totale_usd', 'totale_eur', 'cambio_eur_per_usd', 'origine', 'foto_scontrino'];
+    var rows = [head];
+    st.expenses.slice().sort(function (a, b) { return a.ts - b.ts; }).forEach(function (e) {
+      var d = new Date(e.ts);
+      rows.push([st.user, d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
+        e.desc, e.cat, two2(e.sub), two2(e.tax), two2(e.tip), two2(e.usd), two2(e.eur), e.usd ? (e.eur / e.usd).toFixed(4) : '', e.src || '', e.photo ? 'si' : 'no']);
+    });
+    return rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+  }
+  function exportInfo() { $('exportInfo').textContent = st.expenses.length + (st.expenses.length === 1 ? ' spesa nel registro.' : ' spese nel registro.'); }
+  function saveFile(name, mime, text) {
+    var file = new File([text], name, { type: mime });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      return navigator.share({ files: [file], title: name }).then(function () { return true; }, function (err) {
+        if (err && err.name === 'AbortError') return false;
+        return download(file);
+      });
+    }
+    return Promise.resolve(download(file));
+  }
+  function download(file) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove(); return true;
+  }
+  $('exportCsv').onclick = function () {
+    if (!st.user) { toast('Scrivi prima il tuo nome'); $('sUser').focus(); return; }
+    if (!st.expenses.length) { toast('Il registro è vuoto'); return; }
+    var d = new Date(), safe = st.user.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'utente';
+    var name = 'texas-cash_' + safe + '_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.csv';
+    saveFile(name, 'text/csv', buildCsv()).then(function (ok) { if (ok) { st.lastExport = Date.now(); persist(); toast('Registro pronto: ' + name); } });
+  };
+
+  /* backup con foto */
   function blobToData(b) { return new Promise(function (res) { var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = function () { res(null); }; r.readAsDataURL(b); }); }
   function dataToBlob(u) { return fetch(u).then(function (r) { return r.blob(); }); }
+  function backupInfo() { $('bkInfo').textContent = st.lastBackup ? 'Ultimo backup: ' + dateStr(st.lastBackup) : 'Nessun backup ancora.'; }
   $('bkExport').onclick = function () {
     Promise.all(st.expenses.filter(function (e) { return e.photo; }).map(function (e) {
       return getPhoto(e.id).then(function (b) { return b ? blobToData(b).then(function (u) { return [e.id, u]; }) : null; });
     })).then(function (ps) {
       var photos = {}; ps.forEach(function (p) { if (p && p[1]) photos[p[0]] = p[1]; });
       var data = JSON.stringify({ app: 'texascash', v: 1, state: st, photos: photos });
-      var name = 'texas-cash-backup-' + new Date().toISOString().slice(0, 10) + '.json';
-      var file = new File([data], name, { type: 'application/json' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: 'Backup Texas Cash' }).then(function () { markBackup(); }).catch(function () {});
-      } else {
-        var a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove(); markBackup();
-      }
-    });
+      return saveFile('texas-cash-backup-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json', data);
+    }).then(function (ok) { if (ok) { st.lastBackup = Date.now(); persist(); backupInfo(); toast('Backup pronto'); } });
   };
-  function markBackup() { st.lastBackup = Date.now(); persist(); backupInfo(); toast('Backup pronto'); }
-  function backupInfo() { $('bkInfo').textContent = st.lastBackup ? 'Ultimo backup: ' + dateStr(st.lastBackup) : 'Nessun backup ancora.'; }
+  $('bkPick').onclick = function () { $('bkImport').value = ''; $('bkImport').click(); };
   $('bkImport').addEventListener('change', function () {
     var fl = $('bkImport').files[0]; if (!fl) return;
     fl.text().then(function (t) {
@@ -592,13 +687,16 @@ nav button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
       var ids = Object.keys(d.photos || {});
       return Promise.all(ids.map(function (id) { return dataToBlob(d.photos[id]).then(function (b) { return putPhoto(id, b); }); })).then(function () {
         for (var k in d.state) st[k] = d.state[k];
-        persist(); $('rate').value = String(st.rate).replace('.', ','); $('tax').value = String(st.tax).replace('.', ',');
-        $('plafond').value = st.plafond ? String(st.plafond).replace('.', ',') : ''; renderAll(); setRateInfo(); toast('Backup ripristinato');
+        persist(); fillSettings(); toast('Backup ripristinato');
       });
     }).catch(function () { toast('File di backup non valido'); });
-    $('bkImport').value = '';
   });
 
+  /* ---------- avvio ---------- */
+  $('cat').innerHTML = $('catScan').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  show('home');
+  fetchRate(false);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
 })();
