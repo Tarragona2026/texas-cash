@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texas Cash Mac</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e1a30">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* Layout: barra in alto con Importa file, poi tre colonne (una per persona) e una quarta con il totale. Stile liquid glass come l'app iPhone. */
+:root {
+  --bg: #cfd8e6; --ink: #0e1a30; --ink-soft: #384764;
+  --glass: rgba(255,255,255,.58); --glass-strong: rgba(255,255,255,.8); --glass-line: rgba(255,255,255,.75);
+  --glass-shadow: 0 8px 30px rgba(10,25,55,.18); --glass-hi: inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(255,255,255,.25);
+  --field: rgba(255,255,255,.62); --scrim: rgba(225,233,246,.55);
+  --accent: #c0391f; --accent-ink: #fff; --good: #14733f; --warn: #9a5b00; --bad: #c0391f;
+  --font-display: Rockwell, "Roboto Slab", Georgia, serif; --font-body: -apple-system, "SF Pro Text", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a111d; --ink: #f1f4fa; --ink-soft: #aab6cc;
+    --glass: rgba(20,30,50,.55); --glass-strong: rgba(24,36,60,.8); --glass-line: rgba(255,255,255,.2);
+    --glass-shadow: 0 10px 34px rgba(0,0,0,.45); --glass-hi: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.04);
+    --field: rgba(255,255,255,.10); --scrim: rgba(6,12,24,.62);
+    --accent: #ff7157; --accent-ink: #220d08; --good: #55d196; --warn: #f0b04a; --bad: #ff7157; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.4; padding: 20px max(20px, env(safe-area-inset-right, 0px)) 40px max(20px, env(safe-area-inset-left, 0px)); }
+[hidden] { display: none !important; }
+.bgwrap { position: fixed; inset: 0; z-index: -2; background: var(--bg) url(../img/houston.jpg) center / cover no-repeat; filter: blur(10px) saturate(1.2); transform: scale(1.04); }
+.scrim { position: fixed; inset: 0; z-index: -1; background: var(--scrim); }
+button, input { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+.glass { background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--glass-shadow), var(--glass-hi); -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); }
+h1 { font-family: var(--font-display); font-size: 1.7rem; margin: 0; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-radius: 22px; padding: 14px 20px; max-width: 1600px; margin: 0 auto 18px; }
+.top .sub { color: var(--ink-soft); font-size: .9rem; }
+.btn { min-height: 42px; border-radius: 14px; border: 1px solid var(--glass-line); padding: 0 18px; font-weight: 700; background: color-mix(in srgb, var(--accent) 88%, transparent); color: var(--accent-ink); box-shadow: 0 4px 14px rgba(10,25,55,.18), var(--glass-hi); }
+.btn.ghost { background: var(--glass); color: var(--ink); }
+.btn.small { min-height: 32px; padding: 0 10px; font-size: .8rem; border-radius: 10px; }
+.cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; max-width: 1600px; margin: 0 auto; align-items: start; }
+@media (max-width: 1250px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+.col { border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.col.total { box-shadow: var(--glass-shadow), var(--glass-hi), 0 0 0 2px var(--accent); }
+.col h2 { font-family: var(--font-display); font-size: 1.35rem; margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.col.empty { color: var(--ink-soft); text-align: center; padding: 40px 18px; border-style: dashed; }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); font-weight: 700; }
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.left { font-family: var(--font-display); font-size: 2.1rem; font-weight: 700; line-height: 1.1; }
+.left.good { color: var(--good); } .left.warn { color: var(--warn); } .left.bad { color: var(--bad); }
+.sub2 { color: var(--ink-soft); font-size: .85rem; }
+.bar { height: 10px; border-radius: 5px; background: rgba(120,140,170,.28); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--good); border-radius: 5px; }
+.bar i.warn { background: var(--warn); } .bar i.bad { background: var(--bad); }
+.cat { display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 8px; align-items: center; font-size: .85rem; }
+.cat .bar { height: 8px; }
+.sect { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--glass-line); font-size: .9rem; }
+.row:last-child { border-bottom: 0; }
+.row .m { color: var(--ink-soft); font-size: .78rem; }
+.row .v { text-align: right; font-weight: 700; white-space: nowrap; }
+details { border-bottom: 1px solid var(--glass-line); padding: 6px 0; }
+details:last-child { border-bottom: 0; }
+summary { display: flex; justify-content: space-between; gap: 10px; cursor: pointer; font-weight: 700; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary .d { text-transform: capitalize; }
+.items { padding: 6px 0 2px 10px; display: flex; flex-direction: column; gap: 3px; font-size: .84rem; color: var(--ink-soft); }
+.items div { display: flex; justify-content: space-between; gap: 8px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: .75rem; border-radius: 999px; padding: 2px 9px; background: var(--field); border: 1px solid var(--glass-line); }
+.drop { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 35%, transparent); font-family: var(--font-display); font-size: 2rem; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.4); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px; background: var(--glass-strong); border: 1px solid var(--glass-line); padding: 10px 18px; border-radius: 999px; font-weight: 700; box-shadow: var(--glass-shadow); }
+.msg { max-width: 1600px; margin: 0 auto 16px; border-radius: 18px; padding: 12px 18px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="bgwrap" aria-hidden="true"></div><div class="scrim" aria-hidden="true"></div>
+<header class="top glass">
+  <div><h1>Texas Cash Mac</h1><div class="sub" id="sub">Trascina qui i file CSV ricevuti dagli iPhone, oppure usa Importa file.</div></div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap">
+    <button class="btn" id="pick" type="button">Importa file</button>
+    <button class="btn ghost" id="reset" type="button">Azzera tutto</button>
+  </div>
+  <input type="file" id="file" accept=".csv,text/csv" multiple hidden>
+</header>
+<div class="msg glass" id="msg" hidden></div>
+<main class="cols" id="cols"></main>
+<div class="drop" id="drop" hidden>Rilascia i file CSV</div>
+<div id="toastHost"></div>
+
+<script>
+(function () {
+  var KEY = 'texascash.mac.v1';
+  var st = { people: {}, deleted: [] };
+  try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && s0.people) st = s0; } catch (e) {}
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  var $ = function (id) { return document.getElementById(id); };
+  function f(n) { return n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function usd(n) { return (n < 0 ? '-' : '') + '$' + f(Math.abs(n)); }
+  function eur(n) { return (n < 0 ? '-' : '') + '€' + f(Math.abs(n)); }
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function toast(t) { var h = $('toastHost'); h.innerHTML = ''; var d = el('div', 'toast', esc(t)); h.appendChild(d); setTimeout(function () { d.remove(); }, 2800); }
+
+  /* CSV */
+  function parseCsv(text) {
+    var rows = [], row = [], cell = '', q = false, i, c;
+    text = String(text).replace(/^﻿/, '');
+    for (i = 0; i < text.length; i++) {
+      c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); cell = ''; if (row.length > 1 || row[0] !== '') rows.push(row); row = []; }
+      else cell += c;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function importText(text, fname) {
+    var rows = parseCsv(text); if (rows.length < 2) throw new Error('vuoto');
+    var h = rows[0].map(function (x) { return x.trim().toLowerCase(); });
+    ['utente', 'data', 'totale_usd'].forEach(function (c) { if (h.indexOf(c) < 0) throw new Error('colonna ' + c); });
+    var ix = function (c) { return h.indexOf(c); };
+    var byUser = {};
+    rows.slice(1).forEach(function (r) {
+      var u = (r[ix('utente')] || '').trim() || 'Senza nome';
+      var o = { tipo: (ix('tipo') >= 0 ? r[ix('tipo')] : 'spesa') || 'spesa', data: r[ix('data')], ora: r[ix('ora')] || '', desc: r[ix('descrizione')] || '', cat: r[ix('categoria')] || 'Altro',
+        usd: num(r[ix('totale_usd')]), eur: num(r[ix('totale_eur')]), sub: r[ix('subtotale_usd')], tax: r[ix('tasse_usd')], tip: r[ix('mancia_usd')], src: r[ix('origine')] || '' };
+      if (!o.data || !o.usd) return;
+      (byUser[u] = byUser[u] || []).push(o);
+    });
+    var n = 0;
+    Object.keys(byUser).forEach(function (u) {
+      var p = st.people[u] || (st.people[u] = { expenses: [], topups: [] });
+      p.expenses = byUser[u].filter(function (x) { return x.tipo !== 'ricarica'; });      /* le spese sono quelle del telefono */
+      var have = {}; p.topups.forEach(function (t) { have[tkey(u, t)] = 1; });
+      byUser[u].filter(function (x) { return x.tipo === 'ricarica'; }).forEach(function (t) {
+        var k = tkey(u, t); if (!have[k] && st.deleted.indexOf(k) < 0) { p.topups.push(t); have[k] = 1; }
+      });
+      n++;
+    });
+    return Object.keys(byUser);
+  }
+  function tkey(u, t) { return [u, t.data, t.ora, t.usd.toFixed(2), t.desc].join('|'); }
+
+  /* calcoli */
+  function sum(a, k) { return a.reduce(function (s, x) { return s + x[k]; }, 0); }
+  function days(exps) {
+    var m = {}; exps.forEach(function (e) { (m[e.data] = m[e.data] || []).push(e); });
+    return m;
+  }
+  function dayLabel(d) { return new Date(d + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }); }
+  function catBlock(exps) {
+    var by = {}; exps.forEach(function (e) { by[e.cat] = (by[e.cat] || 0) + e.usd; });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), max = keys.length ? by[keys[0]] : 1;
+    var box = el('div', 'sect'); box.appendChild(el('div', 'label', 'Per categoria'));
+    if (!keys.length) box.appendChild(el('div', 'sub2', 'Nessuna spesa'));
+    keys.forEach(function (k) { box.appendChild(el('div', 'cat', '<span>' + esc(k) + '</span><div class="bar"><i style="width:' + Math.max(4, by[k] / max * 100) + '%"></i></div><b class="num">' + usd(by[k]) + '</b>')); });
+    return box;
+  }
+  function statBlock(name, topups, exps, isTotal) {
+    var top = sum(topups, 'usd'), sp = sum(exps, 'usd'), left = top - sp, spE = sum(exps, 'eur'), topE = sum(topups, 'eur');
+    var pct = top > 0 ? Math.min(100, sp / top * 100) : 0, cls = !top ? '' : pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
+    var b = el('div', 'stat');
+    b.appendChild(el('div', 'label', 'Plafond rimasto'));
+    b.appendChild(el('div', 'left num ' + cls, top || sp ? usd(left) : '—'));
+    b.appendChild(el('div', 'sub2 num', eur(topE - spE)));
+    b.appendChild(el('div', 'bar', '<i class="' + cls + '" style="width:' + pct + '%"></i>'));
+    b.appendChild(el('div', 'sub2 num', 'Ricaricato ' + usd(top) + ' · speso ' + usd(sp) + ' (' + eur(spE) + ')'));
+    return b;
+  }
+
+  function personCol(name) {
+    var p = st.people[name], col = el('section', 'col glass');
+    var h = el('h2', '', '<span>' + esc(name) + '</span>');
+    var rm = el('button', 'btn ghost small', 'Rimuovi'); var armed = false;
+    rm.onclick = function () { if (!armed) { armed = true; rm.textContent = 'Conferma?'; setTimeout(function () { armed = false; rm.textContent = 'Rimuovi'; }, 3000); return; } delete st.people[name]; persist(); render(); };
+    h.appendChild(rm); col.appendChild(h);
+    col.appendChild(statBlock(name, p.topups, p.expenses));
+    col.appendChild(catBlock(p.expenses));
+    /* giorno per giorno */
+    var d = days(p.expenses), keys = Object.keys(d).sort().reverse(), box = el('div', 'sect');
+    box.appendChild(el('div', 'label', 'Giorno per giorno'));
+    if (!keys.length) box.appendChild(el('div', 'sub2', 'Nessuna spesa'));
+    keys.forEach(function (k) {
+      var items = d[k], det = el('details'), tot = sum(items, 'usd');
+      det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + usd(tot) + '</span>'));
+      var it = el('div', 'items');
+      items.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { it.appendChild(el('div', '', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.desc || e.cat)) + '</span><span class="num">' + usd(e.usd) + '</span>')); });
+      det.appendChild(it); box.appendChild(det);
+    });
+    col.appendChild(box);
+    /* ricariche: si eliminano solo da qui */
+    var tb = el('div', 'sect'); tb.appendChild(el('div', 'label', 'Ricariche'));
+    if (!p.topups.length) tb.appendChild(el('div', 'sub2', 'Nessuna ricarica'));
+    p.topups.slice().sort(function (a, b) { return (b.data + b.ora).localeCompare(a.data + a.ora); }).forEach(function (t) {
+      var r = el('div', 'row'), del = el('button', 'btn ghost small', 'Elimina'), a = false;
+      del.onclick = function () {
+        if (!a) { a = true; del.textContent = 'Conferma?'; setTimeout(function () { a = false; del.textContent = 'Elimina'; }, 3000); return; }
+        var k = tkey(name, t); if (st.deleted.indexOf(k) < 0) st.deleted.push(k);
+        p.topups = p.topups.filter(function (x) { return tkey(name, x) !== k; }); persist(); render(); toast('Ricarica eliminata');
+      };
+      r.appendChild(el('div', '', '<div>' + esc(t.desc || 'Ricarica') + '</div><div class="m">' + esc(dayLabel(t.data) + (t.ora ? ' ' + t.ora : '')) + '</div>'));
+      var rt = el('div', 'v num', '+' + usd(t.usd)); rt.appendChild(document.createElement('br')); rt.appendChild(del); r.appendChild(rt);
+      tb.appendChild(r);
+    });
+    col.appendChild(tb);
+    return col;
+  }
+  function totalCol(names) {
+    var col = el('section', 'col glass total');
+    col.appendChild(el('h2', '', '<span>Totale</span><span class="sub2">' + names.length + (names.length === 1 ? ' persona' : ' persone') + '</span>'));
+    var tops = [], exps = [];
+    names.forEach(function (n) { tops = tops.concat(st.people[n].topups); exps = exps.concat(st.people[n].expenses.map(function (e) { var c = Object.assign({}, e); c.who = n; return c; })); });
+    col.appendChild(statBlock('Totale', tops, exps, true));
+    col.appendChild(catBlock(exps));
+    var d = days(exps), keys = Object.keys(d).sort(), run = 0, cum = {};
+    keys.forEach(function (k) { run += sum(d[k], 'usd'); cum[k] = run; });
+    var box = el('div', 'sect'); box.appendChild(el('div', 'label', 'Giorno per giorno'));
+    if (!keys.length) box.appendChild(el('div', 'sub2', 'Nessuna spesa'));
+    keys.slice().reverse().forEach(function (k) {
+      var items = d[k], det = el('details'), per = {};
+      items.forEach(function (e) { per[e.who] = (per[e.who] || 0) + e.usd; });
+      det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + usd(sum(items, 'usd')) + '</span>'));
+      var it = el('div', 'items');
+      Object.keys(per).forEach(function (w) { it.appendChild(el('div', '', '<span>' + esc(w) + '</span><span class="num">' + usd(per[w]) + '</span>')); });
+      it.appendChild(el('div', '', '<span>Totale progressivo</span><span class="num">' + usd(cum[k]) + '</span>'));
+      det.appendChild(it); box.appendChild(det);
+    });
+    col.appendChild(box);
+    return col;
+  }
+
+  function render() {
+    var cols = $('cols'); cols.innerHTML = '';
+    var names = Object.keys(st.people).sort();
+    names.forEach(function (n) { cols.appendChild(personCol(n)); });
+    for (var i = names.length; i < 3; i++) cols.appendChild(el('section', 'col glass empty', 'In attesa del file della persona ' + (i + 1)));
+    cols.appendChild(totalCol(names));
+    $('sub').textContent = names.length ? names.length + (names.length === 1 ? ' registro importato' : ' registri importati') + '. Per aggiornare importa di nuovo il file: sostituisce le spese di quella persona.' : 'Trascina qui i file CSV ricevuti dagli iPhone, oppure usa Importa file.';
+  }
+
+  function handleFiles(files) {
+    var list = Array.prototype.slice.call(files).filter(function (f0) { return /\.csv$/i.test(f0.name) || f0.type === 'text/csv'; });
+    if (!list.length) { toast('Servono file CSV'); return; }
+    Promise.all(list.map(function (f0) { return f0.text().then(function (t) { try { return { ok: importText(t, f0.name) }; } catch (e) { return { err: f0.name }; } }); })).then(function (rs) {
+      var ok = [], bad = []; rs.forEach(function (r) { if (r.ok) ok = ok.concat(r.ok); else bad.push(r.err); });
+      persist(); render();
+      toast(ok.length ? 'Importati: ' + ok.filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ') + (bad.length ? ' · non validi: ' + bad.join(', ') : '') : 'File non valido: ' + bad.join(', '));
+    });
+  }
+  $('pick').onclick = function () { $('file').value = ''; $('file').click(); };
+  $('file').addEventListener('change', function () { handleFiles($('file').files); });
+  var depth = 0;
+  window.addEventListener('dragenter', function (e) { e.preventDefault(); depth++; $('drop').hidden = false; });
+  window.addEventListener('dragleave', function (e) { e.preventDefault(); depth = Math.max(0, depth - 1); if (!depth) $('drop').hidden = true; });
+  window.addEventListener('dragover', function (e) { e.preventDefault(); });
+  window.addEventListener('drop', function (e) { e.preventDefault(); depth = 0; $('drop').hidden = true; if (e.dataTransfer && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+  var rsArmed = false;
+  $('reset').onclick = function () {
+    var b = $('reset');
+    if (!rsArmed) { rsArmed = true; b.textContent = 'Conferma azzera'; setTimeout(function () { rsArmed = false; b.textContent = 'Azzera tutto'; }, 3000); return; }
+    st = { people: {}, deleted: [] }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
+  };
+  render();
+  if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
+})();
+</script>
+</body>
+</html>

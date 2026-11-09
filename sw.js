@@ -1,5 +1,5 @@
-const CACHE = 'texas-cash-v5';
-const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './ocr.js', './vendor/tesseract.min.js', './vendor/worker.min.js', './vendor/tesseract-core-simd-lstm.wasm.js', './vendor/tesseract-core-lstm.wasm.js', './vendor/eng.traineddata.gz'];
+const CACHE = 'texas-cash-v6';
+const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './ocr.js', './vendor/tesseract.min.js', './vendor/worker.min.js', './vendor/tesseract-core-simd-lstm.wasm.js', './vendor/tesseract-core-lstm.wasm.js', './vendor/eng.traineddata.gz', './img/houston.jpg', './img/nasa.jpg', './img/kemah.jpg', './img/galv-seawall.jpg', './img/galv-strand.jpg', './img/galv-pier.jpg', './img/austin.jpg', './img/capitol.jpg', './img/bastrop.jpg', './img/bbq.jpg', './img/boots.jpg', './img/spring.jpg', './img/iah.jpg', './img/texas.jpg', './img/toyota.jpg'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
