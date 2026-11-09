@@ -61,6 +61,17 @@ h1 { font-family: var(--font-display); font-size: 1.7rem; margin: 0; }
 .bar i.warn { background: var(--warn); } .bar i.bad { background: var(--bad); }
 .cat { display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 8px; align-items: center; font-size: .85rem; }
 .cat .bar { height: 8px; }
+.donut { position: relative; width: 140px; height: 140px; margin: 4px auto; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.15; }
+.donut .mid b { font-size: 1rem; font-family: var(--font-display); }
+.donut .mid span { font-size: .68rem; color: var(--ink-soft); }
+.legend { display: flex; flex-direction: column; gap: 5px; }
+.legend div { display: flex; align-items: center; gap: 8px; font-size: .85rem; }
+.legend i { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+.legend .n { flex: 1; min-width: 0; }
+.legend .v { font-weight: 700; white-space: nowrap; }
+.legend small { color: var(--ink-soft); font-weight: 400; }
 .sect { display: flex; flex-direction: column; gap: 8px; }
 .row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--glass-line); font-size: .9rem; }
 .row:last-child { border-bottom: 0; }
@@ -195,12 +206,25 @@ summary .d { text-transform: capitalize; }
     return m;
   }
   function dayLabel(d) { return new Date(d + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }); }
+  var CAT_COLORS = { Cibo: '#ff9f0a', Vestiti: '#bf5af2', Regali: '#ff375f', Souvenir: '#ffd60a', Benzina: '#8e8e93', Hotel: '#0a84ff', Attrazioni: '#30d158', Altro: '#64d2ff' };
+  function catColor(k) { return CAT_COLORS[k] || '#8e8e93'; }
   function catBlock(exps) {
     var by = {}; exps.forEach(function (e) { by[e.cat] = (by[e.cat] || 0) + e.usd; });
-    var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), max = keys.length ? by[keys[0]] : 1;
-    var box = el('div', 'sect'); box.appendChild(el('div', 'label', 'Per categoria'));
-    if (!keys.length) box.appendChild(el('div', 'sub2', 'Nessuna spesa'));
-    keys.forEach(function (k) { box.appendChild(el('div', 'cat', '<span>' + esc(k) + '</span><div class="bar"><i style="width:' + Math.max(4, by[k] / max * 100) + '%"></i></div><b class="num">' + usd(by[k]) + '</b>')); });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), tot = sum(exps, 'usd');
+    var box = el('div', 'sect'); box.appendChild(el('div', 'label', 'Spese per tipologia'));
+    if (!keys.length) { box.appendChild(el('div', 'sub2', 'Nessuna spesa')); return box; }
+    var off = 0, svg = '<svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(120,130,150,.22)" stroke-width="6.5"></circle>';
+    keys.forEach(function (k) {
+      var p = by[k] / tot * 100, gap = keys.length > 1 ? Math.min(.6, p / 3) : 0;
+      svg += '<circle cx="21" cy="21" r="15.9155" fill="none" stroke="' + catColor(k) + '" stroke-width="6.5" stroke-dasharray="' + (p - gap) + ' ' + (100 - p + gap) + '" stroke-dashoffset="' + (-off) + '"></circle>';
+      off += p;
+    });
+    var donut = el('div', 'donut', svg + '</svg><div class="mid"><b class="num">' + usd(tot) + '</b><span>' + keys.length + (keys.length === 1 ? ' tipologia' : ' tipologie') + '</span></div>');
+    donut.setAttribute('role', 'img'); donut.setAttribute('aria-label', 'Grafico delle spese per tipologia');
+    box.appendChild(donut);
+    var lg = el('div', 'legend');
+    keys.forEach(function (k) { lg.appendChild(el('div', '', '<i style="background:' + catColor(k) + '"></i><span class="n">' + esc(k) + '</span><span class="v num">' + usd(by[k]) + ' <small>' + Math.round(by[k] / tot * 100) + '%</small></span>')); });
+    box.appendChild(lg);
     return box;
   }
   function statBlock(name, topups, exps, isTotal) {

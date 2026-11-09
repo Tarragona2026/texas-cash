@@ -1,4 +1,4 @@
-const CACHE = 'texas-cash-mac-v8';
+const CACHE = 'texas-cash-mac-v9';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', '../img/houston.jpg', './report.js', './vendor/jspdf.umd.min.js', './vendor/jspdf.plugin.autotable.min.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
