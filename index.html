@@ -979,17 +979,25 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       return { name: p.displayName.text, d: fix ? meters(fix, { la: p.location.latitude, lo: p.location.longitude }) : 0, brand: '', la: p.location.latitude, lo: p.location.longitude };
     });
   }
+  var GP_SKIP = ['parking', 'electric_vehicle_charging_station', 'bus_station', 'bus_stop', 'transit_station', 'train_station', 'subway_station', 'school', 'primary_school', 'secondary_school', 'university', 'park', 'playground', 'church', 'mosque', 'synagogue', 'hindu_temple', 'cemetery', 'atm', 'bank', 'hospital', 'doctor', 'dentist', 'fire_station', 'police', 'city_hall', 'post_office', 'library'];
   function googleNearby(fix) {
-    return gpCall('searchNearby', { maxResultCount: 12, rankPreference: 'DISTANCE', locationRestriction: { circle: { center: { latitude: fix.la, longitude: fix.lo }, radius: 80 } } })
+    return gpCall('searchNearby', { maxResultCount: 12, rankPreference: 'DISTANCE', excludedTypes: GP_SKIP, locationRestriction: { circle: { center: { latitude: fix.la, longitude: fix.lo }, radius: 80 } } })
       .then(function (j) { return gpPlaces(j, fix); });
   }
-  function googleText(query, near) {
-    var body = { textQuery: query, maxResultCount: 5 };
-    if (near) body.locationBias = { circle: { center: { latitude: near.la, longitude: near.lo }, radius: 50000 } };
-    return gpCall('searchText', body).then(function (j) {
-      var ps = gpPlaces(j, null); if (!ps.length) return null;
-      var f = { la: Math.round(ps[0].la * 1e5) / 1e5, lo: Math.round(ps[0].lo * 1e5) / 1e5, ac: 30, label: '' };
-      ps.forEach(function (p) { p.d = meters(f, { la: p.la, lo: p.lo }); });
+  function googleText(addr, near, guess) {
+    function q(text) {
+      var body = { textQuery: text, maxResultCount: 5 };
+      if (near) body.locationBias = { circle: { center: { latitude: near.la, longitude: near.lo }, radius: 50000 } };
+      return gpCall('searchText', body).then(function (j) { return gpPlaces(j, null); });
+    }
+    // 1) l'indirizzo da solo, per sapere DOVE e'; 2) nome + indirizzo, per i candidati, tenuti solo se vicini a quel punto
+    return Promise.all([q(addr), guess ? q(guess + ' ' + addr).catch(function () { return []; }) : Promise.resolve([])]).then(function (rs) {
+      var base = rs[0][0] || rs[1][0]; if (!base) return null;
+      var f = { la: Math.round(base.la * 1e5) / 1e5, lo: Math.round(base.lo * 1e5) / 1e5, ac: 30, label: '' };
+      var seen = {}, ps = rs[1].concat(rs[0]).filter(function (p) {
+        p.d = meters(f, { la: p.la, lo: p.lo }); var k = p.name.toLowerCase();
+        if (p.d > 150 || seen[k]) return false; seen[k] = 1; return true;
+      });
       f.places = ps; return f;
     });
   }
@@ -1021,7 +1029,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     return '';
   }
   function geocodeAddress(addr, near, guess) {
-    return googleText((guess ? guess + ' ' : '') + addr, near).catch(function () { return null; }).then(function (r) { return r || osmGeocode(addr, near); });
+    return googleText(addr, near, guess).catch(function () { return null; }).then(function (r) { return r || osmGeocode(addr, near); });
   }
   function osmGeocode(addr, near) {
     var qs = [addr], bare = addr.replace(STREET, ' ').replace(/\b(PR|MI|RM|TO|BO)\b/g, ' ').replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();   // OSM a volte usa un altro nome ("Piazza Arturo X" per "Piazzale X")
