@@ -220,6 +220,10 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
 </style>
 <script src="ocr.js"></script>
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="vendor/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 </head>
 <body>
 <div class="bgwrap" aria-hidden="true"><div class="bgimg" id="bgimg"></div></div>
@@ -355,6 +359,13 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="exportInfo"></div>
     </section>
     <section class="card">
+      <div class="label">Sincronizzazione</div>
+      <div class="field"><label class="label" for="sTrip">Codice viaggio</label><input id="sTrip" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+      <div class="hint">Spese, ricariche e foto degli scontrini partono da sole verso il database comune. Senza rete restano in coda e partono quando torna il segnale.</div>
+      <button class="btn ghost" id="syncNow" type="button">Sincronizza ora</button>
+      <div class="hint" id="syncInfo"></div>
+    </section>
+    <section class="card">
       <div class="label">Sfondo</div>
       <div class="bgprev" id="bgPrev" aria-hidden="true"></div>
       <div class="hint">Di base c'è la bandiera americana. Puoi scegliere una tua foto dal rullino.</div>
@@ -388,7 +399,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
-  function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} schedSync(); }
 
   var $ = function (id) { return document.getElementById(id); };
   function num(v) {
@@ -777,6 +788,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     var l = topupTotal() - spentTotal();
     $('sLeft').textContent = 'Rimasto ' + (l < 0 ? '-' : '') + usd(Math.abs(l)); $('sSpent').textContent = 'Ricaricato ' + usd(topupTotal()) + ' · speso ' + usd(spentTotal());
     setRateInfo(); backupInfo(); exportInfo();
+    $('sTrip').value = st.trip || DEFAULT_TRIP; syncInfo();
   }
   $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
   $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
@@ -919,11 +931,98 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   });
   $('bgReset').onclick = function () { delPhoto('bg').then(function () { loadBg(); toast('Bandiera USA ripristinata'); }); };
 
+  /* ---------- sincronizzazione Firebase (il telefono carica, il Mac scarica) ---------- */
+  var DEFAULT_TRIP = 'texas2026', fbp = null, syncing = false, syncAgain = false, syncTimer = null, syncErr = '';
+  function fbReady() {
+    if (fbp) return fbp;
+    fbp = new Promise(function (res, rej) {
+      try {
+        if (!window.firebase || !window.FIREBASE_CONFIG) throw new Error('sdk');
+        if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
+        firebase.auth().signInAnonymously().then(function () { res(firebase.firestore()); }, rej);
+      } catch (e) { rej(e); }
+    });
+    fbp.catch(function () { fbp = null; });
+    return fbp;
+  }
+  function hash(str) { var h = 5381; for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return String(h); }
+  function syncItems() {
+    var items = {};
+    st.expenses.forEach(function (e) { items[e.id] = { kind: 'spesa', data: e }; });
+    st.topups.forEach(function (t) { items[t.id] = { kind: 'ricarica', data: t }; });
+    return items;
+  }
+  function itemDoc(it) { return Object.assign({}, it.data, { kind: it.kind, user: st.user || '' }); }
+  function pendingCount() {
+    var items = syncItems(), pushed = st.pushed || {}, pp = st.photosPushed || {}, n = 0;
+    Object.keys(items).forEach(function (id) {
+      var it = items[id];
+      if (pushed[id] !== hash(JSON.stringify(itemDoc(it)))) n++;
+      else if (it.kind === 'spesa' && it.data.photo && !pp[id]) n++;
+    });
+    Object.keys(pushed).forEach(function (id) { if (!items[id]) n++; });
+    return n;
+  }
+  function syncInfo() {
+    var el = $('syncInfo'); if (!el) return;
+    var n = pendingCount();
+    el.textContent = syncing ? 'Sincronizzazione in corso…' : syncErr ? syncErr + (n ? ' · ' + n + ' da inviare' : '')
+      : n ? n + ' da inviare' : st.lastSync ? 'Tutto sincronizzato · ' + dateStr(st.lastSync) : 'Niente da inviare';
+  }
+  function schedSync() { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500); }
+  function pushPhoto(tr, id) {
+    return getPhoto(id).then(function (b) {
+      if (!b) return;
+      return (b.size > 600000 ? shrinkImage(b, 1000) : Promise.resolve(b)).then(blobToData).then(function (u) {
+        if (!u) return;
+        return tr.collection('photos').doc(id).set({ data: u, user: st.user || '', ts: Date.now() }).then(function () { (st.photosPushed = st.photosPushed || {})[id] = 1; });
+      });
+    });
+  }
+  function sync(manual) {
+    if (syncing) { syncAgain = true; return; }
+    if (!pendingCount() && !manual) { syncInfo(); return; }
+    if (navigator.onLine === false) { syncErr = 'Nessuna rete'; syncInfo(); return; }
+    syncing = true; syncErr = ''; syncInfo();
+    fbReady().then(function (d) {
+      var tr = d.collection('trips').doc(st.trip || DEFAULT_TRIP), items = syncItems(), jobs = [];
+      st.pushed = st.pushed || {}; st.photosPushed = st.photosPushed || {};
+      Object.keys(items).forEach(function (id) {
+        var it = items[id], doc = itemDoc(it), sg = hash(JSON.stringify(doc));
+        if (st.pushed[id] !== sg) jobs.push(tr.collection('items').doc(id).set(doc).then(function () { st.pushed[id] = sg; }));
+        if (it.kind === 'spesa' && it.data.photo && !st.photosPushed[id]) jobs.push(pushPhoto(tr, id));
+      });
+      Object.keys(st.pushed).forEach(function (id) {
+        if (!items[id]) jobs.push(tr.collection('items').doc(id).delete().then(function () { return tr.collection('photos').doc(id).delete(); })
+          .then(function () { delete st.pushed[id]; delete st.photosPushed[id]; }));
+      });
+      var to = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 20000); });
+      return Promise.race([Promise.all(jobs), to]);
+    }).then(function () { st.lastSync = Date.now(); syncErr = ''; }, function (e) {
+      syncErr = e && e.message === 'timeout' ? 'Rete lenta, riprovo' : 'Non riesco a collegarmi, riprovo';
+    }).then(function () {
+      syncing = false;
+      try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+      syncInfo();
+      if (syncAgain) { syncAgain = false; schedSync(); }
+      else if (syncErr) { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 30000); }
+    });
+  }
+  $('syncNow').onclick = function () { sync(true); };
+  $('sTrip').addEventListener('change', function () {
+    var v = $('sTrip').value.trim() || DEFAULT_TRIP;
+    if (v !== (st.trip || DEFAULT_TRIP)) { st.trip = v; st.pushed = {}; st.photosPushed = {}; persist(); toast('Codice viaggio cambiato'); }
+    $('sTrip').value = v;
+  });
+  window.addEventListener('online', function () { sync(); });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) sync(); });
+
   /* ---------- avvio ---------- */
   $('cat').innerHTML = $('catScan').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   show('home');
   loadBg();
+  sync();
   fetchRate(false);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
