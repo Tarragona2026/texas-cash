@@ -25,6 +25,8 @@
   --glass-shadow: 0 6px 24px rgba(0, 0, 0, .12);
   --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .9);
   --field: rgba(118, 118, 128, .12);
+  --scrim: rgba(255, 255, 255, .62);
+  --scrim-inner: rgba(242, 242, 247, .7);
   --bg-grad: radial-gradient(120% 70% at 50% -10%, #ffd9d6 0%, #fbe9e7 38%, #f4f4f8 100%);
   --accent: #007aff;
   --accent-ink: #ffffff;
@@ -42,6 +44,8 @@
     --glass-shadow: 0 8px 30px rgba(0, 0, 0, .5);
     --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .16);
     --field: rgba(118, 118, 128, .24);
+    --scrim: rgba(0, 0, 0, .58);
+    --scrim-inner: rgba(0, 0, 0, .68);
     --bg-grad: radial-gradient(120% 70% at 50% -10%, #5a1f2b 0%, #1a1a33 45%, #0e1a30 100%);
     --accent: #0a84ff; --accent-ink: #ffffff; --indigo: #7d7aff; --good: #30d158; --warn: #ff9f0a; --bad: #ff453a;
     color-scheme: dark;
@@ -59,7 +63,12 @@ body {
 [hidden] { display: none !important; }
 
 /* fondo fisso */
-.bgwrap { position: fixed; inset: 0; z-index: -2; background: var(--bg-grad); }
+.bgwrap { position: fixed; inset: 0; z-index: -2; background: var(--bg-grad); overflow: hidden; }
+.bgimg { position: absolute; inset: -20px; background-size: cover; background-position: center; transition: filter .4s ease; }
+.bgwrap::after { content: ""; position: absolute; inset: 0; background: var(--scrim); transition: background .4s ease; }
+body.inner .bgimg { filter: blur(12px); }
+body.inner .bgwrap::after { background: var(--scrim-inner); }
+.bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 .num { font-variant-numeric: tabular-nums; }
@@ -103,7 +112,7 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .hero .bar { height: 6px; }
 .hero-foot { display: flex; justify-content: space-between; gap: 10px; font-size: .75rem; color: var(--ink-soft); flex-wrap: wrap; }
 .apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 10px; padding: 6px 2px 0; }
-.app { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; font-size: .8rem; text-align: center; padding: 0; transition: transform .15s ease; }
+.app { border: 0; background: none; text-shadow: 0 1px 6px var(--bg); display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; font-size: .8rem; text-align: center; padding: 0; transition: transform .15s ease; }
 .app .ic { width: 76px; height: 76px; border-radius: 26px; display: grid; place-items: center; color: #fff; box-shadow: 0 8px 20px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.35); }
 .app .ic svg { width: 36px; height: 36px; }
 .app .ic.red { background: linear-gradient(180deg, #ff5a52, #d70015); }
@@ -213,7 +222,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <script src="ocr.js"></script>
 </head>
 <body>
-<div class="bgwrap" aria-hidden="true"></div>
+<div class="bgwrap" aria-hidden="true"><div class="bgimg" id="bgimg"></div></div>
 <div class="wrap">
 
   <!-- HOME -->
@@ -344,6 +353,16 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint">Scarica un file CSV con spese e ricariche: nome, tipo, giorno, ora, descrizione, categoria e importi in dollari ed euro.</div>
       <button class="btn" id="exportCsv" type="button">Invia registro</button>
       <div class="hint" id="exportInfo"></div>
+    </section>
+    <section class="card">
+      <div class="label">Sfondo</div>
+      <div class="bgprev" id="bgPrev" aria-hidden="true"></div>
+      <div class="hint">Di base c'è la bandiera americana. Puoi scegliere una tua foto dal rullino.</div>
+      <div class="btnrow">
+        <button class="btn ghost" id="bgPick" type="button">Scegli dal rullino</button>
+        <button class="btn ghost" id="bgReset" type="button">Bandiera USA</button>
+      </div>
+      <input type="file" id="bgFile" accept="image/*" hidden>
     </section>
     <section class="card">
       <div class="label">Backup con foto</div>
@@ -870,10 +889,41 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     go('settings');
   };
 
+  /* ---------- sfondo ---------- */
+  var DEFAULT_BG = 'img/bandiera-usa.svg', bgUrl = null;
+  function setBg(url) { $('bgimg').style.backgroundImage = 'url("' + url + '")'; $('bgPrev').style.backgroundImage = 'url("' + url + '")'; }
+  function loadBg() {
+    getPhoto('bg').then(function (b) {
+      if (bgUrl) { URL.revokeObjectURL(bgUrl); bgUrl = null; }
+      if (b) { bgUrl = URL.createObjectURL(b); setBg(bgUrl); } else setBg(DEFAULT_BG);
+    });
+  }
+  function shrinkImage(file, max) {
+    return new Promise(function (res, rej) {
+      var u = URL.createObjectURL(file), im = new Image();
+      im.onload = function () {
+        var k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+        c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+        c.toBlob(function (b) { b ? res(b) : rej(); }, 'image/jpeg', 0.82);
+      };
+      im.onerror = function () { URL.revokeObjectURL(u); rej(); };
+      im.src = u;
+    });
+  }
+  $('bgPick').onclick = function () { $('bgFile').value = ''; $('bgFile').click(); };
+  $('bgFile').addEventListener('change', function () {
+    var fl = $('bgFile').files[0]; if (!fl) return;
+    shrinkImage(fl, 1600).then(function (b) { return putPhoto('bg', b); }).then(function () { loadBg(); toast('Sfondo cambiato'); })
+      .catch(function () { toast('Non riesco a leggere questa immagine'); });
+  });
+  $('bgReset').onclick = function () { delPhoto('bg').then(function () { loadBg(); toast('Bandiera USA ripristinata'); }); };
+
   /* ---------- avvio ---------- */
   $('cat').innerHTML = $('catScan').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   show('home');
+  loadBg();
   fetchRate(false);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
