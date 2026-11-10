@@ -90,7 +90,6 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .atag { position: absolute; left: 4px; bottom: 4px; font-size: .65rem; font-weight: 700; background: rgba(0,0,0,.6); color: #fff; padding: 1px 7px; border-radius: 999px; }
 .apend { position: absolute; right: 4px; top: 4px; font-size: .62rem; font-weight: 700; background: var(--warn); color: #fff; padding: 1px 6px; border-radius: 999px; }
 .vmap { width: 100%; max-width: 520px; height: 150px; border-radius: 14px; overflow: hidden; flex: none; }
-.viewer.withmap img { max-height: 42vh; }
 .vcap { color: #fff; font-size: .9rem; text-align: center; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
@@ -243,6 +242,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 .viewer { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; }
 .viewer img { max-width: 100%; max-height: calc(100% - 70px); object-fit: contain; border-radius: 10px; }
 .viewer .btn { background: #fff; color: #111; }
+.viewer.alb img { max-height: 42vh; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-line); padding: 10px 16px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: 90%; text-align: center; box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
 </style>
@@ -1317,51 +1317,80 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     Promise.all(locals.map(function (a) { return getPhoto('albt_' + a.id).then(function (b) { if (!b) return null; var u = URL.createObjectURL(b); albUrls.push(u); return { id: a.id, user: a.user, ts: a.ts, loc: a.loc, thumbUrl: u, pending: !a.up }; }); })).then(function (ls) {
       ls.forEach(function (x) { if (x) items.push(x); });
       items.sort(function (a, b) { return b.ts - a.ts; });
-      items.forEach(function (x) {
+      items.forEach(function (x, ix) {
         var b = document.createElement('button'); b.type = 'button'; b.className = 'atile'; b.setAttribute('aria-label', 'Foto di ' + (x.user || ''));
         var im = document.createElement('img'); im.alt = ''; im.src = x.thumbUrl || x.thumb; b.appendChild(im);
         var t = document.createElement('span'); t.className = 'atag'; t.textContent = x.user || '?'; b.appendChild(t);
         if (x.pending) { var p = document.createElement('span'); p.className = 'apend'; p.textContent = 'in coda'; b.appendChild(p); }
-        b.onclick = function () { viewAlbumPhoto(x); }; grid.appendChild(b);
+        b.onclick = function () { viewAlbumPhoto(items.slice(), ix); }; grid.appendChild(b);
       });
       var users = {}; items.forEach(function (x) { users[x.user] = 1; });
       $('alCount').textContent = items.length ? items.length + (items.length === 1 ? ' foto' : ' foto') + ' · ' + Object.keys(users).length + (Object.keys(users).length === 1 ? ' persona' : ' persone') : 'Ancora nessuna foto.';
     });
   }
-  function viewAlbumPhoto(x) {
-    var host = $('viewerHost'), v = document.createElement('div'); v.className = 'viewer';
-    var im = document.createElement('img'); im.alt = 'Foto'; im.src = x.thumbUrl || x.thumb; v.appendChild(im);
-    var cap = document.createElement('div'); cap.className = 'vcap';
-    cap.textContent = (x.user || '') + ' · ' + dateStr(x.ts) + (x.loc ? ' · con posizione' : ''); v.appendChild(cap);
-    var row = document.createElement('div'); row.className = 'btnrow';
-    var full = null, mini = null;
-    function mk(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.onclick = fn; row.appendChild(b); return b; }
-    mk('Chiudi', function () { if (mini) { try { mini.remove(); } catch (e) {} } v.remove(); });
-    mk('Salva sul telefono', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
-    if (x.user === st.user) mk('Elimina', function () {
-      if (!confirm('Eliminare questa foto dall\'album di tutti?')) return;
-      st.album = (st.album || []).filter(function (a) { return a.id !== x.id; }); delPhoto('alb_' + x.id); delPhoto('albt_' + x.id); persist();
-      albRemote = albRemote.filter(function (r) { return r.id !== x.id; }); renderAlbum(); v.remove();
-      fbReady().then(function (d) { var tr = d.collection('trips').doc(st.trip || DEFAULT_TRIP); return Promise.all([tr.collection('album').doc(x.id).delete(), tr.collection('albumFull').doc(x.id).delete()]); }).catch(function () { toast('Cancellata qui, ma non online: riprova con la rete'); });
-    });
-    if (x.loc && window.L) {
-      v.classList.add('withmap');
-      var md = document.createElement('div'); md.className = 'vmap'; v.appendChild(md);
-      mk('Apri in Mappe', function () { window.open('https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=Foto', '_blank'); });
-      setTimeout(function () {
-        try {
-          mini = L.map(md, { zoomControl: false, attributionControl: true }).setView([x.loc.la, x.loc.lo], 15);
-          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mini);
-          L.circleMarker([x.loc.la, x.loc.lo], { radius: 10, color: '#fff', weight: 3, fillColor: '#d6246e', fillOpacity: 1 }).addTo(mini);
-          mini.invalidateSize();
-        } catch (e) {}
-      }, 60);
+  function viewAlbumPhoto(list, idx) {
+    var host = $('viewerHost'), v = document.createElement('div'), mini = null, cur = -1, gen = 0, tx = 0, ty = 0, swipeOk = false;
+    v.className = 'viewer alb'; v.style.overflowY = 'auto'; v.style.justifyContent = 'flex-start';
+    host.appendChild(v);
+    function closeV() { if (mini) { try { mini.remove(); } catch (e) {} mini = null; } document.removeEventListener('keydown', onKey); v.remove(); }
+    function onKey(e) { if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); else if (e.key === 'Escape') closeV(); }
+    document.addEventListener('keydown', onKey);
+    function go(d) { var n = cur + d; if (n < 0 || n >= list.length) return; showAt(n); }
+    v.addEventListener('touchstart', function (e) { var t = e.touches[0]; tx = t.clientX; ty = t.clientY; swipeOk = e.touches.length === 1 && !e.target.closest('.vmap'); }, { passive: true });
+    v.addEventListener('touchend', function (e) {
+      if (!swipeOk) return; var t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
+    }, { passive: true });
+    function showAt(n) {
+      cur = n; var x = list[n], my = ++gen;
+      if (mini) { try { mini.remove(); } catch (e) {} mini = null; }
+      v.innerHTML = '';
+      var box = document.createElement('div'); box.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;margin:auto 0'; v.appendChild(box);
+      var nav = document.createElement('div'); nav.className = 'btnrow'; nav.style.cssText = 'align-items:center;justify-content:center;gap:16px;width:100%;max-width:520px';
+      function nb(label, d) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.style.cssText = 'flex:none;min-width:56px'; b.textContent = label; b.disabled = (cur + d < 0 || cur + d >= list.length); if (b.disabled) b.style.opacity = '.35'; b.onclick = function () { go(d); }; return b; }
+      var cnt = document.createElement('div'); cnt.className = 'vcap'; cnt.textContent = (n + 1) + ' / ' + list.length;
+      nav.appendChild(nb('‹', -1)); nav.appendChild(cnt); nav.appendChild(nb('›', 1)); box.appendChild(nav);
+      var im = document.createElement('img'); im.alt = 'Foto'; im.src = x.thumbUrl || x.thumb; box.appendChild(im);
+      var cap = document.createElement('div'); cap.className = 'vcap';
+      cap.textContent = (x.user || '') + ' · ' + dateStr(x.ts) + (x.loc ? '' : ' · posizione non disponibile'); box.appendChild(cap);
+      var full = null;
+      if (x.loc) {
+        var md = document.createElement('div'); md.className = 'vmap'; box.appendChild(md);
+        if (!window.L) { md.textContent = 'La mappa non si è caricata: serve la rete.'; md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; }
+        else {
+          var build = function () {
+            if (my !== gen) return;
+            try {
+              if (mini) { mini.remove(); mini = null; }
+              mini = L.map(md, { zoomControl: false, attributionControl: true }).setView([x.loc.la, x.loc.lo], 15);
+              L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mini);
+              L.circleMarker([x.loc.la, x.loc.lo], { radius: 10, color: '#fff', weight: 3, fillColor: '#d6246e', fillOpacity: 1 }).addTo(mini);
+              mini.invalidateSize();
+            } catch (e) { md.textContent = 'Mappa non disponibile'; }
+          };
+          setTimeout(build, 80); setTimeout(function () { if (my === gen && mini) mini.invalidateSize(); }, 400);
+        }
+      }
+      var row = document.createElement('div'); row.className = 'btnrow'; row.style.cssText = 'width:100%;max-width:520px';
+      function mk(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.onclick = fn; row.appendChild(b); }
+      mk('Chiudi', closeV);
+      mk('Salva sul telefono', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
+      if (x.loc) mk('Apri in Mappe', function () { window.open('https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=Foto', '_blank'); });
+      if (x.user === st.user) mk('Elimina', function () {
+        if (!confirm('Eliminare questa foto dall\'album di tutti?')) return;
+        st.album = (st.album || []).filter(function (a) { return a.id !== x.id; }); delPhoto('alb_' + x.id); delPhoto('albt_' + x.id); persist();
+        albRemote = albRemote.filter(function (r) { return r.id !== x.id; }); renderAlbum();
+        list.splice(n, 1);
+        fbReady().then(function (d) { var tr = d.collection('trips').doc(st.trip || DEFAULT_TRIP); return Promise.all([tr.collection('album').doc(x.id).delete(), tr.collection('albumFull').doc(x.id).delete()]); }).catch(function () { toast('Cancellata qui, ma non online: riprova con la rete'); });
+        if (!list.length) closeV(); else showAt(Math.min(n, list.length - 1));
+      });
+      box.appendChild(row);
+      getPhoto('alb_' + x.id).then(function (b) {
+        if (b) return b;
+        return fbReady().then(function (d) { return d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('albumFull').doc(x.id).get(); }).then(function (doc) { return doc.exists ? dataToBlob(doc.data().data) : null; });
+      }).then(function (b) { if (b && my === gen) { full = b; im.src = URL.createObjectURL(b); } }).catch(function () { if (my === gen) cap.textContent += ' · (foto grande non disponibile)'; });
     }
-    v.appendChild(row); host.appendChild(v);
-    getPhoto('alb_' + x.id).then(function (b) {
-      if (b) return b;
-      return fbReady().then(function (d) { return d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('albumFull').doc(x.id).get(); }).then(function (doc) { return doc.exists ? dataToBlob(doc.data().data) : null; });
-    }).then(function (b) { if (b) { full = b; im.src = URL.createObjectURL(b); } }).catch(function () { cap.textContent += ' · (foto grande non disponibile)'; });
+    showAt(idx);
   }
   function sharePhoto(blob) {
     var file = new File([blob], 'xmas-texas-' + Date.now() + '.jpg', { type: 'image/jpeg' });
