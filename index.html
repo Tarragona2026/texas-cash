@@ -222,6 +222,10 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .viewer.docv .btnrow .btn { flex: 1 1 40%; }
 .flaaddr { font-size: 1.15rem; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
 a.btn { text-decoration: none; }
+.app .ic.mint { background: linear-gradient(180deg, #5fe0a6, #12a36a); }
+.app .ic.coral { background: linear-gradient(180deg, #ff9a76, #e2552d); }
+a.docrow { text-decoration: none; }
+.btn.callsos { background: var(--bad); color: #fff; min-height: 56px; font-size: 1.1rem; }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
 .app { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
@@ -378,6 +382,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goTr" type="button"><span class="ic teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h9M8.500 3v2M6 5c.5 3 2.500 5.500 5 7M11 5c-.5 3-3 6-6.500 8"/><path d="M12 20l4.500-10L21 20M13.600 16.500h5.800"/></svg></span>Traduttore</button>
       <button class="app" id="goMap" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span>Mappa</button>
       <button class="app" id="goDocs" type="button"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.500 7.500A2.500 2.500 0 0 1 6 5h3.600l2 2.200H18a2.500 2.500 0 0 1 2.500 2.500v7.300A2.500 2.500 0 0 1 18 19.500H6A2.500 2.500 0 0 1 3.500 17z"/><path d="M8 12.500h8M8 15.500h5"/></svg></span>Documenti</button>
+      <button class="app" id="goCall" type="button"><span class="ic mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.500 4h2.600l1.400 3.800-1.900 1.300a11 11 0 0 0 5.300 5.300l1.300-1.900 3.800 1.400v2.600A2.500 2.500 0 0 1 16.500 19 13.500 13.500 0 0 1 4 6.500 2.500 2.500 0 0 1 6.500 4z"/></svg></span>Chiama</button>
+      <button class="app" id="goPos" type="button"><span class="ic coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.500" cy="8" r="2.800"/><path d="M3.500 18.500c.4-3 2.300-4.700 5-4.700s4.600 1.700 5 4.700"/><path d="M17.500 20s3.500-3.100 3.500-5.700a3.500 3.500 0 0 0-7 0c0 2.600 3.500 5.700 3.500 5.700z"/><circle cx="17.500" cy="14.300" r="1"/></svg></span>Dove sono i miei</button>
       <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
     </nav>
     <button class="btn" id="appsDone" type="button" hidden>Fine</button>
@@ -661,6 +667,31 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     </div>
   </section>
 
+  <!-- CHIAMATA RAPIDA -->
+  <section id="v-call" class="wrap" aria-label="Chiamata rapida" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Chiama</h2><span></span></div>
+    <section class="card">
+      <div class="doclist" id="callList"></div>
+      <div class="hint" id="callHint"></div>
+      <button class="btn ghost small" id="callEdit" type="button">Aggiungi o modifica i contatti</button>
+    </section>
+    <section class="card">
+      <a class="btn callsos" href="tel:911">Emergenze · 911</a>
+      <div class="hint">Polizia, ambulanza e pompieri negli Stati Uniti. È una chiamata normale: WhatsApp non chiama le emergenze.</div>
+    </section>
+  </section>
+
+  <!-- DOVE SONO I MIEI -->
+  <section id="v-pos" class="wrap" aria-label="Dove sono i miei" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Dove sono i miei</h2><span></span></div>
+    <section class="card">
+      <button class="btn" id="posHere" type="button">Sono qui</button>
+      <div class="doclist" id="posList"></div>
+      <div class="diamap" id="posMap" hidden></div>
+      <div class="hint" id="posInfo"></div>
+    </section>
+  </section>
+
   <!-- IMPOSTAZIONI -->
   <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
@@ -685,6 +716,12 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint">Scarica un file CSV con spese e ricariche: nome, tipo, giorno, ora, descrizione, categoria e importi in dollari ed euro.</div>
       <button class="btn" id="exportCsv" type="button">Invia registro</button>
       <div class="hint" id="exportInfo"></div>
+    </section>
+    <section class="card" id="ctCard">
+      <div class="label">Contatti per la chiamata rapida</div>
+      <div class="doclist" id="ctList"></div>
+      <button class="btn ghost" id="ctAdd" type="button">+ Aggiungi un contatto</button>
+      <div class="hint">I numeri restano solo su questo telefono: vanno scritti su ognuno dei tre. Tocca un contatto per modificarlo.</div>
     </section>
     <section class="card">
       <div class="label">Sincronizzazione</div>
@@ -723,11 +760,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v52';
+var APP_VER = 'v53';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
-  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album', 'dia', 'chk', 'cal', 'docs'];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album', 'dia', 'chk', 'cal', 'docs', 'call', 'pos'];
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
@@ -815,7 +852,10 @@ var APP_VER = 'v52';
     if (v === 'home') { renderHome(); chkBanner(); calHome(); }
     if (v === 'calc') renderCalc();
     if (v === 'log') renderLog();
-    if (v === 'settings') fillSettings();
+    if (v === 'settings') { fillSettings(); renderContacts(); }
+    if (v === 'call') renderCall();
+    if (v !== 'pos' && posUnsub) { posUnsub(); posUnsub = null; }
+    if (v === 'pos') openPos();
     if (v === 'topup') renderTopup();
     if (v === 'map') renderMap();
     if (v === 'tr') renderTr();
@@ -842,6 +882,8 @@ var APP_VER = 'v52';
   $('goMap').onclick = function () { openMap(''); };
   $('goLog').onclick = function () { go('log'); };
   $('goDocs').onclick = function () { go('docs'); };
+  $('goCall').onclick = function () { go('call'); };
+  $('goPos').onclick = function () { go('pos'); };
   $('goSettings').onclick = function () { go('settings'); };
   $('goTopup').onclick = function () { go('topup'); };
 
@@ -874,7 +916,8 @@ var APP_VER = 'v52';
   function addExpense(e) {
     var fx0 = e.loc ? null : freshFix(); if (fx0) e.loc = fx0;
     st.expenses.push(e); persist();
-    if (!e.loc) getFix(8000).then(function (f) { if (f && !e.loc) { e.loc = f; persist(); } });
+    if (fx0) posSet(fx0);
+    else getFix(8000).then(function (f) { if (f && !e.loc) { e.loc = f; persist(); } posSet(f); });
   }
   function newId() { return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
@@ -1956,6 +1999,7 @@ var APP_VER = 'v52';
     if (e.text !== txt) { e.text = txt; e.upd = Date.now(); }
     diaTouchLoc(e); persist(); try { $('diaText').blur(); } catch (x) {}
     toast('Diario salvato · ' + dayLabel(diaDay)); renderDiary(); sync(true);
+    if (diaDay === dayKey()) getFix(6000).then(posSet);
   };
   $('diaDel').onclick = function () {
     var e = diaGet(false); if (!e) return;
@@ -2057,7 +2101,7 @@ var APP_VER = 'v52';
           var id = newId(), ts = Date.now();
           return Promise.all([resizeJpeg(f, 1280, 0.78), resizeJpeg(f, 360, 0.7)]).then(function (bs) {
             return Promise.all([putPhoto('alb_' + id, bs[0]), putPhoto('albt_' + id, bs[1])]).then(function () {
-              st.album = st.album || []; var a = { id: id, ts: ts, user: st.user, up: false }; if (fix) a.loc = { la: fix.la, lo: fix.lo, ac: fix.ac };
+              st.album = st.album || []; var a = { id: id, ts: ts, user: st.user, up: false }; if (fix) { a.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; posSet(fix); }
               st.album.push(a); albLast = { id: id, blob: bs[0] };
               return (st.albDia !== false ? diaryAttach(bs[0], fix) : Promise.resolve()).then(function () { persist(); });
             });
@@ -2352,6 +2396,7 @@ var APP_VER = 'v52';
     Object.keys(pushed).forEach(function (id) { if (!items[id]) n++; });
     (st.album || []).forEach(function (a) { if (!a.up) n++; });
     n += diaryPending();
+    if (st.pos && !st.pos.sent && st.user) n++;
     n += Object.keys((st.chk && st.chk.dirty) || {}).length + Object.keys((st.cal && st.cal.dirty) || {}).length;
     return n;
   }
@@ -2393,6 +2438,7 @@ var APP_VER = 'v52';
       diarySync(tr, jobs);
       chkSync(tr, jobs);
       calSync(tr, jobs);
+      posSync(tr, jobs);
       var to = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 60000); });
       return Promise.race([Promise.all(jobs), to]);
     }).then(function () { st.lastSync = Date.now(); syncErr = ''; }, function (e) {
@@ -2401,6 +2447,7 @@ var APP_VER = 'v52';
       syncing = false;
       try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
       syncInfo();
+      if (hashView() === 'pos') renderPos();
       if (syncAgain) { syncAgain = false; schedSync(); }
       else if (syncErr) { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 30000); }
     });
@@ -2707,6 +2754,126 @@ var APP_VER = 'v52';
     if (tel && tel.charAt(0) !== '+' && tel.indexOf('00') !== 0) toast('Salvato. Per WhatsApp serve il prefisso (es. +1)'); else toast('Salvato su questo telefono');
   };
   $('flaCopy').onclick = function () { try { navigator.clipboard.writeText((dm.flavia || {}).addr || '').then(function () { toast('Indirizzo copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
+
+  /* ---------- chiamata rapida: i numeri li scrive ognuno sul proprio telefono, mai nel codice e mai online ---------- */
+  function telClean(t) { return String(t || '').replace(/[^\d+]/g, ''); }
+  function callHref(c) { var t = telClean(c.tel); return c.wa ? 'https://wa.me/' + t.replace(/^\+/, '').replace(/^00/, '') : 'tel:' + t; }
+  function callAll() {                                  // i contatti salvati, più Flavia presa dalla scheda in Documenti
+    var list = (st.contacts || []).slice(), fl = dm.flavia || {};
+    if (telClean(fl.tel) && !list.some(function (c) { return slug(c.name) === 'flavia'; })) list.push({ id: '_flavia', name: 'Flavia', tel: fl.tel, wa: true, auto: true });
+    return list;
+  }
+  function callRow(c, onTap) {
+    var r = document.createElement(onTap ? 'button' : 'a'), ic = document.createElement('span'), tx = document.createElement('span'), nm = document.createElement('b'), sm = document.createElement('small');
+    r.className = 'docrow'; if (onTap) { r.type = 'button'; r.onclick = onTap; } else { r.href = callHref(c); if (c.wa) { r.target = '_blank'; r.rel = 'noopener'; } }
+    ic.className = 'docico'; ic.style.background = c.wa ? '#25a244' : '#007aff'; ic.textContent = c.wa ? 'WA' : 'TEL';
+    nm.textContent = c.name; sm.textContent = (c.wa ? 'WhatsApp' : 'Chiamata normale') + ' · ' + c.tel + (c.auto ? ' · dalla scheda in Documenti' : '');
+    tx.appendChild(nm); tx.appendChild(sm); r.appendChild(ic); r.appendChild(tx); return r;
+  }
+  function renderCall() {
+    var box = $('callList'), list = callAll(); box.innerHTML = '';
+    list.forEach(function (c) { box.appendChild(callRow(c, null)); });
+    $('callHint').textContent = list.length ? 'WhatsApp apre la chat: per chiamare tocca la cornetta in alto. I numeri "TEL" partono come chiamata normale.' : 'Ancora nessun contatto. Aggiungi Leslie, Leo, l\'hotel e il noleggio auto: i numeri restano solo su questo telefono.';
+  }
+  function renderContacts() {                            // elenco modificabile nelle Impostazioni
+    var box = $('ctList'); box.innerHTML = '';
+    (st.contacts || []).forEach(function (c) { box.appendChild(callRow(c, function () { contactForm(c); })); });
+    if (!(st.contacts || []).length) { var e = document.createElement('div'); e.className = 'hint'; e.textContent = 'Ancora nessun contatto.'; box.appendChild(e); }
+  }
+  function contactForm(c) {
+    var isNew = !c, it = c || { id: newId(), name: '', tel: '', wa: true }, wa = it.wa;
+    var sh = document.createElement('div'); sh.className = 'sheet'; var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
+    function close() { sh.remove(); }
+    sh.addEventListener('click', function (e) { if (e.target === sh) close(); });
+    inn.innerHTML = '<div class="sheethd"><b></b></div><div class="calform"><label>Nome<input type="text" id="ctName" autocomplete="off" autocapitalize="words" placeholder="es. Leslie, Hotel, Noleggio auto"></label><label>Numero (con prefisso, es. +39… o +1…)<input type="tel" id="ctTel" autocomplete="off" placeholder="+"></label><div class="chips"><button class="chip" type="button" id="ctWa">WhatsApp</button><button class="chip" type="button" id="ctPh">Chiamata normale</button></div><div class="hint" id="ctInfo">WhatsApp per le persone; chiamata normale per hotel, noleggio auto e numeri fissi.</div><div class="btnrow"><button class="btn" id="ctSave" type="button">Salva</button><button class="btn ghost" id="ctCancel" type="button">Annulla</button></div></div>';
+    inn.querySelector('.sheethd b').textContent = isNew ? 'Nuovo contatto' : 'Modifica il contatto';
+    var $$ = function (id) { return inn.querySelector('#' + id); }; $$('ctName').value = it.name; $$('ctTel').value = it.tel;
+    function kind() { $$('ctWa').setAttribute('aria-pressed', String(wa)); $$('ctPh').setAttribute('aria-pressed', String(!wa)); }
+    $$('ctWa').onclick = function () { wa = true; kind(); }; $$('ctPh').onclick = function () { wa = false; kind(); }; kind();
+    $$('ctCancel').onclick = close;
+    $$('ctSave').onclick = function () {
+      var name = $$('ctName').value.trim(), tel = $$('ctTel').value.trim(), t = telClean(tel);
+      if (!name) { $$('ctInfo').textContent = 'Scrivi il nome.'; return; }
+      if (t.replace(/\D/g, '').length < 3) { $$('ctInfo').textContent = 'Scrivi il numero.'; return; }
+      if (wa && t.charAt(0) !== '+' && t.indexOf('00') !== 0) { $$('ctInfo').textContent = 'Per WhatsApp serve il prefisso internazionale: +39 per l\'Italia, +1 per gli Stati Uniti.'; return; }
+      it.name = name; it.tel = tel; it.wa = wa;
+      if (isNew) { st.contacts = st.contacts || []; st.contacts.push(it); }
+      persist(); close(); renderContacts(); toast('Contatto salvato');
+    };
+    if (!isNew) { var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost'; del.textContent = 'Elimina il contatto'; del.onclick = function () { if (!confirm('Eliminare ' + it.name + '?')) return; st.contacts = (st.contacts || []).filter(function (x) { return x.id !== it.id; }); persist(); close(); renderContacts(); }; inn.querySelector('.calform').appendChild(del); }
+    $('viewerHost').appendChild(sh);
+  }
+  $('ctAdd').onclick = function () { contactForm(null); };
+  $('callEdit').onclick = function () { go('settings'); setTimeout(function () { $('ctCard').scrollIntoView({ block: 'start' }); }, 80); };
+
+  /* ---------- dove sono i miei: ultima posizione di ognuno, solo punti (niente tracciato) ---------- */
+  var POS_COL = ['#d70015', '#007aff', '#248a3d', '#e07b00', '#8a3fd1'], posUnsub = null, posMap = null, posLayer = null, posList = null;
+  function posSet(f) {                                   // chiamata da "Sono qui" e quando si salva una spesa, una foto o il diario
+    if (!f || !st.user) return;
+    st.pos = { la: f.la, lo: f.lo, ac: f.ac || 0, ts: Date.now(), sent: false }; persist();
+    if (hashView() === 'pos') renderPos();
+  }
+  function posSync(tr, jobs) {
+    var p = st.pos; if (!p || p.sent || !st.user) return; var ts = p.ts;
+    jobs.push(tr.collection('positions').doc(chkMe()).set({ user: st.user, la: p.la, lo: p.lo, ac: p.ac || 0, ts: p.ts }).then(function () { if (st.pos && st.pos.ts === ts) st.pos.sent = true; }));
+  }
+  function posAgo(ts) {
+    var m = Math.round((Date.now() - ts) / 60000), d = new Date(ts), hm = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    if (m < 1) return 'adesso'; if (m < 60) return m + ' min fa'; if (m < 600) return Math.floor(m / 60) + ' h ' + (m % 60) + ' min fa';
+    return (dayKey(ts) === dayKey() ? 'oggi' : dayKey(ts) === dayKey(Date.now() - 86400000) ? 'ieri' : d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })) + ' alle ' + hm;
+  }
+  function posDist(a, b) { var m = meters(a, b); return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(m < 20000 ? 1 : 0).replace('.', ',') + ' km'; }
+  function openPos() {
+    renderPos();
+    if (posUnsub) return;
+    fbReady().then(function (d) {
+      if (hashView() !== 'pos' || posUnsub) return;
+      posUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('positions').onSnapshot(function (snap) {
+        posList = snap.docs.map(function (doc) { var v = doc.data(); v.key = doc.id; return v; }).filter(function (v) { return typeof v.la === 'number' && typeof v.lo === 'number'; });
+        st.posSeen = posList; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+        if (hashView() === 'pos') renderPos();
+      }, function () {});
+    }).catch(function () {});
+  }
+  function renderPos() {
+    var me = st.user ? chkMe() : '', mine = st.pos || null, src = (posList || st.posSeen || []).filter(function (v) { return v.key !== me; }), list = [], box = $('posList'), info = $('posInfo');
+    src.forEach(function (v) { list.push({ key: v.key, name: v.user || v.key, la: v.la, lo: v.lo, ac: v.ac, ts: v.ts }); });
+    list.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    if (mine) list.push({ key: me, name: 'Tu', la: mine.la, lo: mine.lo, ac: mine.ac, ts: mine.ts, me: true, wait: !mine.sent });
+    $('posHere').disabled = !st.user;
+    box.innerHTML = '';
+    list.forEach(function (p, i) {
+      p.col = p.me ? '#636366' : POS_COL[i % POS_COL.length];
+      var r = document.createElement('a'), ic = document.createElement('span'), tx = document.createElement('span'), nm = document.createElement('b'), sm = document.createElement('small');
+      r.className = 'docrow'; r.target = '_blank'; r.rel = 'noopener'; r.href = 'https://maps.apple.com/?ll=' + p.la + ',' + p.lo + '&q=' + encodeURIComponent(p.me ? 'La mia posizione' : p.name);
+      ic.className = 'docico'; ic.style.cssText = 'border-radius:50%;font-size:1.1rem;background:' + p.col; ic.textContent = p.name.charAt(0).toUpperCase();
+      nm.textContent = p.name;
+      sm.textContent = posAgo(p.ts) + (!p.me && mine ? ' · a ' + posDist(mine, p) + ' da te' : '') + (p.ac > 150 ? ' · posizione poco precisa' : '') + (p.wait ? ' · in attesa di rete' : '');
+      tx.appendChild(nm); tx.appendChild(sm); r.appendChild(ic); r.appendChild(tx); box.appendChild(r);
+    });
+    info.textContent = !st.user ? 'Scrivi prima il tuo nome in Impostazioni.'
+      : (!src.length ? 'Gli altri non hanno ancora mandato la posizione. ' : '') + 'La posizione si aggiorna con "Sono qui" e quando si salva una spesa, una foto o il diario. Non è un tracciato continuo: vedi l\'ultimo punto e a che ora. Tocca un nome per aprirlo in Mappe.'
+        + (navigator.onLine === false ? ' Senza rete vedi le ultime posizioni ricevute.' : '');
+    var mb = $('posMap');
+    if (!window.L || !list.length) { mb.hidden = true; return; }
+    mb.hidden = false;
+    if (!posMap) { posMap = L.map(mb).setView([29.76, -95.37], 9); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(posMap); posLayer = L.layerGroup().addTo(posMap); }
+    posLayer.clearLayers();
+    var pts = list.map(function (p) {
+      var ini = document.createElement('div'); ini.className = 'mkn'; ini.style.background = p.col; ini.textContent = p.name.charAt(0).toUpperCase();
+      L.marker([p.la, p.lo], { icon: L.divIcon({ className: '', html: ini.outerHTML, iconSize: [30, 30], iconAnchor: [15, 15] }), zIndexOffset: p.me ? 0 : 500 }).addTo(posLayer).bindPopup(document.createTextNode(p.name + ' · ' + posAgo(p.ts)));
+      return [p.la, p.lo];
+    });
+    setTimeout(function () { posMap.invalidateSize(); if (pts.length === 1) posMap.setView(pts[0], 14); else posMap.fitBounds(pts, { padding: [40, 40], maxZoom: 15 }); }, 60);
+  }
+  $('posHere').onclick = function () {
+    var b = $('posHere'); b.disabled = true; b.textContent = 'Cerco la posizione…';
+    getFix(12000).then(function (f) {
+      b.disabled = false; b.textContent = 'Sono qui';
+      if (!f) { toast('Non trovo la posizione: controlla che sia attiva per questa app'); return; }
+      posSet(f); sync(true); toast(navigator.onLine === false ? 'Salvata: parte quando torna la rete' : 'Posizione inviata');
+    });
+  };
 
   /* ---------- home: icone spostabili come sull'iPhone (tieni premuto, trascina, poi "Fine") ---------- */
   var appsNav = document.querySelector('.apps'), appsEdit = false, appsDrag = null, appsLp = null, appsSwallow = 0;
