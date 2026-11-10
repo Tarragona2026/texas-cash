@@ -105,6 +105,16 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .mkn { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; color: #fff; font: 700 .85rem/24px var(--font-body); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
 .pop .scroll { max-height: 230px; overflow-y: auto; }
 .pop .it { padding: 6px 0; border-top: 1px solid #ddd; } .pop .it:first-child { border-top: 0; padding-top: 0; }
+.sheet { position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; }
+.sheetin { width: 100%; max-width: 560px; margin: 0 auto; max-height: 90vh; overflow-y: auto; background: var(--glass-strong); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); border-radius: 26px 26px 0 0; padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; }
+.sheethd { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: sticky; top: -14px; padding: 6px 0; background: var(--glass-strong); z-index: 2; }
+.sheethd b { font-family: var(--font-display); font-size: 1.15rem; }
+.sday { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--glass-line); }
+.sday:last-child { border-bottom: 0; }
+.sday h3 { margin: 0; font-family: var(--font-display); font-size: 1.1rem; text-transform: capitalize; }
+.car { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.car img { flex: 0 0 100%; width: 100%; max-height: 50vh; object-fit: cover; border-radius: 16px; scroll-snap-align: center; background: var(--field); }
+.stext { font-size: 1.02rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pop { max-width: 220px; font-family: var(--font-body); color: #1c1c1e; }
 .pop b { display: block; text-transform: capitalize; margin-bottom: 4px; }
 .pop p { margin: 0 0 6px; font-size: .85rem; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -427,6 +437,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="diaStatus"></div>
       <button class="btn ghost small" id="diaDel" type="button">Elimina questa voce</button>
     </section>
+    <section class="card" id="diaExp" hidden>
+      <div class="label">Spese di questo giorno</div>
+      <div id="diaExpList"></div>
+      <div class="line total"><span class="k">Totale del giorno</span><span class="v num" id="diaExpTot"></span></div>
+    </section>
     <section class="card">
       <div class="label">I tuoi giorni</div>
       <div class="chips" id="diaDays"></div>
@@ -436,7 +451,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <section class="card" id="diaCal" hidden>
       <div class="calhead"><button class="btn ghost small" id="calPrev" type="button" aria-label="Mese precedente">‹</button><b id="calTitle"></b><button class="btn ghost small" id="calNext" type="button" aria-label="Mese successivo">›</button></div>
       <div class="cal" id="calGrid"></div>
-      <div class="hint">Il puntino arancione indica i giorni con testo o foto. Tocca un giorno per aprirlo.</div>
+      <div class="hint">Il puntino arancione indica i giorni con testo, foto o spese. Tocca un giorno per aprirlo.</div>
     </section>
     <section class="card" id="diaMapCard" hidden>
       <div class="diamap" id="diaMap"></div>
@@ -548,7 +563,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v41';
+var APP_VER = 'v42';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1393,14 +1408,17 @@ var APP_VER = 'v41';
         t.appendChild(x); grid.appendChild(t);
       });
     });
-    var days = Object.keys(st.diary || {}).sort().reverse(), box = $('diaDays'); box.innerHTML = '';
+    var dd = {}; Object.keys(st.diary || {}).forEach(function (k) { dd[k] = 1; }); (st.expenses || []).forEach(function (x) { dd[dayKey(x.ts)] = 1; });
+    var days = Object.keys(dd).sort().reverse(), box = $('diaDays'); box.innerHTML = '';
     var all = days.slice(); if (all.indexOf(dayKey()) < 0) all.unshift(dayKey());
     all.forEach(function (d) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 12px';
-      var p = d.split('-'); b.textContent = Number(p[2]) + '/' + Number(p[1]) + (st.diary && st.diary[d] ? '' : ' (oggi)'); b.setAttribute('aria-pressed', String(d === diaDay));
+      var p = d.split('-'); b.textContent = Number(p[2]) + '/' + Number(p[1]) + (dayHas(d) ? '' : ' (oggi)'); b.setAttribute('aria-pressed', String(d === diaDay));
       b.onclick = function () { diaDay = d; renderDiary(); }; box.appendChild(b);
     });
     $('diaDel').hidden = !e; diaStatus();
+    var ex = dayExpenses(diaDay); $('diaExp').hidden = !ex.length;
+    if (ex.length) { fillExpenses($('diaExpList'), ex); $('diaExpTot').textContent = usd(ex.reduce(function (a, z) { return a + z.usd; }, 0)); }
   }
   $('diaText').addEventListener('input', function () {
     clearTimeout(diaTimer);
@@ -1444,6 +1462,43 @@ var APP_VER = 'v41';
   /* ---------- diario: calendario e mappa ---------- */
   var diaTab = 'write', diaMonth = null, diaMapObj = null, diaMapLayer = null, diaMapUrls = [];
   function hasEntry(k) { var e = st.diary && st.diary[k]; return !!(e && ((e.text || '').trim() || (e.photos || []).length)); }
+  function dayExpenses(k) { return (st.expenses || []).filter(function (e) { return dayKey(e.ts) === k; }).sort(function (a, b) { return a.ts - b.ts; }); }
+  function dayHas(k) { return hasEntry(k) || dayExpenses(k).length > 0; }
+  function expLine(e) {
+    var t = new Date(e.ts); var where = e.store || e.desc || 'senza nome';
+    return { k: where + ' · ' + e.cat + ' · ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + (e.loc ? ' · 📍' : ''), v: usd(e.usd) };
+  }
+  function fillExpenses(box, list) {
+    box.innerHTML = '';
+    list.forEach(function (e) { var l = expLine(e), r = document.createElement('div'); r.className = 'line'; var a = document.createElement('span'), b = document.createElement('span'); a.className = 'k'; b.className = 'v num'; a.textContent = l.k; b.textContent = l.v; r.appendChild(a); r.appendChild(b); box.appendChild(r); });
+  }
+  function dayLoc(k) { var e = st.diary && st.diary[k]; if (e && e.loc) return e.loc; var x = dayExpenses(k).filter(function (z) { return z.loc; })[0]; return x ? x.loc : null; }
+  function openDaySheet(keys) {                       // riquadro grande: foto in primo piano, testo sotto, poi le spese
+    var host = $('viewerHost'), urls = [], sh = document.createElement('div'); sh.className = 'sheet';
+    function close() { urls.forEach(function (u) { URL.revokeObjectURL(u); }); sh.remove(); }
+    sh.addEventListener('click', function (ev) { if (ev.target === sh) close(); });
+    var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
+    var hd = document.createElement('div'); hd.className = 'sheethd'; var tt = document.createElement('b'); tt.textContent = keys.length === 1 ? 'Diario' : keys.length + ' giorni in questo posto';
+    var cb = document.createElement('button'); cb.type = 'button'; cb.className = 'btn ghost small'; cb.textContent = 'Chiudi'; cb.onclick = close; hd.appendChild(tt); hd.appendChild(cb); inn.appendChild(hd);
+    keys.forEach(function (k) {
+      var e = st.diary && st.diary[k], day = document.createElement('div'); day.className = 'sday';
+      var h = document.createElement('h3'); h.textContent = dayLabel(k); day.appendChild(h);
+      if (e && (e.photos || []).length) {
+        var car = document.createElement('div'); car.className = 'car'; day.appendChild(car);
+        e.photos.forEach(function (id) { getPhoto('dia_' + id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); urls.push(u); var im = document.createElement('img'); im.alt = 'Foto del diario'; im.src = u; car.appendChild(im); }); });
+      }
+      if (e && (e.text || '').trim()) { var p = document.createElement('div'); p.className = 'stext'; p.textContent = e.text.trim(); day.appendChild(p); }
+      var ex = dayExpenses(k);
+      if (ex.length) {
+        var lb = document.createElement('div'); lb.className = 'label'; lb.textContent = 'Spese'; day.appendChild(lb);
+        var bx = document.createElement('div'); day.appendChild(bx); fillExpenses(bx, ex);
+        var tot = ex.reduce(function (a, z) { return a + z.usd; }, 0), tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = usd(tot); day.appendChild(tl);
+      }
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; setDiaTab('write'); }; day.appendChild(go);
+      inn.appendChild(day);
+    });
+    host.appendChild(sh);
+  }
   function setDiaTab(t) {
     diaTab = t;
     [].forEach.call(document.querySelectorAll('#diaTabs .chip'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.tab === t)); });
@@ -1463,7 +1518,7 @@ var APP_VER = 'v41';
     for (var d = 1; d <= days; d++) {
       (function (d) {
         var k = y + '-' + pad(m + 1) + '-' + pad(d), b = document.createElement('button'); b.type = 'button'; b.textContent = d;
-        if (hasEntry(k)) { b.className = 'has'; b.setAttribute('aria-label', d + ': ci sono testo o foto'); }
+        if (dayHas(k)) { b.className = 'has'; b.setAttribute('aria-label', d + ': ci sono diario o spese'); }
         if (k === today) b.classList.add('today');
         b.onclick = function () { diaDay = k; setDiaTab('write'); };
         g.appendChild(b);
@@ -1481,11 +1536,11 @@ var APP_VER = 'v41';
     });
     return cl;
   }
-  function groupMarker(layer, g, color, build) {
+  function groupMarker(layer, g, color, build, sheet) {
     var n = g.items.length, ll = [g.la, g.lo], m;
     if (n === 1) m = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
     else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn" style="background:' + color + '">' + n + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
-    m.on('click', function () { m.bindPopup(build(g), { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup(); });
+    m.on('click', function () { if (sheet) { sheet(g); return; } m.bindPopup(build(g), { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup(); });
     return m;
   }
   function renderDiaMap() {
@@ -1498,25 +1553,14 @@ var APP_VER = 'v41';
       diaMapLayer = L.layerGroup().addTo(diaMapObj);
     }
     diaMapLayer.clearLayers(); diaMapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaMapUrls = [];
-    var keys = Object.keys(st.diary || {}).filter(hasEntry).sort(), pts = [], noloc = 0;
-    var withLoc = keys.filter(function (k) { if (st.diary[k].loc) return true; noloc++; return false; });
-    clusterByPlace(withLoc, function (k) { return { la: st.diary[k].loc.la, lo: st.diary[k].loc.lo }; }, 60).forEach(function (g) {
+    var dset = {}; Object.keys(st.diary || {}).filter(hasEntry).forEach(function (k) { dset[k] = 1; }); (st.expenses || []).forEach(function (e) { dset[dayKey(e.ts)] = 1; });
+    var keys = Object.keys(dset).sort(), pts = [], noloc = 0;
+    var withLoc = keys.filter(function (k) { if (dayLoc(k)) return true; noloc++; return false; });
+    clusterByPlace(withLoc, function (k) { var l = dayLoc(k); return { la: l.la, lo: l.lo }; }, 60).forEach(function (g) {
       pts.push([g.la, g.lo]);
-      var mk = groupMarker(diaMapLayer, g, '#e07b00', function (g) {
-        var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc);
-        g.items.forEach(function (k) {
-          var e = st.diary[k], it = document.createElement('div'); it.className = 'it';
-          var t = document.createElement('b'); t.textContent = dayLabel(k); it.appendChild(t);
-          if ((e.text || '').trim()) { var p = document.createElement('p'); var tx = e.text.trim(); p.textContent = tx.length > 160 ? tx.slice(0, 160) + '…' : tx; it.appendChild(p); }
-          var ph = document.createElement('div'); ph.className = 'ph'; it.appendChild(ph);
-          (e.photos || []).slice(0, 4).forEach(function (id) { getPhoto('dia_' + id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); diaMapUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.onload = function () { try { diaMapObj.eachLayer(function (l) { if (l.getPopup && l.getPopup() && l.isPopupOpen && l.isPopupOpen()) l.getPopup().update(); }); } catch (x) {} }; im.src = u; ph.appendChild(im); }); });
-          var go = document.createElement('button'); go.type = 'button'; go.textContent = 'Apri il giorno'; go.onclick = function () { diaDay = k; setDiaTab('write'); }; it.appendChild(go);
-          sc.appendChild(it);
-        });
-        return pop;
-      });
+      groupMarker(diaMapLayer, g, '#e07b00', null, function (g) { openDaySheet(g.items); });
     });
-    info.textContent = !keys.length ? 'Ancora nessun giorno scritto.' : withLoc.length + (withLoc.length === 1 ? ' giorno sulla mappa' : ' giorni sulla mappa') + (pts.length < withLoc.length ? ' (' + pts.length + ' luoghi)' : '') + (noloc ? ' · ' + noloc + ' senza posizione' : '') + '. Tocca un punto per vedere testo e foto.';
+    info.textContent = !keys.length ? 'Ancora nessun giorno con diario o spese.' : withLoc.length + (withLoc.length === 1 ? ' giorno sulla mappa' : ' giorni sulla mappa') + (pts.length < withLoc.length ? ' (' + pts.length + ' luoghi)' : '') + (noloc ? ' · ' + noloc + ' senza posizione' : '') + '. Tocca un punto per vedere testo e foto.';
     setTimeout(function () {
       diaMapObj.invalidateSize();
       if (pts.length === 1) diaMapObj.setView(pts[0], 14); else if (pts.length) diaMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
