@@ -255,6 +255,15 @@ a.btn { text-decoration: none; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { flex: 1 1 0; min-width: 3.4rem; min-height: 44px; border-radius: 12px; border: 0; background: var(--field); font-weight: 600; }
 .chip.wide { flex-basis: 100%; }
+.chips.scroll { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin: 0 -4px; padding: 0 4px; }
+.chips.scroll::-webkit-scrollbar { display: none; }
+#v-map { width: 100%; min-width: 0; }
+#v-map > .card { min-width: 0; overflow: hidden; }
+.chips.scroll { min-width: 0; max-width: calc(100% + 8px); }
+.chips.scroll .chip { flex: 0 0 auto; padding: 0 12px; }
+.kdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; border: 1.5px solid #fff; vertical-align: -1px; }
+.mapbox .pthumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
+.mapbox .pthumbs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; display: block; }
 .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: .95rem; }
 .toggle input { width: 22px; height: 22px; accent-color: var(--accent); }
@@ -468,10 +477,15 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   </section>
 
   <!-- MAPPA -->
-  <section id="v-map" class="wrap" aria-label="Mappa delle spese" hidden>
+  <section id="v-map" class="wrap" aria-label="Mappa del viaggio" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa</h2><span></span></div>
+    <section class="card" style="gap:10px">
+      <div class="chips" id="mapKinds" aria-label="Cosa mostrare"></div>
+      <div class="chips scroll" id="mapDays" aria-label="Giorno"></div>
+    </section>
     <div class="mapbox" id="mapbox"></div>
     <div class="hint" id="mapInfo"></div>
+    <button class="btn ghost small" id="calFindAll" type="button" hidden>Trova sulla mappa i luoghi mancanti del programma</button>
   </section>
 
   <!-- CALENDARIO -->
@@ -479,7 +493,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Programma di viaggio</h2><span></span></div>
     <section class="card">
       <div class="chips" id="calDays"></div>
-      <div class="chips" id="calTabs"><button class="chip" type="button" data-t="day" aria-pressed="true">Giorno</button><button class="chip" type="button" data-t="map" aria-pressed="false">Mappa</button></div>
+      <button class="btn ghost" id="calToMap" type="button">Vedi il viaggio sulla mappa</button>
     </section>
     <section class="card" id="calDayCard">
       <div class="sumline"><b id="tcTitle"></b><button class="btn ghost small" id="calOrder" type="button">Ordina</button></div>
@@ -487,11 +501,6 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="btn" id="calAdd" type="button">+ Aggiungi una tappa</button>
       <button class="btn ghost small" id="calFind" type="button">Trova sulla mappa i luoghi di questo giorno</button>
       <div class="hint" id="calHint">Le modifiche le vedete tutti e tre.</div>
-    </section>
-    <section class="card" id="calMapCard" hidden>
-      <div class="diamap" id="calMap"></div>
-      <div class="hint" id="calMapInfo"></div>
-      <button class="btn ghost small" id="calFindAll" type="button" hidden>Trova sulla mappa i luoghi mancanti</button>
     </section>
   </section>
 
@@ -515,12 +524,13 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   <!-- DIARIO -->
   <section id="v-dia" class="wrap" aria-label="Diario" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
-    <div class="chips" id="diaTabs" role="tablist">
-      <button class="chip" type="button" data-tab="write" aria-pressed="true">Scrivi</button>
-      <button class="chip" type="button" data-tab="cal" aria-pressed="false">Calendario</button>
-      <button class="chip" type="button" data-tab="map" aria-pressed="false">Mappa</button>
-    </div>
     <div id="diaWrite" class="wrap">
+    <section class="card">
+      <div class="label">Giorni</div>
+      <div class="chips" id="diaDays"></div>
+      <div class="hint">La matita ✎ segna i giorni in cui hai già scritto o messo foto.</div>
+    </section>
+
     <section class="card">
       <div class="label" id="diaDate"></div>
       <textarea class="trarea diatext" id="diaText" placeholder="Cosa hai fatto? Cosa hai visto? Scrivi quello che vuoi: lo leggi solo tu." autocomplete="off" autocapitalize="sentences"></textarea>
@@ -541,20 +551,9 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="line total"><span class="k">Totale del giorno</span><span class="v num" id="diaExpTot"></span></div>
     </section>
     <section class="card">
-      <div class="label">I tuoi giorni</div>
-      <div class="chips" id="diaDays"></div>
       <div class="hint">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
     </section>
     </div>
-    <section class="card" id="diaCal" hidden>
-      <div class="calhead"><button class="btn ghost small" id="calPrev" type="button" aria-label="Mese precedente">‹</button><b id="calTitle"></b><button class="btn ghost small" id="calNext" type="button" aria-label="Mese successivo">›</button></div>
-      <div class="cal" id="calGrid"></div>
-      <div class="hint">Il puntino arancione indica i giorni con testo, foto o spese. Tocca un giorno per aprirlo.</div>
-    </section>
-    <section class="card" id="diaMapCard" hidden>
-      <div class="diamap" id="diaMap"></div>
-      <div class="hint" id="diaMapInfo"></div>
-    </section>
   </section>
 
   <!-- ALBUM FOTO -->
@@ -724,7 +723,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v51';
+var APP_VER = 'v52';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -833,14 +832,14 @@ var APP_VER = 'v51';
   }
   function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
   window.addEventListener('hashchange', function () { show(hashView()); });
-  document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : 'home'); }; });
+  document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : (b.closest('#v-map') && mapFrom === 'cal') ? 'cal' : 'home'); }; });
   $('goCalc').onclick = function () { go('calc'); };
   $('goCal').onclick = function () { go('cal'); };
   $('goChk').onclick = function () { go('chk'); };
   $('goDia').onclick = function () { go('dia'); };
   $('goAlbum').onclick = function () { go('album'); };
   $('goTr').onclick = function () { go('tr'); };
-  $('goMap').onclick = function () { go('map'); };
+  $('goMap').onclick = function () { openMap(''); };
   $('goLog').onclick = function () { go('log'); };
   $('goDocs').onclick = function () { go('docs'); };
   $('goSettings').onclick = function () { go('settings'); };
@@ -1624,7 +1623,7 @@ var APP_VER = 'v51';
 
   /* ---------- calendario di viaggio ---------- */
   var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)", "2800 N Terminal Rd, Houston, TX 77032"], ["", "Cena a casa di Flavi (sorella di Leslie)", ""]], "2026-12-23": [["", "Colazione leggera a casa", ""], ["", "Spesa da H-E-B", "3540 Rayford Rd, Spring, TX 77386"], ["13:30", "Pranzo di compleanno in steak house (prenotato, indirizzo da confermare)", ""], ["", "Outlet (forse Houston Premium Outlets)", "29300 Hempstead Rd, Cypress, TX 77433"], ["", "Cena messicana (ristorante da confermare)", ""]], "2026-12-24": [["", "Colazione nel vecchio ristorante di Matteo (indirizzo da confermare)", ""], ["", "Preparativi per la cena, arriva Steve", ""], ["", "Cena di Natale a casa", ""], ["", "Quasi tutto chiuso", ""]], "2026-12-25": [["", "Giornata a casa con Steve, apertura dei regali", ""], ["", "Quasi tutto chiuso", ""], ["", "Cena fuori, se troviamo un ristorante aperto", ""]], "2026-12-26": [["07:30", "Partenza da casa", ""], ["", "Colazione fuori, lungo la strada per la NASA", ""], ["11:00", "Visita guidata Space Center Houston (3 ore)", "1601 E NASA Pkwy, Houston, TX 77058"], ["", "Pranzo tardi e passeggiata al Kemah Boardwalk", "215 Kipp Ave, Kemah, TX 77565"], ["", "Visita a Galveston", "Galveston, TX"], ["", "Check-in Airbnb (indirizzo da confermare)", ""], ["", "Cena di pesce al Fisherman's Wharf", "2200 Harborside Dr, Galveston, TX 77550"]], "2026-12-27": [["", "Check-out e colazione a Galveston", ""], ["", "Passeggiata in centro, zona storica di Strand Street", "Strand Street, Galveston, TX 77550"], ["", "Pranzo alla Galleria (centro commerciale di Houston)", "5085 Westheimer Rd, Houston, TX 77056"], ["", "Academy Sports + Outdoors (Leo)", "1461 Spring Cypress Rd, Spring, TX 77373"], ["", "Cena a casa", ""]], "2026-12-28": [["08:00", "Partenza per Austin, da Steve", ""], ["", "Una sosta lungo il viaggio", ""], ["", "Pranzo in un famoso BBQ texano (da confermare)", ""], ["", "Cena da decidere (Smithville?)", "Smithville, TX"], ["", "Notte a casa di Steve", ""]], "2026-12-29": [["", "Colazione da Steve", ""], ["", "Visita e pranzo a Bastrop", "Bastrop, TX"], ["", "Ritorno a casa in auto", ""], ["", "Negozio di stivali da cowboy: Gomez Western Wear", "4623 FM 2920 Suite 200, Spring, TX 77388"], ["", "Cena in un ristorante messicano", ""]], "2026-12-30": [["", "Colazione a casa", ""], ["", "Pranzo al CorkScrew BBQ", "26608 Keith St, Spring, TX 77373"], ["", "Old Town Spring (zona storica)", "Spring Cypress Rd & Hardy St, Spring, TX 77373"], ["", "Cena da Shogun Japanese Grill & Sushi Bar", "3532 Harmony Commons Dr, Spring, TX 77386"]], "2026-12-31": [["", "Colazione fuori", ""], ["", "Preparativi per la cena di Capodanno: cucinare e apparecchiare", ""], ["20:00", "Arrivano gli amici", ""]], "2027-01-01": [["", "Quasi tutto chiuso", ""], ["", "Giornata di relax a casa", ""], ["", "Scegliere le ville da visitare", ""], ["", "Cercare una casa simile alla mia", ""]], "2027-01-02": [["", "Colazione a casa", ""], ["", "Pranzo da Woodson's Local Tap + Kitchen (hamburger)", "4127 Riley Fuzzel Rd Suite 100, Spring, TX 77386"], ["", "Costco (richiesta di Matteo)", "8185 TX-242, The Woodlands, TX 77385"], ["", "Cercare dove ascoltare musica country la sera", ""]], "2027-01-03": [["", "Colazione a casa", ""], ["", "Pranzo messicano", ""], ["17:30", "Partenza per il centro di Houston: partita NBA (Leo)", "Toyota Center, 1510 Polk St, Houston, TX 77002"]], "2027-01-04": [["", "Colazione a casa", ""], ["", "Mattina: si fanno le valigie", ""], ["", "Partenza in auto per l'aeroporto IAH", "2800 N Terminal Rd, Houston, TX 77032"]]};
-  var CAL_DAYS = Object.keys(CAL_DEF), calDay = '', calTab = 'day', calOrder = false, calAll = true, calUnsub = null, calMapObj = null, calMapLayer = null;
+  var CAL_DAYS = Object.keys(CAL_DEF), calDay = '', calOrder = false, calUnsub = null;
   function calState() { if (!st.cal) st.cal = { items: {}, dirty: {}, seeded: false }; if (!st.cal.items) st.cal.items = {}; if (!st.cal.dirty) st.cal.dirty = {}; return st.cal; }
   function calSeed() {                                  // l'itinerario di partenza e' uguale su tutti i telefoni: stessi id, nessun doppione
     var c = calState(); if (c.seedVer === 2) return;
@@ -1667,19 +1666,15 @@ var APP_VER = 'v51';
     card.hidden = false; $('tomLabel').textContent = 'Domani · ' + calDayLabel(k); var box = $('tomList'); box.innerHTML = '';
     items.slice(0, 6).forEach(function (x) { var r = document.createElement('div'); r.className = 'tomitem'; var t = document.createElement('span'); t.className = 't'; t.textContent = x.time || '•'; var b = document.createElement('span'); b.textContent = x.title + (x.place ? ' 📍' : ''); r.appendChild(t); r.appendChild(b); box.appendChild(r); });
     if (items.length > 6) { var m = document.createElement('div'); m.className = 'hint'; m.textContent = '…e altre ' + (items.length - 6) + ' tappe'; box.appendChild(m); }
-    card.onclick = function () { calDay = k; calTab = 'day'; go('cal'); };
+    card.onclick = function () { calDay = k; go('cal'); };
   }
   function openCal() { calSeed(); if (!calDay) calDay = calToday(); renderTripCal(); }
   function renderTripCal() {
-    var dayChips = $('calDays'), onMap = calTab === 'map'; dayChips.innerHTML = '';
-    if (onMap) { var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'chip'; ab.style.cssText = 'flex:0 0 auto;padding:0 12px'; ab.textContent = 'Tutto il viaggio'; ab.setAttribute('aria-pressed', String(calAll)); ab.onclick = function () { calAll = true; renderTripCal(); }; dayChips.appendChild(ab); }
+    var dayChips = $('calDays'); dayChips.innerHTML = '';
     CAL_DAYS.forEach(function (d) {
       var p = d.split('-'), b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 10px;min-width:3.6rem';
-      b.textContent = Number(p[2]) + '/' + Number(p[1]); b.setAttribute('aria-pressed', String(d === calDay && !(onMap && calAll))); b.onclick = function () { calDay = d; calAll = false; calOrder = false; renderTripCal(); }; dayChips.appendChild(b);
+      b.textContent = Number(p[2]) + '/' + Number(p[1]); b.setAttribute('aria-pressed', String(d === calDay)); b.onclick = function () { calDay = d; calOrder = false; renderTripCal(); }; dayChips.appendChild(b);
     });
-    [].forEach.call(document.querySelectorAll('#calTabs .chip'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === calTab)); b.onclick = function () { if (b.dataset.t === 'map' && calTab !== 'map') calAll = true; calTab = b.dataset.t; renderTripCal(); }; });
-    $('calDayCard').hidden = calTab !== 'day'; $('calMapCard').hidden = calTab !== 'map';
-    if (calTab === 'map') { renderCalMap(); return; }
     $('tcTitle').textContent = calDayLabel(calDay); $('calOrder').textContent = calOrder ? 'Fine' : 'Ordina';
     var items = calItems(calDay), box = $('calList'); box.innerHTML = '';
     items.forEach(function (x, i) {
@@ -1737,33 +1732,14 @@ var APP_VER = 'v51';
   $('calAdd').onclick = function () { calForm(null); };
   $('calOrder').onclick = function () { calOrder = !calOrder; renderTripCal(); };
   function calMissing() { var c = calState(); return Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return !x.del && x.place && !x.loc; }); }
-  $('calFindAll').onclick = function () { calFindMany(calMissing(), $('calFindAll'), 'Trova sulla mappa i luoghi mancanti'); };
+  $('calFindAll').onclick = function () { calFindMany(calMissing(), $('calFindAll'), 'Trova sulla mappa i luoghi mancanti del programma'); };
+  $('calToMap').onclick = function () { openMap('cal'); };
   $('calFind').onclick = function () { calFindMany(calItems(calDay).filter(function (x) { return x.place && !x.loc; }), $('calFind'), 'Trova sulla mappa i luoghi di questo giorno'); };
   function calFindMany(todo, b, label) {
     if (!todo.length) return; b.disabled = true; var n = 0;
     todo.reduce(function (p, x) { return p.then(function () { b.textContent = 'Cerco… ' + (n + 1) + '/' + todo.length; return calFindPlace(x.place).then(function (r) { if (r) { x.loc = { la: r.la, lo: r.lo }; x.addr = r.addr; calTouch(x); n++; } }); }); }, Promise.resolve())
-      .then(function () { b.disabled = false; b.textContent = label; toast(n + (n === 1 ? ' luogo trovato' : ' luoghi trovati') + ' su ' + todo.length); renderTripCal(); });
+      .then(function () { b.disabled = false; b.textContent = label; toast(n + (n === 1 ? ' luogo trovato' : ' luoghi trovati') + ' su ' + todo.length); if (hashView() === 'map') renderMap(); else renderTripCal(); });
   };
-  function renderCalMap() {
-    var info = $('calMapInfo'), box = $('calMap');
-    if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
-    box.hidden = false;
-    if (!calMapObj) { calMapObj = L.map(box).setView([29.76, -95.37], 8); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(calMapObj); calMapLayer = L.layerGroup().addTo(calMapObj); }
-    calMapLayer.clearLayers();
-    var c = calState(), all = Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return !x.del && x.loc; }).sort(function (a, b) { return a.day.localeCompare(b.day) || a.order - b.order; });
-    var list = calAll ? all : all.filter(function (x) { return x.day === calDay; }), pts = [];
-    clusterByPlace(list, function (x) { return { la: x.loc.la, lo: x.loc.lo }; }, 80).forEach(function (g) {
-      pts.push([g.la, g.lo]);
-      groupMarker(calMapLayer, g, '#1a7fc4', function (g) {
-        var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc);
-        g.items.forEach(function (x) { var it = document.createElement('div'); it.className = 'it'; var t = document.createElement('b'); t.textContent = x.title; it.appendChild(t); var d = document.createElement('div'); d.textContent = calDayLabel(x.day) + (x.time ? ' · ' + x.time : ''); it.appendChild(d); var a = document.createElement('a'); a.href = calMapsUrl(x); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Apri in Mappe'; a.style.cssText = 'color:#007aff;font-weight:600'; it.appendChild(a); sc.appendChild(it); });
-        return pop;
-      });
-    });
-    var missing = calMissing().length; $('calFindAll').hidden = !missing;
-    info.textContent = (calAll ? 'Tutto il viaggio' : calDayLabel(calDay)) + ': ' + (pts.length ? pts.length + (pts.length === 1 ? ' luogo' : ' luoghi') + ' sulla mappa.' : 'nessun luogo sulla mappa.') + (calAll ? ' Tocca una data per vedere solo quel giorno.' : '') + (missing ? ' ' + missing + (missing === 1 ? ' luogo non è ancora stato trovato.' : ' luoghi non sono ancora stati trovati.') : '');
-    setTimeout(function () { calMapObj.invalidateSize(); if (pts.length === 1) calMapObj.setView(pts[0], 14); else if (pts.length) calMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 }); else calMapObj.setView([29.76, -95.37], 8); }, 60);
-  }
 
   /* ---------- checklist di viaggio: una lista personale a testa, visibile secondo chi sei ---------- */
   var CHK_LISTS = [['documenti', 'Documenti', true], ['valigia', 'Valigia', true], ['prima', 'Prima di partire', true], ['arrivo', 'Arrivo in Texas', false]];
@@ -1925,7 +1901,7 @@ var APP_VER = 'v51';
     if (!diaryActive()) el.textContent = base + ' · salvato su questo telefono (manca ancora la chiave per inviarlo cifrato).';
     else { var n = diaryPending(); el.textContent = base + ' · ' + (n ? 'in coda per l\'invio cifrato' : 'inviato cifrato'); }
   }
-  function openDiary() { if (!diaDay) diaDay = dayKey(); setDiaTab(diaTab); }
+  function openDiary() { if (!diaDay) diaDay = dayKey(); renderDiary(); }
   function renderDiary() {
     $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : '');
     var e = diaGet(false); if (document.activeElement !== $('diaText')) $('diaText').value = e ? e.text || '' : '';
@@ -1939,12 +1915,11 @@ var APP_VER = 'v51';
         t.appendChild(x); grid.appendChild(t);
       });
     });
-    var dd = {}; Object.keys(st.diary || {}).forEach(function (k) { dd[k] = 1; }); (st.expenses || []).forEach(function (x) { dd[dayKey(x.ts)] = 1; });
-    var days = Object.keys(dd).sort().reverse(), box = $('diaDays'); box.innerHTML = '';
-    var all = days.slice(); if (all.indexOf(dayKey()) < 0) all.unshift(dayKey());
-    all.forEach(function (d) {
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 12px';
-      var p = d.split('-'); b.textContent = Number(p[2]) + '/' + Number(p[1]) + (dayHas(d) ? '' : ' (oggi)'); b.setAttribute('aria-pressed', String(d === diaDay));
+    var dd = {}, today = dayKey(); CAL_DAYS.forEach(function (k) { dd[k] = 1; }); Object.keys(st.diary || {}).forEach(function (k) { dd[k] = 1; }); (st.expenses || []).forEach(function (x) { dd[dayKey(x.ts)] = 1; }); dd[today] = 1; dd[diaDay] = 1;
+    var box = $('diaDays'); box.innerHTML = '';
+    Object.keys(dd).sort().forEach(function (d) {              // stessa fila di giorni del Programma di viaggio
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 10px;min-width:3.6rem';
+      var p = d.split('-'); b.textContent = (d === today ? 'Oggi ' : '') + Number(p[2]) + '/' + Number(p[1]) + (hasEntry(d) ? ' ✎' : ''); b.setAttribute('aria-pressed', String(d === diaDay));
       b.onclick = function () { diaDay = d; renderDiary(); }; box.appendChild(b);
     });
     $('diaDel').hidden = !e; diaStatus();
@@ -1990,8 +1965,7 @@ var APP_VER = 'v51';
   $('alDia').checked = st.albDia !== false;
   $('alDia').onchange = function () { st.albDia = $('alDia').checked; persist(); };
 
-  /* ---------- diario: calendario e mappa ---------- */
-  var diaTab = 'write', diaMonth = null, diaMapObj = null, diaMapLayer = null, diaMapUrls = [];
+  /* ---------- diario: giorni, spese del giorno e riquadro del giorno (aperto dalla Mappa) ---------- */
   function hasEntry(k) { var e = st.diary && st.diary[k]; return !!(e && ((e.text || '').trim() || (e.photos || []).length)); }
   function dayExpenses(k) { return (st.expenses || []).filter(function (e) { return dayKey(e.ts) === k; }).sort(function (a, b) { return a.ts - b.ts; }); }
   function dayHas(k) { return hasEntry(k) || dayExpenses(k).length > 0; }
@@ -2004,7 +1978,7 @@ var APP_VER = 'v51';
     list.forEach(function (e) { var l = expLine(e), r = document.createElement('div'); r.className = 'line'; var a = document.createElement('span'), b = document.createElement('span'); a.className = 'k'; b.className = 'v num'; a.textContent = l.k; b.textContent = l.v; r.appendChild(a); r.appendChild(b); box.appendChild(r); });
   }
   function dayLoc(k) { var e = st.diary && st.diary[k]; if (e && e.loc) return e.loc; var x = dayExpenses(k).filter(function (z) { return z.loc; })[0]; return x ? x.loc : null; }
-  function openDaySheet(keys) {                       // riquadro grande: foto in primo piano, testo sotto, poi le spese
+  function openDaySheet(keys) { var go0 = go;                       // riquadro grande: foto in primo piano, testo sotto, poi le spese
     var host = $('viewerHost'), urls = [], sh = document.createElement('div'); sh.className = 'sheet';
     function close() { urls.forEach(function (u) { URL.revokeObjectURL(u); }); sh.remove(); }
     sh.addEventListener('click', function (ev) { if (ev.target === sh) close(); });
@@ -2025,39 +1999,11 @@ var APP_VER = 'v51';
         var bx = document.createElement('div'); day.appendChild(bx); fillExpenses(bx, ex);
         var tot = ex.reduce(function (a, z) { return a + z.usd; }, 0), tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = usd(tot); day.appendChild(tl);
       }
-      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; setDiaTab('write'); }; day.appendChild(go);
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; go0('dia'); }; day.appendChild(go);
       inn.appendChild(day);
     });
     host.appendChild(sh);
   }
-  function setDiaTab(t) {
-    diaTab = t;
-    [].forEach.call(document.querySelectorAll('#diaTabs .chip'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.tab === t)); });
-    $('diaWrite').hidden = t !== 'write'; $('diaCal').hidden = t !== 'cal'; $('diaMapCard').hidden = t !== 'map';
-    if (t === 'write') renderDiary(); else if (t === 'cal') renderCal(); else renderDiaMap();
-    window.scrollTo(0, 0);
-  }
-  [].forEach.call(document.querySelectorAll('#diaTabs .chip'), function (b) { b.onclick = function () { setDiaTab(b.dataset.tab); }; });
-  function renderCal() {
-    if (!diaMonth) { var n = new Date(); diaMonth = { y: n.getFullYear(), m: n.getMonth() }; }
-    var y = diaMonth.y, m = diaMonth.m, first = new Date(y, m, 1), days = new Date(y, m + 1, 0).getDate(), lead = (first.getDay() + 6) % 7;
-    $('calTitle').textContent = first.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-    var g = $('calGrid'); g.innerHTML = '';
-    ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'].forEach(function (d) { var e = document.createElement('div'); e.className = 'dh'; e.textContent = d; g.appendChild(e); });
-    for (var i = 0; i < lead; i++) { var z = document.createElement('div'); z.className = 'empty0'; g.appendChild(z); }
-    var today = dayKey();
-    for (var d = 1; d <= days; d++) {
-      (function (d) {
-        var k = y + '-' + pad(m + 1) + '-' + pad(d), b = document.createElement('button'); b.type = 'button'; b.textContent = d;
-        if (dayHas(k)) { b.className = 'has'; b.setAttribute('aria-label', d + ': ci sono diario o spese'); }
-        if (k === today) b.classList.add('today');
-        b.onclick = function () { diaDay = k; setDiaTab('write'); };
-        g.appendChild(b);
-      })(d);
-    }
-  }
-  $('calPrev').onclick = function () { diaMonth.m--; if (diaMonth.m < 0) { diaMonth.m = 11; diaMonth.y--; } renderCal(); };
-  $('calNext').onclick = function () { diaMonth.m++; if (diaMonth.m > 11) { diaMonth.m = 0; diaMonth.y++; } renderCal(); };
   function clusterByPlace(list, locOf, radius) {      // punti nello stesso posto (entro `radius` metri) diventano un solo gruppo
     var cl = [];
     list.forEach(function (it) {
@@ -2073,29 +2019,6 @@ var APP_VER = 'v51';
     else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn" style="background:' + color + '">' + n + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
     m.on('click', function () { if (sheet) { sheet(g); return; } m.bindPopup(build(g), { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup(); });
     return m;
-  }
-  function renderDiaMap() {
-    var info = $('diaMapInfo'), box = $('diaMap');
-    if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
-    box.hidden = false;
-    if (!diaMapObj) {
-      diaMapObj = L.map(box).setView([29.76, -95.37], 9);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(diaMapObj);
-      diaMapLayer = L.layerGroup().addTo(diaMapObj);
-    }
-    diaMapLayer.clearLayers(); diaMapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaMapUrls = [];
-    var dset = {}; Object.keys(st.diary || {}).filter(hasEntry).forEach(function (k) { dset[k] = 1; }); (st.expenses || []).forEach(function (e) { dset[dayKey(e.ts)] = 1; });
-    var keys = Object.keys(dset).sort(), pts = [], noloc = 0;
-    var withLoc = keys.filter(function (k) { if (dayLoc(k)) return true; noloc++; return false; });
-    clusterByPlace(withLoc, function (k) { var l = dayLoc(k); return { la: l.la, lo: l.lo }; }, 60).forEach(function (g) {
-      pts.push([g.la, g.lo]);
-      groupMarker(diaMapLayer, g, '#e07b00', null, function (g) { openDaySheet(g.items); });
-    });
-    info.textContent = !keys.length ? 'Ancora nessun giorno con diario o spese.' : withLoc.length + (withLoc.length === 1 ? ' giorno sulla mappa' : ' giorni sulla mappa') + (pts.length < withLoc.length ? ' (' + pts.length + ' luoghi)' : '') + (noloc ? ' · ' + noloc + ' senza posizione' : '') + '. Tocca un punto per vedere testo e foto.';
-    setTimeout(function () {
-      diaMapObj.invalidateSize();
-      if (pts.length === 1) diaMapObj.setView(pts[0], 14); else if (pts.length) diaMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
-    }, 60);
   }
 
   /* ---------- album foto condiviso ---------- */
@@ -2288,36 +2211,82 @@ var APP_VER = 'v51';
       } catch (e) { if (!done) { done = true; clearTimeout(to); res(null); } }
     });
   }
-  var map = null, mapLayer = null;
+  /* ---------- mappa unica: programma, spese, foto e diario, tutto il viaggio o un giorno solo ---------- */
+  var MAP_KINDS = [['prog', 'Programma', '#1a7fc4'], ['exp', 'Spese', '#d70015'], ['pho', 'Foto', '#d6246e'], ['dia', 'Diario', '#e07b00']];
+  var map = null, mapLayer = null, mapSel = { prog: true, exp: true, pho: true, dia: true }, mapDay = '', mapFrom = '', mapUrls = [];
+  function openMap(from) {                               // dalla home: tutto; dal Programma: solo le tappe
+    mapFrom = from || ''; mapDay = '';
+    mapSel = from === 'cal' ? { prog: true } : { prog: true, exp: true, pho: true, dia: true };
+    go('map');
+  }
+  function mapData() {
+    var c = calState();
+    return {
+      prog: Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return !x.del && x.loc; }).sort(function (a, b) { return a.day.localeCompare(b.day) || a.order - b.order; }).map(function (x) { return { day: x.day, loc: x.loc, x: x }; }),
+      exp: st.expenses.filter(function (e) { return e.loc; }).map(function (e) { return { day: dayKey(e.ts), loc: e.loc, x: e }; }),
+      pho: (st.album || []).filter(function (a) { return a.loc; }).map(function (a) { return { day: dayKey(a.ts), loc: a.loc, x: a }; }),
+      dia: Object.keys(st.diary || {}).filter(hasEntry).map(function (k) { return { day: k, loc: dayLoc(k), x: k }; }).filter(function (p) { return p.loc; })
+    };
+  }
+  function mapPop() { var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc); return pop; }
+  function mapRow(sc, title, sub) { var it = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div'); it.className = 'it'; t.textContent = title; d.textContent = sub; it.appendChild(t); it.appendChild(d); sc.appendChild(it); return it; }
   function renderMap() {
-    var info = $('mapInfo'), box = $('mapbox');
-    if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    var info = $('mapInfo'), box = $('mapbox'), data = mapData(), kinds = $('mapKinds'), daysBox = $('mapDays'), dd = {};
+    /* filtri: cosa mostrare */
+    kinds.innerHTML = '';
+    MAP_KINDS.forEach(function (K) {
+      var b = document.createElement('button'), dot = document.createElement('span'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:1 1 40%;padding:0 8px';
+      dot.className = 'kdot'; dot.style.background = K[2]; b.appendChild(dot); b.appendChild(document.createTextNode(K[1]));
+      b.setAttribute('aria-pressed', String(!!mapSel[K[0]])); b.onclick = function () { mapSel[K[0]] = !mapSel[K[0]]; renderMap(); }; kinds.appendChild(b);
+    });
+    /* filtri: giorno */
+    CAL_DAYS.forEach(function (k) { dd[k] = 1; }); MAP_KINDS.forEach(function (K) { data[K[0]].forEach(function (p) { dd[p.day] = 1; }); });
+    daysBox.innerHTML = '';
+    function dayChip(label, val) { var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = label; b.setAttribute('aria-pressed', String(mapDay === val)); b.onclick = function () { mapDay = val; renderMap(); }; daysBox.appendChild(b); return b; }
+    dayChip('Tutto il viaggio', '');
+    var cur = null; Object.keys(dd).sort().forEach(function (d) { var p = d.split('-'), b = dayChip(Number(p[2]) + '/' + Number(p[1]), d); if (d === mapDay) cur = b; });
+    if (cur) daysBox.scrollLeft = Math.max(0, cur.offsetLeft - daysBox.clientWidth / 2 + cur.offsetWidth / 2);
+
+    if (!window.L) { box.hidden = true; $('calFindAll').hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
     box.hidden = false;
     if (!map) {
       map = L.map(box, { zoomControl: true, attributionControl: true }).setView([29.76, -95.37], 9);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
       mapLayer = L.layerGroup().addTo(map);
     }
-    mapLayer.clearLayers();
-    var pts = st.expenses.filter(function (e) { return e.loc; }), bounds = [];
-    clusterByPlace(pts, function (e) { return { la: e.loc.la, lo: e.loc.lo }; }, 40).forEach(function (g) {
-      bounds.push([g.la, g.lo]);
-      var first = g.items[0], color = g.items.length === 1 ? (CAT_COLORS[first.cat] || '#d70015') : '#d70015';
-      groupMarker(mapLayer, g, color, function (g) {
-        var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc);
-        g.items.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (e) {
-          var it = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div');
-          it.className = 'it'; t.textContent = usd(e.usd) + ' · ' + e.cat; d.textContent = (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts);
-          it.appendChild(t); it.appendChild(d); sc.appendChild(it);
-        });
-        return pop;
-      });
+    mapLayer.clearLayers(); mapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); mapUrls = [];
+    var bounds = [], parts = [];
+    function pick(kind) { return mapSel[kind] ? data[kind].filter(function (p) { return !mapDay || p.day === mapDay; }) : []; }
+    function locOf(p) { return { la: p.loc.la, lo: p.loc.lo }; }
+    function draw(kind, radius, color, build, sheet) {
+      var list = pick(kind); if (!mapSel[kind]) return;
+      var K = MAP_KINDS.filter(function (z) { return z[0] === kind; })[0]; parts.push(K[1] + ' ' + list.length);
+      clusterByPlace(list, locOf, radius).forEach(function (g) { bounds.push([g.la, g.lo]); groupMarker(mapLayer, g, typeof color === 'function' ? color(g) : color, build, sheet); });
+    }
+    draw('prog', 80, '#1a7fc4', function (g) {
+      var pop = mapPop();
+      g.items.forEach(function (p) { var x = p.x, it = mapRow(pop.firstChild, x.title, calDayLabel(x.day) + (x.time ? ' · ' + x.time : '')), a = document.createElement('a'); a.href = calMapsUrl(x); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Apri in Mappe'; a.style.cssText = 'color:#007aff;font-weight:600'; it.appendChild(a); });
+      return pop;
     });
-    var lost = st.expenses.length - pts.length;
-    info.textContent = !st.expenses.length ? 'Nessuna spesa ancora.' : pts.length + ' spese sulla mappa' + (lost ? ' · ' + lost + ' senza posizione' : '') + '. Tocca un punto per i dettagli.';
+    draw('exp', 40, function (g) { return g.items.length === 1 ? (CAT_COLORS[g.items[0].x.cat] || '#d70015') : '#d70015'; }, function (g) {
+      var pop = mapPop();
+      g.items.slice().sort(function (a, b) { return b.x.ts - a.x.ts; }).forEach(function (p) { var e = p.x; mapRow(pop.firstChild, usd(e.usd) + ' · ' + e.cat, (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts)); });
+      return pop;
+    });
+    draw('pho', 40, '#d6246e', function (g) {
+      var pop = mapPop(), n = g.items.length, it = mapRow(pop.firstChild, n === 1 ? 'Foto' : n + ' foto', dateStr(g.items[0].x.ts)), th = document.createElement('div'); th.className = 'pthumbs'; it.appendChild(th);
+      g.items.slice(0, 6).forEach(function (p) { getPhoto('albt_' + p.x.id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); mapUrls.push(u); var im = document.createElement('img'); im.alt = 'Foto'; im.src = u; th.appendChild(im); }); });
+      return pop;
+    });
+    draw('dia', 60, '#e07b00', null, function (g) { openDaySheet(g.items.map(function (p) { return p.x; })); });
+
+    var missing = mapSel.prog ? calMissing().length : 0; $('calFindAll').hidden = !missing;
+    info.textContent = (mapDay ? calDayLabel(mapDay) : 'Tutto il viaggio') + ' · ' + (parts.length ? parts.join(' · ') : 'scegli in alto cosa vedere') + '.'
+      + (parts.length && !bounds.length ? ' Nessun punto da mostrare.' : '') + (bounds.length ? ' Tocca un punto per i dettagli.' : '')
+      + (missing ? ' ' + missing + (missing === 1 ? ' luogo del programma non è ancora sulla mappa.' : ' luoghi del programma non sono ancora sulla mappa.') : '');
     setTimeout(function () {
       map.invalidateSize();
-      if (bounds.length === 1) map.setView(bounds[0], 15); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+      if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }, 50);
   }
 
