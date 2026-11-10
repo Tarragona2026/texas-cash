@@ -9,7 +9,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 ## Come lavorare
 - Parla in italiano, risposte brevi e semplici: Matteo non è un programmatore.
 - Dopo ogni modifica: commit e push su `main` (pubblica l'app in 1–3 minuti).
-- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v50**; Mac `mac/sw.js` v11).
+- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v51**; Mac `mac/sw.js` v11).
 - Prima il telefono (`index.html`), poi il Mac (`mac/index.html`).
 - Prova nel browser prima di pubblicare; cancella i dati di prova da Firebase (viaggi `_prova_*`).
 - Il repository è pubblico: MAI scrivere nel codice indirizzi privati, numeri di telefono, PIN o la chiave privata del diario. L'indirizzo di casa di Flavi non va nel codice.
@@ -33,6 +33,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 - Checklist per persona (Leslie vede le 3, Matteo la sua e di Leo, Leo solo la sua, il Mac tutte).
 - Calendario di viaggio con itinerario aggiornato (id `c2_...`, `seedVer` 2) e scheda "Domani".
 - Documenti (v50, solo telefono): cartella "Viaggio" (foto o PDF), cartella "Personali" cifrata con un PIN scelto su ogni telefono (AES-GCM, chiave dal PIN; si richiude uscendo), scheda "Flavia" (indirizzo, telefono, note scritti nell'app; tasti WhatsApp, Chiama, Mappe).
+- v51: "Calendario" si chiama "Programma di viaggio", "Registro" si chiama "Registro spese e ricariche". Mappa del Programma: prima tutto il viaggio, poi toccando una data solo quel giorno; tasto per trovare tutti i luoghi mancanti. Icone della home spostabili (tieni premuto, trascina, "Fine"; ordine in `st.homeOrder`).
 - App Mac: spese, mappa, foto, diari (file chiave + PIN), checklist.
 
 ## Da fare (in ordine)
@@ -43,6 +44,8 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 5. Calendario sul Mac; PDF Mac con diari, foto e mappa (facoltativi).
 
 ## Da confermare con Matteo
+- Riordino dell'app (troppi calendari e mappe): proposta fatta a Matteo il 10 nov 2026, in attesa del suo via. Idea: una sola Mappa con filtri (Programma, Spese, Foto, Diario) e per giorno; togliere le schede Calendario e Mappa dal Diario.
+- Icone spostabili: provate solo nel browser del Mac, da provare su iPhone.
 - Documenti: provati solo nel browser del Mac con file finti. Da provare su iPhone: foto dalla fotocamera, PDF veri (biglietti, assicurazione), PIN.
 - Scontrini veri: la lettura di indirizzo, negozio e data è stata provata solo con scontrini finti.
 - Itinerario: mancano indirizzi di steak house del 23, colazione del 24, Airbnb di Galveston, BBQ del 28.

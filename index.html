@@ -179,7 +179,7 @@ input[type=text], input[type=password], input[type=tel], select {
 input::placeholder { color: var(--ink-soft); opacity: .8; }
 
 .topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
-.topbar h2 { text-align: center; text-shadow: 0 1px 8px rgba(255,255,255,.35); }
+.topbar h2 { text-align: center; line-height: 1.15; overflow-wrap: anywhere; text-shadow: 0 1px 8px rgba(255,255,255,.35); }
 .back { justify-self: start; white-space: nowrap; min-height: 40px; padding: 0 14px 0 10px; border-radius: 999px; font-weight: 600; color: var(--accent); font-size: .95rem; border: 1px solid var(--glass-line); background: var(--glass); box-shadow: var(--glass-hi);
   -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
 
@@ -224,6 +224,12 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 a.btn { text-decoration: none; }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
+.app { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+@keyframes appwig { 0%, 100% { transform: rotate(-1.8deg); } 50% { transform: rotate(1.8deg); } }
+.apps.edit .app { animation: appwig .3s infinite ease-in-out; touch-action: none; }
+.apps.edit .app:nth-child(2n) { animation-delay: -.15s; }
+.apps .app.drag { animation: none; transition: none; z-index: 5; position: relative; opacity: .92; }
+@media (prefers-reduced-motion: reduce) { .apps.edit .app { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .app { transition: none; } }
 
 .budget { gap: 10px; }
@@ -355,8 +361,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <nav class="apps" aria-label="Sezioni">
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
       <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
-      <button class="app" id="goLog" type="button"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span>Registro <span id="cnt"></span></span></button>
-      <button class="app" id="goCal" type="button"><span class="ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.500" y="5" width="17" height="15" rx="3"/><path d="M3.500 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg></span>Calendario</button>
+      <button class="app" id="goLog" type="button"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span>Registro spese e ricariche <span id="cnt"></span></span></button>
+      <button class="app" id="goCal" type="button"><span class="ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.500" y="5" width="17" height="15" rx="3"/><path d="M3.500 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg></span>Programma di viaggio</button>
       <button class="app" id="goChk" type="button"><span class="ic lime"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.500l2.800 2.800L16.500 9"/></svg></span><span>Checklist <span id="chkCnt"></span></span></button>
       <button class="app" id="goDia" type="button"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M10 8h6M10 12h6M10 16h4"/></svg></span>Diario</button>
       <button class="app" id="goAlbum" type="button"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.500" cy="10" r="1.600"/><path d="M21 16l-5-5-8 8"/></svg></span>Foto</button>
@@ -365,6 +371,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goDocs" type="button"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.500 7.500A2.500 2.500 0 0 1 6 5h3.600l2 2.200H18a2.500 2.500 0 0 1 2.500 2.500v7.300A2.500 2.500 0 0 1 18 19.500H6A2.500 2.500 0 0 1 3.500 17z"/><path d="M8 12.500h8M8 15.500h5"/></svg></span>Documenti</button>
       <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
     </nav>
+    <button class="btn" id="appsDone" type="button" hidden>Fine</button>
     <section class="card" id="tomCard" hidden><div class="label" id="tomLabel">Domani</div><div id="tomList"></div></section>
   </section>
 
@@ -434,8 +441,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   </section>
 
   <!-- REGISTRO -->
-  <section id="v-log" class="wrap" aria-label="Registro" hidden>
-    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Registro</h2><span></span></div>
+  <section id="v-log" class="wrap" aria-label="Registro spese e ricariche" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Registro spese e ricariche</h2><span></span></div>
     <div class="chips" role="tablist" aria-label="Sezioni del registro"><button type="button" class="chip" id="tabSpese" role="tab" aria-pressed="true">Spese</button><button type="button" class="chip" id="tabRic" role="tab" aria-pressed="false">Ricariche</button></div>
     <div class="card" style="gap:8px">
       <div class="sumline"><span class="label" id="logTotLabel">Totale speso</span><b class="num" id="logTot"></b></div>
@@ -468,8 +475,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   </section>
 
   <!-- CALENDARIO -->
-  <section id="v-cal" class="wrap" aria-label="Calendario di viaggio" hidden>
-    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Calendario</h2><span></span></div>
+  <section id="v-cal" class="wrap" aria-label="Programma di viaggio" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Programma di viaggio</h2><span></span></div>
     <section class="card">
       <div class="chips" id="calDays"></div>
       <div class="chips" id="calTabs"><button class="chip" type="button" data-t="day" aria-pressed="true">Giorno</button><button class="chip" type="button" data-t="map" aria-pressed="false">Mappa</button></div>
@@ -484,6 +491,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <section class="card" id="calMapCard" hidden>
       <div class="diamap" id="calMap"></div>
       <div class="hint" id="calMapInfo"></div>
+      <button class="btn ghost small" id="calFindAll" type="button" hidden>Trova sulla mappa i luoghi mancanti</button>
     </section>
   </section>
 
@@ -661,7 +669,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="label">Plafond</div>
       <div class="budget-top"><div class="budget-left num" id="sLeft"></div><div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="sSpent"></span></div></div>
       <button class="btn" id="goTopup" type="button">Ricarica plafond</button>
-      <div class="hint">Le ricariche si vedono e si eliminano dalla scheda Ricariche del Registro.</div>
+      <div class="hint">Le ricariche si vedono e si eliminano dalla scheda Ricariche del Registro spese e ricariche.</div>
     </section>
     <section class="card">
       <div class="field"><label class="label" for="sUser">Nome utente</label><input id="sUser" type="text" autocomplete="off" placeholder="es. Matteo"></div>
@@ -716,7 +724,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v50';
+var APP_VER = 'v51';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -818,6 +826,7 @@ var APP_VER = 'v50';
     if (v === 'chk') renderChk();
     if (v === 'cal') openCal();
     if (v !== 'docs') docLock();
+    if (v !== 'home' && appsEdit) appsMode(false);
     if (v === 'docs') renderDocs();
     if (v === 'calc') { storeCalc = ''; suggestStores('', 'storeCalc', 'desc'); }
     if (v === 'calc' || v === 'scan') getFix(8000);
@@ -1615,7 +1624,7 @@ var APP_VER = 'v50';
 
   /* ---------- calendario di viaggio ---------- */
   var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)", "2800 N Terminal Rd, Houston, TX 77032"], ["", "Cena a casa di Flavi (sorella di Leslie)", ""]], "2026-12-23": [["", "Colazione leggera a casa", ""], ["", "Spesa da H-E-B", "3540 Rayford Rd, Spring, TX 77386"], ["13:30", "Pranzo di compleanno in steak house (prenotato, indirizzo da confermare)", ""], ["", "Outlet (forse Houston Premium Outlets)", "29300 Hempstead Rd, Cypress, TX 77433"], ["", "Cena messicana (ristorante da confermare)", ""]], "2026-12-24": [["", "Colazione nel vecchio ristorante di Matteo (indirizzo da confermare)", ""], ["", "Preparativi per la cena, arriva Steve", ""], ["", "Cena di Natale a casa", ""], ["", "Quasi tutto chiuso", ""]], "2026-12-25": [["", "Giornata a casa con Steve, apertura dei regali", ""], ["", "Quasi tutto chiuso", ""], ["", "Cena fuori, se troviamo un ristorante aperto", ""]], "2026-12-26": [["07:30", "Partenza da casa", ""], ["", "Colazione fuori, lungo la strada per la NASA", ""], ["11:00", "Visita guidata Space Center Houston (3 ore)", "1601 E NASA Pkwy, Houston, TX 77058"], ["", "Pranzo tardi e passeggiata al Kemah Boardwalk", "215 Kipp Ave, Kemah, TX 77565"], ["", "Visita a Galveston", "Galveston, TX"], ["", "Check-in Airbnb (indirizzo da confermare)", ""], ["", "Cena di pesce al Fisherman's Wharf", "2200 Harborside Dr, Galveston, TX 77550"]], "2026-12-27": [["", "Check-out e colazione a Galveston", ""], ["", "Passeggiata in centro, zona storica di Strand Street", "Strand Street, Galveston, TX 77550"], ["", "Pranzo alla Galleria (centro commerciale di Houston)", "5085 Westheimer Rd, Houston, TX 77056"], ["", "Academy Sports + Outdoors (Leo)", "1461 Spring Cypress Rd, Spring, TX 77373"], ["", "Cena a casa", ""]], "2026-12-28": [["08:00", "Partenza per Austin, da Steve", ""], ["", "Una sosta lungo il viaggio", ""], ["", "Pranzo in un famoso BBQ texano (da confermare)", ""], ["", "Cena da decidere (Smithville?)", "Smithville, TX"], ["", "Notte a casa di Steve", ""]], "2026-12-29": [["", "Colazione da Steve", ""], ["", "Visita e pranzo a Bastrop", "Bastrop, TX"], ["", "Ritorno a casa in auto", ""], ["", "Negozio di stivali da cowboy: Gomez Western Wear", "4623 FM 2920 Suite 200, Spring, TX 77388"], ["", "Cena in un ristorante messicano", ""]], "2026-12-30": [["", "Colazione a casa", ""], ["", "Pranzo al CorkScrew BBQ", "26608 Keith St, Spring, TX 77373"], ["", "Old Town Spring (zona storica)", "Spring Cypress Rd & Hardy St, Spring, TX 77373"], ["", "Cena da Shogun Japanese Grill & Sushi Bar", "3532 Harmony Commons Dr, Spring, TX 77386"]], "2026-12-31": [["", "Colazione fuori", ""], ["", "Preparativi per la cena di Capodanno: cucinare e apparecchiare", ""], ["20:00", "Arrivano gli amici", ""]], "2027-01-01": [["", "Quasi tutto chiuso", ""], ["", "Giornata di relax a casa", ""], ["", "Scegliere le ville da visitare", ""], ["", "Cercare una casa simile alla mia", ""]], "2027-01-02": [["", "Colazione a casa", ""], ["", "Pranzo da Woodson's Local Tap + Kitchen (hamburger)", "4127 Riley Fuzzel Rd Suite 100, Spring, TX 77386"], ["", "Costco (richiesta di Matteo)", "8185 TX-242, The Woodlands, TX 77385"], ["", "Cercare dove ascoltare musica country la sera", ""]], "2027-01-03": [["", "Colazione a casa", ""], ["", "Pranzo messicano", ""], ["17:30", "Partenza per il centro di Houston: partita NBA (Leo)", "Toyota Center, 1510 Polk St, Houston, TX 77002"]], "2027-01-04": [["", "Colazione a casa", ""], ["", "Mattina: si fanno le valigie", ""], ["", "Partenza in auto per l'aeroporto IAH", "2800 N Terminal Rd, Houston, TX 77032"]]};
-  var CAL_DAYS = Object.keys(CAL_DEF), calDay = '', calTab = 'day', calOrder = false, calUnsub = null, calMapObj = null, calMapLayer = null;
+  var CAL_DAYS = Object.keys(CAL_DEF), calDay = '', calTab = 'day', calOrder = false, calAll = true, calUnsub = null, calMapObj = null, calMapLayer = null;
   function calState() { if (!st.cal) st.cal = { items: {}, dirty: {}, seeded: false }; if (!st.cal.items) st.cal.items = {}; if (!st.cal.dirty) st.cal.dirty = {}; return st.cal; }
   function calSeed() {                                  // l'itinerario di partenza e' uguale su tutti i telefoni: stessi id, nessun doppione
     var c = calState(); if (c.seedVer === 2) return;
@@ -1662,12 +1671,13 @@ var APP_VER = 'v50';
   }
   function openCal() { calSeed(); if (!calDay) calDay = calToday(); renderTripCal(); }
   function renderTripCal() {
-    var dayChips = $('calDays'); dayChips.innerHTML = '';
+    var dayChips = $('calDays'), onMap = calTab === 'map'; dayChips.innerHTML = '';
+    if (onMap) { var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'chip'; ab.style.cssText = 'flex:0 0 auto;padding:0 12px'; ab.textContent = 'Tutto il viaggio'; ab.setAttribute('aria-pressed', String(calAll)); ab.onclick = function () { calAll = true; renderTripCal(); }; dayChips.appendChild(ab); }
     CAL_DAYS.forEach(function (d) {
       var p = d.split('-'), b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 10px;min-width:3.6rem';
-      b.textContent = Number(p[2]) + '/' + Number(p[1]); b.setAttribute('aria-pressed', String(d === calDay)); b.onclick = function () { calDay = d; calOrder = false; renderTripCal(); }; dayChips.appendChild(b);
+      b.textContent = Number(p[2]) + '/' + Number(p[1]); b.setAttribute('aria-pressed', String(d === calDay && !(onMap && calAll))); b.onclick = function () { calDay = d; calAll = false; calOrder = false; renderTripCal(); }; dayChips.appendChild(b);
     });
-    [].forEach.call(document.querySelectorAll('#calTabs .chip'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === calTab)); b.onclick = function () { calTab = b.dataset.t; renderTripCal(); }; });
+    [].forEach.call(document.querySelectorAll('#calTabs .chip'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === calTab)); b.onclick = function () { if (b.dataset.t === 'map' && calTab !== 'map') calAll = true; calTab = b.dataset.t; renderTripCal(); }; });
     $('calDayCard').hidden = calTab !== 'day'; $('calMapCard').hidden = calTab !== 'map';
     if (calTab === 'map') { renderCalMap(); return; }
     $('tcTitle').textContent = calDayLabel(calDay); $('calOrder').textContent = calOrder ? 'Fine' : 'Ordina';
@@ -1726,10 +1736,13 @@ var APP_VER = 'v50';
   }
   $('calAdd').onclick = function () { calForm(null); };
   $('calOrder').onclick = function () { calOrder = !calOrder; renderTripCal(); };
-  $('calFind').onclick = function () {
-    var todo = calItems(calDay).filter(function (x) { return x.place && !x.loc; }); if (!todo.length) return; var b = $('calFind'); b.disabled = true; var n = 0;
+  function calMissing() { var c = calState(); return Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return !x.del && x.place && !x.loc; }); }
+  $('calFindAll').onclick = function () { calFindMany(calMissing(), $('calFindAll'), 'Trova sulla mappa i luoghi mancanti'); };
+  $('calFind').onclick = function () { calFindMany(calItems(calDay).filter(function (x) { return x.place && !x.loc; }), $('calFind'), 'Trova sulla mappa i luoghi di questo giorno'); };
+  function calFindMany(todo, b, label) {
+    if (!todo.length) return; b.disabled = true; var n = 0;
     todo.reduce(function (p, x) { return p.then(function () { b.textContent = 'Cerco… ' + (n + 1) + '/' + todo.length; return calFindPlace(x.place).then(function (r) { if (r) { x.loc = { la: r.la, lo: r.lo }; x.addr = r.addr; calTouch(x); n++; } }); }); }, Promise.resolve())
-      .then(function () { b.disabled = false; b.textContent = 'Trova sulla mappa i luoghi di questo giorno'; toast(n + (n === 1 ? ' luogo trovato' : ' luoghi trovati') + ' su ' + todo.length); renderTripCal(); });
+      .then(function () { b.disabled = false; b.textContent = label; toast(n + (n === 1 ? ' luogo trovato' : ' luoghi trovati') + ' su ' + todo.length); renderTripCal(); });
   };
   function renderCalMap() {
     var info = $('calMapInfo'), box = $('calMap');
@@ -1738,7 +1751,7 @@ var APP_VER = 'v50';
     if (!calMapObj) { calMapObj = L.map(box).setView([29.76, -95.37], 8); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(calMapObj); calMapLayer = L.layerGroup().addTo(calMapObj); }
     calMapLayer.clearLayers();
     var c = calState(), all = Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return !x.del && x.loc; }).sort(function (a, b) { return a.day.localeCompare(b.day) || a.order - b.order; });
-    var one = all.filter(function (x) { return x.day === calDay; }), list = one.length ? one : all, pts = [];
+    var list = calAll ? all : all.filter(function (x) { return x.day === calDay; }), pts = [];
     clusterByPlace(list, function (x) { return { la: x.loc.la, lo: x.loc.lo }; }, 80).forEach(function (g) {
       pts.push([g.la, g.lo]);
       groupMarker(calMapLayer, g, '#1a7fc4', function (g) {
@@ -1747,9 +1760,9 @@ var APP_VER = 'v50';
         return pop;
       });
     });
-    var missing = Object.keys(c.items).filter(function (k) { var x = c.items[k]; return !x.del && x.place && !x.loc; }).length;
-    info.textContent = (one.length ? 'Tappe del ' + calDayLabel(calDay) : 'Tutte le tappe') + ': ' + pts.length + (pts.length === 1 ? ' luogo' : ' luoghi') + ' sulla mappa.' + (missing ? ' ' + missing + ' luoghi non ancora trovati: usa "Trova sulla mappa" in ogni giorno.' : '');
-    setTimeout(function () { calMapObj.invalidateSize(); if (pts.length === 1) calMapObj.setView(pts[0], 14); else if (pts.length) calMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 }); }, 60);
+    var missing = calMissing().length; $('calFindAll').hidden = !missing;
+    info.textContent = (calAll ? 'Tutto il viaggio' : calDayLabel(calDay)) + ': ' + (pts.length ? pts.length + (pts.length === 1 ? ' luogo' : ' luoghi') + ' sulla mappa.' : 'nessun luogo sulla mappa.') + (calAll ? ' Tocca una data per vedere solo quel giorno.' : '') + (missing ? ' ' + missing + (missing === 1 ? ' luogo non è ancora stato trovato.' : ' luoghi non sono ancora stati trovati.') : '');
+    setTimeout(function () { calMapObj.invalidateSize(); if (pts.length === 1) calMapObj.setView(pts[0], 14); else if (pts.length) calMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 }); else calMapObj.setView([29.76, -95.37], 8); }, 60);
   }
 
   /* ---------- checklist di viaggio: una lista personale a testa, visibile secondo chi sei ---------- */
@@ -2725,6 +2738,51 @@ var APP_VER = 'v50';
     if (tel && tel.charAt(0) !== '+' && tel.indexOf('00') !== 0) toast('Salvato. Per WhatsApp serve il prefisso (es. +1)'); else toast('Salvato su questo telefono');
   };
   $('flaCopy').onclick = function () { try { navigator.clipboard.writeText((dm.flavia || {}).addr || '').then(function () { toast('Indirizzo copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
+
+  /* ---------- home: icone spostabili come sull'iPhone (tieni premuto, trascina, poi "Fine") ---------- */
+  var appsNav = document.querySelector('.apps'), appsEdit = false, appsDrag = null, appsLp = null, appsSwallow = 0;
+  (function () {                                         // ordine salvato; le icone nuove vanno in fondo
+    var ord = st.homeOrder || [], rest = [].filter.call(appsNav.children, function (b) { return ord.indexOf(b.id) < 0; });
+    ord.forEach(function (id) { var el = $(id); if (el && el.parentNode === appsNav) appsNav.appendChild(el); });
+    rest.forEach(function (el) { appsNav.appendChild(el); });
+  })();
+  function appsMode(on) { appsEdit = on; appsNav.classList.toggle('edit', on); $('appsDone').hidden = !on; }
+  function appsDragStart(el, e) { var r = el.getBoundingClientRect(); appsDrag = { el: el, ox: e.clientX - r.left, oy: e.clientY - r.top }; el.classList.add('drag'); appsDragMove(e); }
+  function appsDragMove(e) {
+    var el = appsDrag.el, x = e.clientX, y = e.clientY, list = appsNav.querySelectorAll('.app'), i, o, r;
+    el.style.transform = '';
+    for (i = 0; i < list.length; i++) {
+      o = list[i]; if (o === el) continue; r = o.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+        if (o.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) appsNav.insertBefore(el, o); else appsNav.insertBefore(el, o.nextSibling);
+        break;
+      }
+    }
+    r = el.getBoundingClientRect();
+    el.style.transform = 'translate(' + (x - appsDrag.ox - r.left) + 'px,' + (y - appsDrag.oy - r.top) + 'px) scale(1.08)';
+  }
+  function appsEnd() {
+    if (appsLp) { clearTimeout(appsLp.t); appsLp = null; }
+    if (!appsDrag) return;
+    appsDrag.el.classList.remove('drag'); appsDrag.el.style.transform = ''; appsDrag = null; appsSwallow = Date.now();
+    st.homeOrder = [].map.call(appsNav.children, function (b) { return b.id; }); persist();
+  }
+  appsNav.addEventListener('pointerdown', function (e) {
+    var el = e.target.closest ? e.target.closest('.app') : null; if (!el || appsDrag) return;
+    if (appsEdit) { appsDragStart(el, e); return; }
+    appsLp = { el: el, x: e.clientX, y: e.clientY, last: e };
+    appsLp.t = setTimeout(function () { var lp = appsLp; appsLp = null; if (!lp) return; appsMode(true); try { if (navigator.vibrate) navigator.vibrate(10); } catch (x) {} appsDragStart(lp.el, lp.last); }, 450);
+  });
+  window.addEventListener('pointermove', function (e) {
+    if (appsLp) { if (Math.abs(e.clientX - appsLp.x) > 10 || Math.abs(e.clientY - appsLp.y) > 10) { clearTimeout(appsLp.t); appsLp = null; } else appsLp.last = e; }
+    if (appsDrag) appsDragMove(e);
+  });
+  window.addEventListener('pointerup', appsEnd);
+  window.addEventListener('pointercancel', appsEnd);
+  appsNav.addEventListener('touchmove', function (e) { if (appsDrag && e.cancelable) e.preventDefault(); }, { passive: false });
+  appsNav.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  appsNav.addEventListener('click', function (e) { if (appsEdit || Date.now() - appsSwallow < 400) { e.stopPropagation(); e.preventDefault(); } }, true);
+  $('appsDone').onclick = function () { appsMode(false); toast('Ordine salvato'); };
 
   show('home');
   loadBg();
