@@ -1178,6 +1178,9 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     if (!window.speechSynthesis || !text) { toast('Questo telefono non legge ad alta voce'); return; }
     try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = lang; u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {}
   }
+  function unlockSpeech() {          // iPhone permette la voce solo se prima e' stata avviata con un tocco
+    try { if (window.speechSynthesis && !window._spUnlocked) { var u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); window._spUnlocked = true; } } catch (e) {}
+  }
   function showOut(text) { $('trOutCard').hidden = false; $('trOut').textContent = text; }
   function doTranslate(autoSpeak) {
     var text = $('trIn').value.trim(); if (!text || trBusy) return;
@@ -1185,7 +1188,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     trBusy = true; $('trHint').textContent = 'Traduco…';
     translateText(text).then(function (out) {
       $('trHint').textContent = trViaBackup ? 'Servizio gratuito di riserva: può sbagliare, controlla le frasi importanti o usa quelle pronte.' : ''; showOut(out);
-      if (autoSpeak && st.trAuto) speak(out, trLang().toV);
+      if (st.trAuto) speak(out, trLang().toV);
     }, function () { $('trHint').textContent = 'Non riesco a tradurre ora (rete o limite del servizio). Prova con una frase pronta.'; })
       .then(function () { trBusy = false; });
   }
@@ -1207,12 +1210,12 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     });
   }
   $('trSwap').onclick = function () { trDir = trDir === 'it-en' ? 'en-it' : 'it-en'; var o = $('trOut').textContent; if (!$('trOutCard').hidden && o) { $('trIn').value = o; $('trOutCard').hidden = true; } renderTr(); };
-  $('trGo').onclick = function () { doTranslate(false); };
+  $('trGo').onclick = function () { unlockSpeech(); doTranslate(false); };
   $('trSpeak').onclick = function () { speak($('trOut').textContent, trLang().toV); };
   $('trCopy').onclick = function () { try { navigator.clipboard.writeText($('trOut').textContent).then(function () { toast('Copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
   $('trAuto').checked = !!st.trAuto;
-  $('trAuto').onchange = function () { st.trAuto = $('trAuto').checked; persist(); if (st.trAuto) toast('Se il microfono smette di sentire, spegni questa opzione'); };
-  $('trKb').onclick = function () { $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = ''; $('trIn').focus(); };
+  $('trAuto').onchange = function () { unlockSpeech(); st.trAuto = $('trAuto').checked; persist(); if (st.trAuto) toast('Con il volume del telefono alzato e la suoneria attiva'); };
+  $('trKb').onclick = function () { unlockSpeech(); $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = ''; $('trIn').focus(); };
   var trLastTxt = '';
   $('trIn').addEventListener('focus', function () { trLastTxt = $('trIn').value; });
   $('trIn').addEventListener('blur', function () { var v = $('trIn').value.trim(); if (v && v !== trLastTxt.trim()) setTimeout(function () { doTranslate(false); }, 200); });
