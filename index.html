@@ -1215,27 +1215,31 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   $('trSpeak').onclick = function () { speak($('trOut').textContent, trLang().toV); };
   $('trCopy').onclick = function () { try { navigator.clipboard.writeText($('trOut').textContent).then(function () { toast('Copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
   var MIC_ERR = { 'not-allowed': 'Il microfono è bloccato. In Impostazioni di iPhone, Safari (o l\'app), consenti il microfono e il riconoscimento vocale.', 'service-not-allowed': 'Il riconoscimento vocale non è consentito in questa app. Attiva "Dettatura" in Impostazioni, Generali, Tastiera, oppure usa il microfono della tastiera.', 'no-speech': 'Non ho sentito nulla: parla subito dopo aver toccato il tasto.', 'audio-capture': 'Non trovo il microfono.', 'network': 'Serve la rete per riconoscere la voce.', 'language-not-supported': 'Lingua non supportata dal riconoscimento vocale.', 'aborted': '' };
+  function micIdle() { rec = null; $('trMic').classList.remove('on'); renderTr(); }
   $('trMic').onclick = function () {
     if (!SR) return;
-    if (rec) { try { rec.stop(); } catch (e) {} return; }
-    var r = new SR(), got = false, err = '', sent = false;
+    try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}          // la voce che parla blocca il microfono su iPhone
+    if (rec) { var old = rec; rec = null; try { old.abort(); } catch (e) {} micIdle(); return; }   // secondo tocco: ferma e libera subito
+    var r = new SR(), got = false, err = '', sent = false, dead = false;
     rec = r; r.lang = trLang().fromV; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
     $('trHint').textContent = ''; $('trIn').value = '';
     $('trMic').classList.add('on'); $('trMicTxt').textContent = 'Ti ascolto… tocca per fermare';
+    var guard = setTimeout(function () { if (!dead) { try { r.abort(); } catch (e) {} } }, 15000);
+    function end() {
+      if (dead) return; dead = true; clearTimeout(guard);
+      if (rec === r) micIdle();
+      if (got && !sent && $('trIn').value.trim()) { sent = true; setTimeout(function () { doTranslate(true); }, 350); }
+      if (!got && !err) $('trHint').textContent = 'Non ho sentito nulla. Parla subito dopo aver toccato il tasto, oppure usa la dettatura con la tastiera.';
+    }
     r.onresult = function (e) {
       var txt = '', fin = false;
       for (var k = 0; k < e.results.length; k++) { txt += e.results[k][0].transcript; if (e.results[k].isFinal) fin = true; }
       got = true; $('trIn').value = txt;
-      if (fin && !sent) { sent = true; try { r.stop(); } catch (x) {} doTranslate(true); }
+      if (fin) { sent = true; try { r.stop(); } catch (x) {} dead = true; clearTimeout(guard); if (rec === r) micIdle(); setTimeout(function () { doTranslate(true); }, 350); }   // microfono libero subito, traduzione e voce dopo
     };
-    r.onerror = function (e) { err = e.error || 'errore'; $('trHint').textContent = MIC_ERR[err] !== undefined ? MIC_ERR[err] : 'Errore del microfono (' + err + '). Prova con il microfono della tastiera.'; };
-    r.onend = function () {
-      rec = null; $('trMic').classList.remove('on');
-      if (got && !sent && $('trIn').value.trim()) { sent = true; doTranslate(true); }
-      if (!got && !err) $('trHint').textContent = 'Non ho sentito nulla. Se succede sempre, usa il microfono della tastiera nella casella di testo.';
-      renderTr();
-    };
-    try { r.start(); } catch (e) { rec = null; $('trMic').classList.remove('on'); $('trHint').textContent = 'Non riesco ad avviare il microfono: ' + (e && e.name || 'errore') + '.'; }
+    r.onerror = function (e) { err = e.error || 'errore'; $('trHint').textContent = MIC_ERR[err] !== undefined ? MIC_ERR[err] : 'Errore del microfono (' + err + '). Prova con la dettatura della tastiera.'; };
+    r.onend = end; r.onspeechend = function () { try { r.stop(); } catch (e) {} };
+    try { r.start(); } catch (e) { dead = true; clearTimeout(guard); micIdle(); $('trHint').textContent = 'Non riesco ad avviare il microfono: ' + (e && e.name || 'errore') + '.'; }
   };
   $('trKb').onclick = function () { $('trIn').focus(); $('trHint').textContent = 'Tocca il microfono sulla tastiera di iPhone, parla, poi premi Traduci.'; };
 
