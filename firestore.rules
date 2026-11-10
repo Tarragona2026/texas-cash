@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Tutto vive sotto trips/{codice-viaggio}. Serve almeno l'accesso anonimo dalla app.
+    match /trips/{trip}/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
