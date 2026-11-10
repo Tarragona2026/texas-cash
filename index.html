@@ -68,6 +68,8 @@ body {
 .bgwrap::after { content: ""; position: absolute; inset: 0; background: var(--scrim); transition: background .4s ease; }
 body.inner .bgimg { filter: blur(12px); }
 body.inner .bgwrap::after { background: var(--scrim-inner); }
+.mapbox { height: 58vh; min-height: 320px; border-radius: 20px; overflow: hidden; position: relative; z-index: 0; isolation: isolate; border: 1px solid var(--glass-line); }
+.mapbox .leaflet-popup-content { margin: 10px 12px; font-family: var(--font-body); color: #1c1c1e; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -118,6 +120,7 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .app .ic.red { background: linear-gradient(180deg, #ff5a52, #d70015); }
 .app .ic.blue { background: linear-gradient(180deg, #2b95ff, #007aff); }
 .app .ic.indigo { background: linear-gradient(180deg, #7c7aff, #5e5ce6); }
+.app .ic.green { background: linear-gradient(180deg, #4cd964, #248a3d); }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
 @media (prefers-reduced-motion: reduce) { .app { transition: none; } }
@@ -219,6 +222,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-line); padding: 10px 16px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: 90%; text-align: center; box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
 </style>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<script src="vendor/leaflet.js"></script>
 <script src="ocr.js"></script>
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
@@ -243,6 +248,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
       <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
       <button class="app" id="goLog" type="button"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span>Registro <span id="cnt"></span></span></button>
+      <button class="app" id="goMap" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span>Mappa</button>
       <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
     </nav>
   </section>
@@ -333,6 +339,13 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     </section>
   </section>
 
+  <!-- MAPPA -->
+  <section id="v-map" class="wrap" aria-label="Mappa delle spese" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa</h2><span></span></div>
+    <div class="mapbox" id="mapbox"></div>
+    <div class="hint" id="mapInfo"></div>
+  </section>
+
   <!-- IMPOSTAZIONI -->
   <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
@@ -395,7 +408,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
-  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup'];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map'];
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
@@ -485,11 +498,14 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     if (v === 'log') renderLog();
     if (v === 'settings') fillSettings();
     if (v === 'topup') renderTopup();
+    if (v === 'map') renderMap();
+    if (v === 'calc' || v === 'scan') getFix(8000);
   }
   function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
   window.addEventListener('hashchange', function () { show(hashView()); });
   document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : 'home'); }; });
   $('goCalc').onclick = function () { go('calc'); };
+  $('goMap').onclick = function () { go('map'); };
   $('goLog').onclick = function () { go('log'); };
   $('goSettings').onclick = function () { go('settings'); };
   $('goTopup').onclick = function () { go('topup'); };
@@ -521,7 +537,9 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
   /* ---------- salvataggio spese ---------- */
   function addExpense(e) {
+    var fx0 = freshFix(); if (fx0) e.loc = fx0;
     st.expenses.push(e); persist();
+    if (!e.loc) getFix(8000).then(function (f) { if (f && !e.loc) { e.loc = f; persist(); } });
   }
   function newId() { return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
@@ -900,6 +918,50 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     toast('Ricaricati ' + usd(r2(v)));
     go('settings');
   };
+
+  /* ---------- posizione e mappa ---------- */
+  var lastFix = null;
+  function freshFix() { return lastFix && Date.now() - lastFix.ts < 5 * 60 * 1000 ? { la: lastFix.la, lo: lastFix.lo, ac: lastFix.ac } : null; }
+  function getFix(maxWait) {
+    return new Promise(function (res) {
+      if (!navigator.geolocation) { res(null); return; }
+      var done = false, to = setTimeout(function () { if (!done) { done = true; res(freshFix()); } }, maxWait + 500);
+      try {
+        navigator.geolocation.getCurrentPosition(function (p) {
+          lastFix = { la: Math.round(p.coords.latitude * 1e5) / 1e5, lo: Math.round(p.coords.longitude * 1e5) / 1e5, ac: Math.round(p.coords.accuracy || 0), ts: Date.now() };
+          if (!done) { done = true; clearTimeout(to); res(freshFix()); }
+        }, function () { if (!done) { done = true; clearTimeout(to); res(freshFix()); } }, { enableHighAccuracy: true, timeout: maxWait, maximumAge: 120000 });
+      } catch (e) { if (!done) { done = true; clearTimeout(to); res(null); } }
+    });
+  }
+  var map = null, mapLayer = null;
+  function renderMap() {
+    var info = $('mapInfo'), box = $('mapbox');
+    if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    box.hidden = false;
+    if (!map) {
+      map = L.map(box, { zoomControl: true, attributionControl: true }).setView([29.76, -95.37], 9);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+      mapLayer = L.layerGroup().addTo(map);
+    }
+    mapLayer.clearLayers();
+    var pts = st.expenses.filter(function (e) { return e.loc; }), bounds = [];
+    pts.forEach(function (e) {
+      var c = CAT_COLORS[e.cat] || '#d70015', ll = [e.loc.la, e.loc.lo];
+      var m = L.circleMarker(ll, { radius: 11, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 }).addTo(mapLayer);
+      var pop = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div');
+      t.textContent = usd(e.usd) + ' · ' + e.cat; d.textContent = (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts);
+      pop.appendChild(t); pop.appendChild(d);
+      if (e.note) { var n = document.createElement('div'); n.textContent = e.note; pop.appendChild(n); }
+      m.bindPopup(pop); bounds.push(ll);
+    });
+    var lost = st.expenses.length - pts.length;
+    info.textContent = !st.expenses.length ? 'Nessuna spesa ancora.' : pts.length + ' spese sulla mappa' + (lost ? ' · ' + lost + ' senza posizione' : '') + '. Tocca un punto per i dettagli.';
+    setTimeout(function () {
+      map.invalidateSize();
+      if (bounds.length === 1) map.setView(bounds[0], 15); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    }, 50);
+  }
 
   /* ---------- sfondo ---------- */
   var DEFAULT_BG = 'img/bandiera-usa.svg', bgUrl = null;
