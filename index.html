@@ -89,7 +89,7 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .atile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .atag { position: absolute; left: 4px; bottom: 4px; font-size: .65rem; font-weight: 700; background: rgba(0,0,0,.6); color: #fff; padding: 1px 7px; border-radius: 999px; }
 .apend { position: absolute; right: 4px; top: 4px; font-size: .62rem; font-weight: 700; background: var(--warn); color: #fff; padding: 1px 6px; border-radius: 999px; }
-.vmap { width: 100%; max-width: 520px; height: 150px; border-radius: 14px; overflow: hidden; flex: none; }
+.vmap { position: relative; width: 100%; max-width: 520px; height: 130px; border-radius: 14px; overflow: hidden; flex: none; }
 .vcap { color: #fff; font-size: .9rem; text-align: center; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
@@ -243,7 +243,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 .viewer img { max-width: 100%; max-height: calc(100% - 70px); object-fit: contain; border-radius: 10px; }
 .viewer .btn { background: #fff; color: #111; }
 .viewer.alb { touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-.viewer.alb img { max-height: 42vh; -webkit-user-drag: none; }
+.viewer.alb img { max-height: calc(100vh - 330px); min-height: 38vh; -webkit-user-drag: none; }
+.vmaplink { position: absolute; left: 0; right: 0; top: 0; bottom: 20px; z-index: 1000; display: block; color: #fff; font-size: .8rem; text-align: center; padding-top: 40px; text-decoration: none; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-line); padding: 10px 16px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: 90%; text-align: center; box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
 </style>
@@ -478,7 +479,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v35';
+var APP_VER = 'v36';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1332,60 +1333,70 @@ var APP_VER = 'v35';
     });
   }
   function viewAlbumPhoto(list, idx) {
-    var host = $('viewerHost'), v = document.createElement('div'), mini = null, cur = -1, gen = 0, tx = 0, ty = 0, swipeOk = false;
+    var host = $('viewerHost'), v = document.createElement('div'), mini = null, cur = -1, gen = 0, busy = false;
     v.className = 'viewer alb'; v.style.overflowY = 'auto'; v.style.justifyContent = 'flex-start';
     host.appendChild(v);
     function closeV() { if (mini) { try { mini.remove(); } catch (e) {} mini = null; } document.removeEventListener('keydown', onKey); v.remove(); }
-    function onKey(e) { if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); else if (e.key === 'Escape') closeV(); }
+    function onKey(e) { if (e.key === 'ArrowLeft') slide(-1); else if (e.key === 'ArrowRight') slide(1); else if (e.key === 'Escape') closeV(); }
     document.addEventListener('keydown', onKey);
-    function go(d) { var n = cur + d; if (n < 0 || n >= list.length) return; showAt(n); }
-    var fired = false;
-    function swipeStart(e) { var t = e.touches[0]; tx = t.clientX; ty = t.clientY; fired = false; swipeOk = e.touches.length === 1 && !(e.target.closest && e.target.closest('.vmap')); }
-    function swipeMove(e) {
-      if (!swipeOk || fired) return; var t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { fired = true; go(dx < 0 ? 1 : -1); }
+    function curBox() { return v.firstChild; }
+    function slide(d) {                                   // d = +1: foto successiva (la box esce a sinistra)
+      var n = cur + d, b = curBox(); if (busy || !b) return;
+      if (n < 0 || n >= list.length) { b.style.transition = 'transform .2s ease-out'; b.style.transform = 'translateX(0)'; return; }
+      busy = true; b.style.transition = 'transform .17s ease-in, opacity .17s ease-in'; b.style.transform = 'translateX(' + (-d * 100) + '%)'; b.style.opacity = '0';
+      setTimeout(function () { showAt(n, d); busy = false; }, 160);
     }
-    v.addEventListener('touchstart', swipeStart, { passive: true });
-    v.addEventListener('touchmove', swipeMove, { passive: true });
-    v.addEventListener('touchend', function (e) {
-      if (swipeOk && !fired) { var t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) go(dx < 0 ? 1 : -1); }
-      fired = false;
+    var tx = 0, ty = 0, lock = '', dragging = false;
+    v.addEventListener('touchstart', function (e) { if (busy || e.touches.length !== 1) { dragging = false; return; } var t = e.touches[0]; tx = t.clientX; ty = t.clientY; lock = ''; dragging = true; var b = curBox(); if (b) b.style.transition = 'none'; }, { passive: true });
+    v.addEventListener('touchmove', function (e) {
+      if (!dragging) return; var t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+      if (!lock && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) lock = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+      if (lock !== 'x') return;
+      var b = curBox(); if (!b) return;
+      var atEdge = (dx > 0 && cur === 0) || (dx < 0 && cur === list.length - 1);
+      b.style.transform = 'translateX(' + (atEdge ? dx * 0.25 : dx) + 'px)'; b.style.opacity = String(Math.max(.45, 1 - Math.abs(dx) / 500));
     }, { passive: true });
-    function showAt(n) {
+    function endDrag(e) {
+      if (!dragging) return; dragging = false; var t = e.changedTouches && e.changedTouches[0], b = curBox(); if (!t || !b) return;
+      var dx = t.clientX - tx;
+      if (lock === 'x' && Math.abs(dx) > 70) slide(dx < 0 ? 1 : -1);
+      else { b.style.transition = 'transform .2s ease-out, opacity .2s'; b.style.transform = 'translateX(0)'; b.style.opacity = '1'; }
+    }
+    v.addEventListener('touchend', endDrag, { passive: true }); v.addEventListener('touchcancel', endDrag, { passive: true });
+    function showAt(n, enter) {
       cur = n; var x = list[n], my = ++gen;
       if (mini) { try { mini.remove(); } catch (e) {} mini = null; }
       v.innerHTML = '';
-      var box = document.createElement('div'); box.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;margin:auto 0'; v.appendChild(box);
-      var nav = document.createElement('div'); nav.className = 'btnrow'; nav.style.cssText = 'align-items:center;justify-content:center;gap:16px;width:100%;max-width:520px';
-      function nb(label, d) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.style.cssText = 'flex:none;min-width:56px'; b.textContent = label; b.disabled = (cur + d < 0 || cur + d >= list.length); if (b.disabled) b.style.opacity = '.35'; b.onclick = function () { go(d); }; return b; }
-      var cnt = document.createElement('div'); cnt.className = 'vcap'; cnt.textContent = (n + 1) + ' / ' + list.length;
-      nav.appendChild(nb('‹', -1)); nav.appendChild(cnt); nav.appendChild(nb('›', 1)); box.appendChild(nav);
-      var im = document.createElement('img'); im.alt = 'Foto'; im.src = x.thumbUrl || x.thumb; box.appendChild(im);
+      var box = document.createElement('div'); box.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;margin:auto 0;will-change:transform';
+      v.appendChild(box);
+      var cnt = document.createElement('div'); cnt.className = 'vcap'; cnt.textContent = (n + 1) + ' / ' + list.length; box.appendChild(cnt);
+      var im = document.createElement('img'); im.alt = 'Foto'; im.draggable = false; im.src = x.thumbUrl || x.thumb; box.appendChild(im);
       var cap = document.createElement('div'); cap.className = 'vcap';
       cap.textContent = (x.user || '') + ' · ' + dateStr(x.ts) + (x.loc ? '' : ' · posizione non disponibile'); box.appendChild(cap);
       var full = null;
       if (x.loc) {
         var md = document.createElement('div'); md.className = 'vmap'; box.appendChild(md);
-        if (!window.L) { md.textContent = 'La mappa non si è caricata: serve la rete.'; md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; }
+        var link = document.createElement('a'); link.className = 'vmaplink'; link.target = '_blank'; link.rel = 'noopener'; link.setAttribute('aria-label', 'Apri in Mappe');
+        link.href = 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + encodeURIComponent('Foto di ' + (x.user || '')); md.appendChild(link);
+        if (!window.L) { md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; link.textContent = 'La mappa non si è caricata: tocca per aprire Mappe'; }
         else {
           var build = function () {
             if (my !== gen) return;
             try {
               if (mini) { mini.remove(); mini = null; }
-              mini = L.map(md, { zoomControl: false, attributionControl: true }).setView([x.loc.la, x.loc.lo], 15);
+              mini = L.map(md, { zoomControl: false, attributionControl: true, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false }).setView([x.loc.la, x.loc.lo], 15);
               L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mini);
               L.circleMarker([x.loc.la, x.loc.lo], { radius: 10, color: '#fff', weight: 3, fillColor: '#d6246e', fillOpacity: 1 }).addTo(mini);
               mini.invalidateSize();
-            } catch (e) { md.textContent = 'Mappa non disponibile'; }
+            } catch (e) { md.textContent = 'Mappa non disponibile'; md.appendChild(link); }
           };
           setTimeout(build, 80); setTimeout(function () { if (my === gen && mini) mini.invalidateSize(); }, 400);
         }
       }
-      var row = document.createElement('div'); row.className = 'btnrow'; row.style.cssText = 'width:100%;max-width:520px';
-      function mk(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.onclick = fn; row.appendChild(b); }
+      var row = document.createElement('div'); row.className = 'btnrow'; row.style.cssText = 'width:100%;max-width:520px;flex-wrap:nowrap;gap:8px';
+      function mk(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.style.cssText = 'flex:1 1 0;min-width:0;padding:0 8px;font-size:.92rem'; b.textContent = label; b.onclick = fn; row.appendChild(b); }
       mk('Chiudi', closeV);
-      mk('Salva sul telefono', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
-      if (x.loc) mk('Apri in Mappe', function () { window.open('https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=Foto', '_blank'); });
+      mk('Salva foto', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
       if (x.user === st.user) mk('Elimina', function () {
         if (!confirm('Eliminare questa foto dall\'album di tutti?')) return;
         st.album = (st.album || []).filter(function (a) { return a.id !== x.id; }); delPhoto('alb_' + x.id); delPhoto('albt_' + x.id); persist();
@@ -1395,6 +1406,10 @@ var APP_VER = 'v35';
         if (!list.length) closeV(); else showAt(Math.min(n, list.length - 1));
       });
       box.appendChild(row);
+      if (enter) {                                        // entra scivolando dal lato opposto
+        box.style.transition = 'none'; box.style.transform = 'translateX(' + (enter * 100) + '%)'; box.style.opacity = '0'; void box.offsetWidth;
+        box.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; box.style.transform = 'translateX(0)'; box.style.opacity = '1';
+      }
       getPhoto('alb_' + x.id).then(function (b) {
         if (b) return b;
         return fbReady().then(function (d) { return d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('albumFull').doc(x.id).get(); }).then(function (doc) { return doc.exists ? dataToBlob(doc.data().data) : null; });
