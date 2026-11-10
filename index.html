@@ -89,6 +89,8 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .atile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .atag { position: absolute; left: 4px; bottom: 4px; font-size: .65rem; font-weight: 700; background: rgba(0,0,0,.6); color: #fff; padding: 1px 7px; border-radius: 999px; }
 .apend { position: absolute; right: 4px; top: 4px; font-size: .62rem; font-weight: 700; background: var(--warn); color: #fff; padding: 1px 6px; border-radius: 999px; }
+.vmap { width: 100%; max-width: 520px; height: 150px; border-radius: 14px; overflow: hidden; flex: none; }
+.viewer.withmap img { max-height: 42vh; }
 .vcap { color: #fff; font-size: .9rem; text-align: center; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
@@ -1332,9 +1334,9 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     var cap = document.createElement('div'); cap.className = 'vcap';
     cap.textContent = (x.user || '') + ' · ' + dateStr(x.ts) + (x.loc ? ' · con posizione' : ''); v.appendChild(cap);
     var row = document.createElement('div'); row.className = 'btnrow';
-    var full = null;
+    var full = null, mini = null;
     function mk(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.onclick = fn; row.appendChild(b); return b; }
-    mk('Chiudi', function () { v.remove(); });
+    mk('Chiudi', function () { if (mini) { try { mini.remove(); } catch (e) {} } v.remove(); });
     mk('Salva sul telefono', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
     if (x.user === st.user) mk('Elimina', function () {
       if (!confirm('Eliminare questa foto dall\'album di tutti?')) return;
@@ -1342,6 +1344,19 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       albRemote = albRemote.filter(function (r) { return r.id !== x.id; }); renderAlbum(); v.remove();
       fbReady().then(function (d) { var tr = d.collection('trips').doc(st.trip || DEFAULT_TRIP); return Promise.all([tr.collection('album').doc(x.id).delete(), tr.collection('albumFull').doc(x.id).delete()]); }).catch(function () { toast('Cancellata qui, ma non online: riprova con la rete'); });
     });
+    if (x.loc && window.L) {
+      v.classList.add('withmap');
+      var md = document.createElement('div'); md.className = 'vmap'; v.appendChild(md);
+      mk('Apri in Mappe', function () { window.open('https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=Foto', '_blank'); });
+      setTimeout(function () {
+        try {
+          mini = L.map(md, { zoomControl: false, attributionControl: true }).setView([x.loc.la, x.loc.lo], 15);
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mini);
+          L.circleMarker([x.loc.la, x.loc.lo], { radius: 10, color: '#fff', weight: 3, fillColor: '#d6246e', fillOpacity: 1 }).addTo(mini);
+          mini.invalidateSize();
+        } catch (e) {}
+      }, 60);
+    }
     v.appendChild(row); host.appendChild(v);
     getPhoto('alb_' + x.id).then(function (b) {
       if (b) return b;
