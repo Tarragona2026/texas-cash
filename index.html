@@ -377,7 +377,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="ocrEur"></div>
       <div class="chips store-chips" id="storeScan" aria-label="Negozio riconosciuto"></div>
       <div class="hint" id="storeHint"></div>
-      <div class="row2" style="grid-template-columns:1fr auto"><input id="storeQ" type="text" placeholder="Negozio non trovato? Cerca nome o indirizzo" autocomplete="off"><button class="chip" id="storeQBtn" type="button" style="min-height:44px;padding:0 16px">Cerca</button></div>
+      <div class="row2" style="grid-template-columns:1fr auto"><input id="storeQ" type="text" placeholder="Scrivi l'indirizzo per vedere le attività" autocomplete="off"><button class="chip" id="storeQBtn" type="button" style="min-height:44px;padding:0 16px">Cerca</button></div>
       <input id="descScan" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="catScan" aria-label="Categoria"></select>
       <button class="btn" id="saveScan" type="button">Salva scontrino e spesa</button>
@@ -634,7 +634,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v46';
+var APP_VER = 'v47';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1253,7 +1253,7 @@ var APP_VER = 'v46';
   }
   var GP_SKIP = ['parking', 'electric_vehicle_charging_station', 'bus_station', 'bus_stop', 'transit_station', 'train_station', 'subway_station', 'school', 'primary_school', 'secondary_school', 'university', 'park', 'playground', 'church', 'mosque', 'synagogue', 'hindu_temple', 'cemetery', 'atm', 'bank', 'hospital', 'doctor', 'dentist', 'fire_station', 'police', 'city_hall', 'post_office', 'library'];
   function googleNearby(fix) {
-    return gpCall('searchNearby', { maxResultCount: 12, rankPreference: 'DISTANCE', excludedTypes: GP_SKIP, locationRestriction: { circle: { center: { latitude: fix.la, longitude: fix.lo }, radius: 80 } } })
+    return gpCall('searchNearby', { maxResultCount: 20, rankPreference: 'DISTANCE', excludedTypes: GP_SKIP, locationRestriction: { circle: { center: { latitude: fix.la, longitude: fix.lo }, radius: 80 } } })
       .then(function (j) { return gpPlaces(j, fix); });
   }
   function googleText(addr, near, guess, phone, alts) {
@@ -1371,17 +1371,33 @@ var APP_VER = 'v46';
   function headerGuess(text) { return headerGuesses(text, 1)[0] || ''; }
   function manualStoreSearch() {
     var q = $('storeQ').value.trim(); if (!q) return;
-    var hint = $('storeHint'); hint.textContent = 'Cerco…';
-    getFix(4000).then(function (gps) {
-      return googleFree(q, gps).catch(function () { return osmGeocode(q, gps).then(function (r) { return r ? [{ name: q, la: r.la, lo: r.lo, d: 0 }] : []; }); });
-    }).then(function (ps) {
+    var hint = $('storeHint'); hint.textContent = 'Cerco le attività a questo indirizzo…';
+    var base = null;
+    getFix(3000).then(function (gps) {
+      return googleFree(q, gps).catch(function () { return []; }).then(function (ps) {
+        if (ps.length) { base = { la: ps[0].la, lo: ps[0].lo }; return ps; }
+        return osmGeocode(q, gps).then(function (r) { if (r) base = { la: r.la, lo: r.lo }; return []; }).catch(function () { return []; });
+      });
+    }).then(function (found) {
+      if (!base) return { found: [], near: [] };
+      return googleNearby(base).catch(function () { return []; }).then(function (near) {
+        if (near.length) return near;
+        return osmNearby(base, 'm' + base.la + ',' + base.lo).catch(function () { return []; });
+      }).then(function (near) { return { found: found, near: near }; });
+    }).then(function (r) {
       var box = $('storeScan'); box.innerHTML = ''; storeRun++;
-      if (!ps.length) { hint.textContent = 'Non trovato: scrivi il nome qui sotto.'; return; }
-      hint.textContent = '';
-      ps.slice(0, 5).forEach(function (p) {
-        placeLoc[p.name] = { la: Math.round(p.la * 1e5) / 1e5, lo: Math.round(p.lo * 1e5) / 1e5 };
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = p.name; b.setAttribute('aria-pressed', 'false');
-        b.onclick = function () { storeScan = p.name; $('descScan').value = p.name; scanLoc = { la: placeLoc[p.name].la, lo: placeLoc[p.name].lo, ac: 20, src: 'indirizzo' }; [].forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); }); };
+      var seen = {}, list = [];
+      r.near.concat(r.found).forEach(function (p) {
+        var k = p.name.toLowerCase(); if (seen[k]) return; seen[k] = 1;
+        placeLoc[p.name] = { la: Math.round((p.la != null ? p.la : base.la) * 1e5) / 1e5, lo: Math.round((p.lo != null ? p.lo : base.lo) * 1e5) / 1e5 };
+        list.push(p.name);
+      });
+      if (base) scanLoc = { la: Math.round(base.la * 1e5) / 1e5, lo: Math.round(base.lo * 1e5) / 1e5, ac: 30, src: 'indirizzo' };
+      if (!list.length) { hint.textContent = base ? 'Indirizzo trovato, ma nessuna attività registrata lì: scrivi il nome qui sotto.' : 'Indirizzo non trovato: controlla come è scritto o scrivi il nome qui sotto.'; return; }
+      hint.textContent = 'Attività a questo indirizzo: scegli quella giusta.';
+      list.slice(0, 12).forEach(function (n) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = n; b.setAttribute('aria-pressed', 'false');
+        b.onclick = function () { storeScan = n; $('descScan').value = n; scanLoc = { la: placeLoc[n].la, lo: placeLoc[n].lo, ac: 20, src: 'indirizzo' }; [].forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); }); };
         box.appendChild(b);
       });
     });
@@ -1407,6 +1423,7 @@ var APP_VER = 'v46';
     if (hint) hint.textContent = '';
     if (boxId === 'storeScan') scanLoc = null;
     var lastGps = null;
+    function noAddr() { if (hint && head) hint.textContent = 'Non riesco a capire dove è stato fatto l\'acquisto dallo scontrino. I negozi qui sotto sono vicino a te adesso: se non eri sul posto, scrivi l\'indirizzo nel campo e premi Cerca.'; }
     function work(fix, fromAddr) {
       if (!fix) { if (guess) show([guess], guess); return; }
       if (fromAddr && boxId === 'storeScan') scanLoc = { la: fix.la, lo: fix.lo, ac: fix.ac, src: 'indirizzo' };
@@ -1431,8 +1448,8 @@ var APP_VER = 'v46';
     getFix(8000).then(function (gps) {
       if (run !== storeRun) return;
       lastGps = gps;
-      if (!addr) return work(gps, false);
-      return geocodeAddress(addr, gps, guess, phone, alts).then(function (a) { if (run !== storeRun) return; return a ? work(a, true) : work(gps, false); }, function () { return work(gps, false); });
+      if (!addr) { noAddr(); return work(gps, false); }
+      return geocodeAddress(addr, gps, guess, phone, alts).then(function (a) { if (run !== storeRun) return; if (!a) noAddr(); return a ? work(a, true) : work(gps, false); }, function () { noAddr(); return work(gps, false); });
     }).catch(function () { if (guess) show([guess], guess); });
   }
 
