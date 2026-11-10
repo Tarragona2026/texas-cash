@@ -44,6 +44,13 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 2. Grafica e tasti: Matteo li rivede quando lo dice lui.
 3. Calendario sul Mac; PDF Mac con diari, foto e mappa (facoltativi).
 
+## In corso (interrotto il 10 nov 2026): notifiche push e codice viaggio segreto
+Matteo ha detto sì a entrambe (Cloudflare + codice segreto). L'app è ancora v54: niente di questo è collegato all'app.
+- FATTO: `cloudflare/worker.js` + `wrangler.toml` (servizio che cifra e firma le notifiche, senza memoria), test `node test/push.test.mjs`, `push-config.js` (chiave pubblica, `url` vuoto). Chiave privata in `privato/vapid-jwk.json` (cartella esclusa da git: MAI pubblicarla né stamparla).
+- DA FARE nell'app: caricare `push-config.js` (anche in `sw.js`), tasto "Attiva notifiche" in Impostazioni (iscrizione salvata in `trips/{codice}/push/{nome}_{dispositivo}`), gestione `push` e `notificationclick` in `sw.js`, invio dal tasto "Chiedi dove sono" (POST al servizio con le iscrizioni degli altri; cancellare quelle che rispondono 404/410).
+- DA FARE codice segreto: togliere `DEFAULT_TRIP`/`texas2026` da telefono e Mac (senza codice niente sync, avviso in home), codice di almeno 8 caratteri scelto da Matteo; al cambio codice rimandare tutto (pushed, album `up`, diario, checklist e programma `dirty`, posizione) e riavviare gli ascolti. Poi, con l'ok di Matteo, cancellare i dati vecchi sotto `texas2026`.
+- DA FARE con Matteo: crea l'account Cloudflare gratuito; poi `npx wrangler login` (approva lui nel browser), `npx wrangler deploy` in `cloudflare/`, `npx wrangler secret put VAPID_JWK < privato/vapid-jwk.json`, e mettere l'indirizzo del servizio in `push-config.js`.
+
 ## Da confermare con Matteo
 - Sicurezza: il codice viaggio `texas2026` è scritto nel codice pubblico, quindi chi lo legge può vedere su Firebase spese, foto e ora anche le posizioni. Proposto a Matteo (10 nov 2026) di passare a un codice segreto scritto a mano sui tre telefoni e sul Mac: in attesa di risposta.
 - Chiama e Dove sono i miei: provati solo nel browser del Mac con numeri e posizioni finti.

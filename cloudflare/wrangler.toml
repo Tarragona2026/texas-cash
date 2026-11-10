@@ -1,0 +1,6 @@
+# Xmas in Texa$ — servizio che spedisce le notifiche (Cloudflare Worker, piano gratuito).
+# La chiave privata NON sta qui: va messa come segreto con `wrangler secret put VAPID_JWK`.
+name = "texas-push"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
