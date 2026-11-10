@@ -102,6 +102,9 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .calhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .calhead b { font-family: var(--font-display); font-size: 1.1rem; text-transform: capitalize; }
 .diamap { height: 56vh; min-height: 300px; border-radius: 16px; overflow: hidden; position: relative; z-index: 0; isolation: isolate; border: 1px solid var(--glass-line); }
+.mkn { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; color: #fff; font: 700 .85rem/24px var(--font-body); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.pop .scroll { max-height: 230px; overflow-y: auto; }
+.pop .it { padding: 6px 0; border-top: 1px solid #ddd; } .pop .it:first-child { border-top: 0; padding-top: 0; }
 .pop { max-width: 220px; font-family: var(--font-body); color: #1c1c1e; }
 .pop b { display: block; text-transform: capitalize; margin-bottom: 4px; }
 .pop p { margin: 0 0 6px; font-size: .85rem; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -545,7 +548,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v40';
+var APP_VER = 'v41';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1469,6 +1472,22 @@ var APP_VER = 'v40';
   }
   $('calPrev').onclick = function () { diaMonth.m--; if (diaMonth.m < 0) { diaMonth.m = 11; diaMonth.y--; } renderCal(); };
   $('calNext').onclick = function () { diaMonth.m++; if (diaMonth.m > 11) { diaMonth.m = 0; diaMonth.y++; } renderCal(); };
+  function clusterByPlace(list, locOf, radius) {      // punti nello stesso posto (entro `radius` metri) diventano un solo gruppo
+    var cl = [];
+    list.forEach(function (it) {
+      var l = locOf(it), c = null;
+      for (var i = 0; i < cl.length; i++) if (meters(cl[i], l) <= radius) { c = cl[i]; break; }
+      if (c) c.items.push(it); else cl.push({ la: l.la, lo: l.lo, items: [it] });
+    });
+    return cl;
+  }
+  function groupMarker(layer, g, color, build) {
+    var n = g.items.length, ll = [g.la, g.lo], m;
+    if (n === 1) m = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
+    else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn" style="background:' + color + '">' + n + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
+    m.on('click', function () { m.bindPopup(build(g), { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup(); });
+    return m;
+  }
   function renderDiaMap() {
     var info = $('diaMapInfo'), box = $('diaMap');
     if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
@@ -1480,21 +1499,24 @@ var APP_VER = 'v40';
     }
     diaMapLayer.clearLayers(); diaMapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaMapUrls = [];
     var keys = Object.keys(st.diary || {}).filter(hasEntry).sort(), pts = [], noloc = 0;
-    keys.forEach(function (k) {
-      var e = st.diary[k]; if (!e.loc) { noloc++; return; }
-      var ll = [e.loc.la, e.loc.lo]; pts.push(ll);
-      var mk = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: '#e07b00', fillOpacity: 1 }).addTo(diaMapLayer);
-      mk.on('click', function () {
-        var pop = document.createElement('div'); pop.className = 'pop';
-        var t = document.createElement('b'); t.textContent = dayLabel(k); pop.appendChild(t);
-        if ((e.text || '').trim()) { var p = document.createElement('p'); var tx = e.text.trim(); p.textContent = tx.length > 180 ? tx.slice(0, 180) + '…' : tx; pop.appendChild(p); }
-        var ph = document.createElement('div'); ph.className = 'ph'; pop.appendChild(ph);
-        (e.photos || []).slice(0, 4).forEach(function (id) { getPhoto('dia_' + id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); diaMapUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.onload = function () { try { mk.getPopup().update(); } catch (x) {} }; im.src = u; ph.appendChild(im); }); });
-        var go = document.createElement('button'); go.type = 'button'; go.textContent = 'Apri il giorno'; go.onclick = function () { diaDay = k; setDiaTab('write'); }; pop.appendChild(go);
-        mk.bindPopup(pop, { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup();
+    var withLoc = keys.filter(function (k) { if (st.diary[k].loc) return true; noloc++; return false; });
+    clusterByPlace(withLoc, function (k) { return { la: st.diary[k].loc.la, lo: st.diary[k].loc.lo }; }, 60).forEach(function (g) {
+      pts.push([g.la, g.lo]);
+      var mk = groupMarker(diaMapLayer, g, '#e07b00', function (g) {
+        var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc);
+        g.items.forEach(function (k) {
+          var e = st.diary[k], it = document.createElement('div'); it.className = 'it';
+          var t = document.createElement('b'); t.textContent = dayLabel(k); it.appendChild(t);
+          if ((e.text || '').trim()) { var p = document.createElement('p'); var tx = e.text.trim(); p.textContent = tx.length > 160 ? tx.slice(0, 160) + '…' : tx; it.appendChild(p); }
+          var ph = document.createElement('div'); ph.className = 'ph'; it.appendChild(ph);
+          (e.photos || []).slice(0, 4).forEach(function (id) { getPhoto('dia_' + id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); diaMapUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.onload = function () { try { diaMapObj.eachLayer(function (l) { if (l.getPopup && l.getPopup() && l.isPopupOpen && l.isPopupOpen()) l.getPopup().update(); }); } catch (x) {} }; im.src = u; ph.appendChild(im); }); });
+          var go = document.createElement('button'); go.type = 'button'; go.textContent = 'Apri il giorno'; go.onclick = function () { diaDay = k; setDiaTab('write'); }; it.appendChild(go);
+          sc.appendChild(it);
+        });
+        return pop;
       });
     });
-    info.textContent = !keys.length ? 'Ancora nessun giorno scritto.' : pts.length + (pts.length === 1 ? ' giorno sulla mappa' : ' giorni sulla mappa') + (noloc ? ' · ' + noloc + ' senza posizione' : '') + '. Tocca un punto per vedere testo e foto.';
+    info.textContent = !keys.length ? 'Ancora nessun giorno scritto.' : withLoc.length + (withLoc.length === 1 ? ' giorno sulla mappa' : ' giorni sulla mappa') + (pts.length < withLoc.length ? ' (' + pts.length + ' luoghi)' : '') + (noloc ? ' · ' + noloc + ' senza posizione' : '') + '. Tocca un punto per vedere testo e foto.';
     setTimeout(function () {
       diaMapObj.invalidateSize();
       if (pts.length === 1) diaMapObj.setView(pts[0], 14); else if (pts.length) diaMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
@@ -1703,14 +1725,18 @@ var APP_VER = 'v40';
     }
     mapLayer.clearLayers();
     var pts = st.expenses.filter(function (e) { return e.loc; }), bounds = [];
-    pts.forEach(function (e) {
-      var c = CAT_COLORS[e.cat] || '#d70015', ll = [e.loc.la, e.loc.lo];
-      var m = L.circleMarker(ll, { radius: 11, color: '#fff', weight: 3, fillColor: c, fillOpacity: 1 }).addTo(mapLayer);
-      var pop = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div');
-      t.textContent = usd(e.usd) + ' · ' + e.cat; d.textContent = (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts);
-      pop.appendChild(t); pop.appendChild(d);
-      if (e.note) { var n = document.createElement('div'); n.textContent = e.note; pop.appendChild(n); }
-      m.bindPopup(pop); bounds.push(ll);
+    clusterByPlace(pts, function (e) { return { la: e.loc.la, lo: e.loc.lo }; }, 40).forEach(function (g) {
+      bounds.push([g.la, g.lo]);
+      var first = g.items[0], color = g.items.length === 1 ? (CAT_COLORS[first.cat] || '#d70015') : '#d70015';
+      groupMarker(mapLayer, g, color, function (g) {
+        var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc);
+        g.items.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (e) {
+          var it = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div');
+          it.className = 'it'; t.textContent = usd(e.usd) + ' · ' + e.cat; d.textContent = (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts);
+          it.appendChild(t); it.appendChild(d); sc.appendChild(it);
+        });
+        return pop;
+      });
     });
     var lost = st.expenses.length - pts.length;
     info.textContent = !st.expenses.length ? 'Nessuna spesa ancora.' : pts.length + ' spese sulla mappa' + (lost ? ' · ' + lost + ' senza posizione' : '') + '. Tocca un punto per i dettagli.';
