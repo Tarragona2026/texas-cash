@@ -138,6 +138,18 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .chkperson[aria-pressed="true"] { outline: 2px solid var(--accent); }
 .chkperson .pb { height: 8px; border-radius: 4px; background: rgba(120,140,170,.3); overflow: hidden; display: block; }
 .chkperson .pb i { display: block; height: 100%; background: var(--good); border-radius: 4px; }
+.calday { display: flex; gap: 14px; align-items: flex-start; padding: 10px 2px; border-bottom: 1px solid var(--glass-line); }
+.calday:last-child { border-bottom: 0; }
+.calday .tm { flex: none; width: 3.2rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); padding-top: 2px; }
+.calday .bd { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 0; color: var(--ink); }
+.calday .bd b { display: block; overflow-wrap: anywhere; font-weight: 600; }
+.calday .bd small { display: block; color: var(--ink-soft); margin-top: 2px; }
+.calpin { flex: none; min-width: 40px; min-height: 40px; border-radius: 12px; border: 0; background: var(--field); font-size: 1.1rem; text-decoration: none; display: grid; place-items: center; color: var(--ink); }
+.calform { display: flex; flex-direction: column; gap: 10px; }
+.calform label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; font-size: .85rem; }
+.calform input { min-height: 44px; border-radius: 12px; border: 0; background: var(--field); padding: 0 12px; }
+.tomitem { display: flex; gap: 10px; padding: 4px 0; }
+.tomitem span.t { flex: none; width: 3rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -192,6 +204,7 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .app .ic.pink { background: linear-gradient(180deg, #ff6b9d, #d6246e); }
 .app .ic.amber { background: linear-gradient(180deg, #ffb340, #e07b00); }
 .app .ic.lime { background: linear-gradient(180deg, #7ed957, #2e9e3a); }
+.app .ic.sky { background: linear-gradient(180deg, #5ac8fa, #1a7fc4); }
 .app .ic.teal { background: linear-gradient(180deg, #40c8e0, #0a84a8); }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
@@ -327,6 +340,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
       <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
       <button class="app" id="goLog" type="button"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span>Registro <span id="cnt"></span></span></button>
+      <button class="app" id="goCal" type="button"><span class="ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.500" y="5" width="17" height="15" rx="3"/><path d="M3.500 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg></span>Calendario</button>
       <button class="app" id="goChk" type="button"><span class="ic lime"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.500l2.800 2.800L16.500 9"/></svg></span><span>Checklist <span id="chkCnt"></span></span></button>
       <button class="app" id="goDia" type="button"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M10 8h6M10 12h6M10 16h4"/></svg></span>Diario</button>
       <button class="app" id="goAlbum" type="button"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.500" cy="10" r="1.600"/><path d="M21 16l-5-5-8 8"/></svg></span>Foto</button>
@@ -334,6 +348,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goMap" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span>Mappa</button>
       <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
     </nav>
+    <section class="card" id="tomCard" hidden><div class="label" id="tomLabel">Domani</div><div id="tomList"></div></section>
   </section>
 
   <!-- CARICA SCONTRINO -->
@@ -430,6 +445,26 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa</h2><span></span></div>
     <div class="mapbox" id="mapbox"></div>
     <div class="hint" id="mapInfo"></div>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section id="v-cal" class="wrap" aria-label="Calendario di viaggio" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Calendario</h2><span></span></div>
+    <section class="card">
+      <div class="chips" id="calDays"></div>
+      <div class="chips" id="calTabs"><button class="chip" type="button" data-t="day" aria-pressed="true">Giorno</button><button class="chip" type="button" data-t="map" aria-pressed="false">Mappa</button></div>
+    </section>
+    <section class="card" id="calDayCard">
+      <div class="sumline"><b id="tcTitle"></b><button class="btn ghost small" id="calOrder" type="button">Ordina</button></div>
+      <div id="calList"></div>
+      <button class="btn" id="calAdd" type="button">+ Aggiungi una tappa</button>
+      <button class="btn ghost small" id="calFind" type="button">Trova sulla mappa i luoghi di questo giorno</button>
+      <div class="hint" id="calHint">Le modifiche le vedete tutti e tre.</div>
+    </section>
+    <section class="card" id="calMapCard" hidden>
+      <div class="diamap" id="calMap"></div>
+      <div class="hint" id="calMapInfo"></div>
+    </section>
   </section>
 
   <!-- CHECKLIST -->
@@ -598,11 +633,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v44';
+var APP_VER = 'v45';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
-  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album', 'dia', 'chk'];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album', 'dia', 'chk', 'cal'];
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
@@ -687,7 +722,7 @@ var APP_VER = 'v44';
     VIEWS.forEach(function (x) { $('v-' + x).hidden = x !== v; });
     document.body.classList.toggle('inner', v !== 'home');
     window.scrollTo(0, 0);
-    if (v === 'home') { renderHome(); chkBanner(); }
+    if (v === 'home') { renderHome(); chkBanner(); calHome(); }
     if (v === 'calc') renderCalc();
     if (v === 'log') renderLog();
     if (v === 'settings') fillSettings();
@@ -698,6 +733,7 @@ var APP_VER = 'v44';
     if (v === 'album') openAlbum();
     if (v === 'dia') openDiary();
     if (v === 'chk') renderChk();
+    if (v === 'cal') openCal();
     if (v === 'calc') { storeCalc = ''; suggestStores('', 'storeCalc', 'desc'); }
     if (v === 'calc' || v === 'scan') getFix(8000);
   }
@@ -705,6 +741,7 @@ var APP_VER = 'v44';
   window.addEventListener('hashchange', function () { show(hashView()); });
   document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : 'home'); }; });
   $('goCalc').onclick = function () { go('calc'); };
+  $('goCal').onclick = function () { go('cal'); };
   $('goChk').onclick = function () { go('chk'); };
   $('goDia').onclick = function () { go('dia'); };
   $('goAlbum').onclick = function () { go('album'); };
@@ -1377,6 +1414,141 @@ var APP_VER = 'v44';
   $('trIn').addEventListener('focus', function () { trLastTxt = $('trIn').value; });
   $('trIn').addEventListener('blur', function () { var v = $('trIn').value.trim(); if (v && v !== trLastTxt.trim()) setTimeout(function () { doTranslate(false); }, 200); });
 
+  /* ---------- calendario di viaggio ---------- */
+  var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo a Houston", ""], ["", "Cena a casa", ""]], "2026-12-23": [["", "Colazione leggera a casa", ""], ["", "Spesa da H-E-B", "H-E-B Houston"], ["13:00", "Pranzo di compleanno: steak house (prenotato)", "BD's steakhouse Houston"], ["", "Outlet 365 (Leo)", ""], ["", "Cena a casa", ""]], "2026-12-24": [["", "Colazione al diner (il vecchio diner di Matteo)", ""], ["", "Si cucina per la cena, Steve a casa", ""], ["", "Cena di Natale a casa", ""], ["", "Quasi tutto chiuso", ""]], "2026-12-25": [["", "Steve a pranzo a casa", ""], ["", "Relax e regali a casa", ""], ["", "Cena fuori, se è aperto", ""], ["", "Quasi tutto chiuso", ""]], "2026-12-26": [["07:30", "Partenza da casa", ""], ["", "Colazione fuori, lungo la strada per la NASA", ""], ["11:00", "Tour alla NASA (3 ore)", "Space Center Houston"], ["", "Pranzo tardi al Kemah Boardwalk", "Kemah Boardwalk"], ["", "Galveston: check-in Airbnb", "Galveston"], ["", "Cena di pesce al Fisherman's Wharf", "Fisherman's Wharf Galveston"]], "2026-12-27": [["", "Check-out e colazione a Galveston", "Galveston"], ["", "Passeggiata in città", ""], ["", "Pranzo alla Galleria", "The Galleria Houston"], ["", "Academy Sports (Leo)", "Academy Sports + Outdoors Houston"], ["", "Cena a casa", ""]], "2026-12-28": [["08:00", "Partenza per Austin, da Steve", ""], ["", "Visita lungo la strada", ""], ["", "Pranzo in un BBQ famoso", "Terry Black's Barbecue Austin"], ["", "Sports bar (da decidere)", ""], ["", "Cena: da decidere (Smithville?)", "Smithville Texas"], ["", "Dormiamo da Steve", ""]], "2026-12-29": [["", "Colazione da Steve", ""], ["", "Visita e pranzo a Bastrop", "Bastrop Texas"], ["", "Ritorno a casa", ""], ["", "Outlet di Cypress, sulla 290", "Houston Premium Outlets Cypress"], ["", "Negozio di stivali da cowboy", ""], ["", "Cena messicana (fajitas)", ""]], "2026-12-30": [["", "Colazione a casa", ""], ["", "Pranzo al The Corkscrew BBQ", "The Corkscrew BBQ Spring Texas"], ["", "Old Town Spring", "Old Town Spring Texas"], ["", "Cena da Shogun", "Shogun Japanese Houston"]], "2026-12-31": [["", "Colazione (da decidere)", ""], ["", "Cucina per Capodanno e tavola da decorare", ""], ["20:00", "Arrivano gli amici", ""]], "2027-01-01": [["", "Quasi tutto chiuso", ""], ["", "Relax a casa", ""]], "2027-01-02": [["", "Colazione a casa", ""], ["", "Pranzo da Woodson's (hamburger)", "Woodson's Burgers Houston"], ["", "Costco", "Costco Houston"], ["", "Musica country dal vivo (da cercare)", ""]], "2027-01-03": [["", "Colazione a casa", ""], ["", "Pranzo messicano", ""], ["16:00", "Partenza per la partita NBA, in centro", "Toyota Center Houston"], ["", "Leslie e Matteo da Il Postino", "Il Postino Houston"]], "2027-01-04": [["", "Mattina: si fanno le valigie", ""], ["", "Viaggio verso l'aeroporto IAH", "George Bush Intercontinental Airport"], ["", "Ciao ciao, Texas!", ""]]};
+  var CAL_DAYS = Object.keys(CAL_DEF), calDay = '', calTab = 'day', calOrder = false, calUnsub = null, calMapObj = null, calMapLayer = null;
+  function calState() { if (!st.cal) st.cal = { items: {}, dirty: {}, seeded: false }; if (!st.cal.items) st.cal.items = {}; if (!st.cal.dirty) st.cal.dirty = {}; return st.cal; }
+  function calSeed() {                                  // l'itinerario di partenza e' uguale su tutti i telefoni: stessi id, nessun doppione
+    var c = calState(); if (c.seeded) return;
+    CAL_DAYS.forEach(function (day) { CAL_DEF[day].forEach(function (r, i) { var id = 'c_' + day.replace(/-/g, '') + '_' + (i < 10 ? '0' : '') + i; if (!c.items[id]) c.items[id] = { id: id, day: day, time: r[0] || '', title: r[1], place: r[2] || '', loc: null, order: (i + 1) * 10, upd: 0 }; }); });
+    c.seeded = true;
+  }
+  function calItems(day) { var c = calState(); return Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return x.day === day && !x.del; }).sort(function (a, b) { return a.order - b.order; }); }
+  function calTouch(x) { x.upd = Date.now(); x.by = st.user || ''; calState().dirty[x.id] = 1; persist(); }
+  function calSync(tr, jobs) {
+    var c = calState();
+    Object.keys(c.dirty).forEach(function (id) {
+      var x = c.items[id]; if (!x) { delete c.dirty[id]; return; }
+      var snap = JSON.stringify(x);
+      jobs.push(tr.collection('calendar').doc(id).set(x).then(function () { if (c.items[id] && JSON.stringify(c.items[id]) === snap) delete c.dirty[id]; }));
+    });
+  }
+  function calListen() {
+    if (calUnsub) return;
+    fbReady().then(function (d) {
+      calUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('calendar').onSnapshot(function (snap) {
+        var c = calState(), changed = false;
+        snap.docs.forEach(function (doc) { var v = doc.data(), l = c.items[doc.id]; if (!l || (v.upd || 0) > (l.upd || 0)) { c.items[doc.id] = v; if (c.dirty[doc.id]) delete c.dirty[doc.id]; changed = true; } });
+        if (changed) { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} if (!$('v-cal').hidden) renderTripCal(); calHome(); }
+      }, function () {});
+    }).catch(function () {});
+  }
+  function calMapsUrl(x) {
+    var q = encodeURIComponent(x.place || x.title);
+    return x.loc ? 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + q : 'https://maps.apple.com/?q=' + encodeURIComponent((x.place || x.title) + ' Texas');
+  }
+  function calDayLabel(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function calToday() { var n = new Date(Date.now()), k = n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate()); return CAL_DAYS.indexOf(k) >= 0 ? k : (k < CAL_DAYS[0] ? CAL_DAYS[0] : CAL_DAYS[CAL_DAYS.length - 1]); }
+  function calHome() {
+    var n = new Date(Date.now() + 86400000), k = n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate()), items = calItems(k), card = $('tomCard');
+    if (!items.length || CAL_DAYS.indexOf(k) < 0) { card.hidden = true; return; }
+    card.hidden = false; $('tomLabel').textContent = 'Domani · ' + calDayLabel(k); var box = $('tomList'); box.innerHTML = '';
+    items.slice(0, 6).forEach(function (x) { var r = document.createElement('div'); r.className = 'tomitem'; var t = document.createElement('span'); t.className = 't'; t.textContent = x.time || '•'; var b = document.createElement('span'); b.textContent = x.title + (x.place ? ' 📍' : ''); r.appendChild(t); r.appendChild(b); box.appendChild(r); });
+    if (items.length > 6) { var m = document.createElement('div'); m.className = 'hint'; m.textContent = '…e altre ' + (items.length - 6) + ' tappe'; box.appendChild(m); }
+    card.onclick = function () { calDay = k; calTab = 'day'; go('cal'); };
+  }
+  function openCal() { calSeed(); if (!calDay) calDay = calToday(); renderTripCal(); }
+  function renderTripCal() {
+    var dayChips = $('calDays'); dayChips.innerHTML = '';
+    CAL_DAYS.forEach(function (d) {
+      var p = d.split('-'), b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 10px;min-width:3.6rem';
+      b.textContent = Number(p[2]) + '/' + Number(p[1]); b.setAttribute('aria-pressed', String(d === calDay)); b.onclick = function () { calDay = d; calOrder = false; renderTripCal(); }; dayChips.appendChild(b);
+    });
+    [].forEach.call(document.querySelectorAll('#calTabs .chip'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === calTab)); b.onclick = function () { calTab = b.dataset.t; renderTripCal(); }; });
+    $('calDayCard').hidden = calTab !== 'day'; $('calMapCard').hidden = calTab !== 'map';
+    if (calTab === 'map') { renderCalMap(); return; }
+    $('tcTitle').textContent = calDayLabel(calDay); $('calOrder').textContent = calOrder ? 'Fine' : 'Ordina';
+    var items = calItems(calDay), box = $('calList'); box.innerHTML = '';
+    items.forEach(function (x, i) {
+      var r = document.createElement('div'); r.className = 'calday';
+      var t = document.createElement('div'); t.className = 'tm'; t.textContent = x.time || '•'; r.appendChild(t);
+      var bd = document.createElement('button'); bd.type = 'button'; bd.className = 'bd'; var b = document.createElement('b'); b.textContent = x.title; bd.appendChild(b);
+      if (x.place) { var sm = document.createElement('small'); sm.textContent = '📍 ' + x.place + (x.loc ? '' : ' (non ancora sulla mappa)'); bd.appendChild(sm); }
+      bd.onclick = function () { calForm(x); }; r.appendChild(bd);
+      if (calOrder) {
+        function act(label, aria, fn, dis) { var a = document.createElement('button'); a.type = 'button'; a.className = 'chkact'; a.textContent = label; a.setAttribute('aria-label', aria); a.disabled = !!dis; if (dis) a.style.opacity = '.35'; a.onclick = fn; r.appendChild(a); }
+        function move(d) { var o = items[i + d]; if (!o) return; var tt = x.order; x.order = o.order; o.order = tt; calTouch(x); calTouch(o); renderTripCal(); }
+        act('▲', 'Sposta su', function () { move(-1); }, i === 0); act('▼', 'Sposta giù', function () { move(1); }, i === items.length - 1);
+      } else if (x.place) { var pin = document.createElement('a'); pin.className = 'calpin'; pin.href = calMapsUrl(x); pin.target = '_blank'; pin.rel = 'noopener'; pin.setAttribute('aria-label', 'Apri in Mappe'); pin.textContent = '🗺'; r.appendChild(pin); }
+      box.appendChild(r);
+    });
+    if (!items.length) { var e = document.createElement('div'); e.className = 'hint'; e.textContent = 'Nessuna tappa: aggiungine una.'; box.appendChild(e); }
+    var todo = items.filter(function (x) { return x.place && !x.loc; }).length; $('calFind').hidden = !todo;
+  }
+  function calFindPlace(q) {
+    var near = { la: 29.76, lo: -95.37 };
+    return gpCall('searchText', { textQuery: q, maxResultCount: 1, locationBias: { circle: { center: { latitude: near.la, longitude: near.lo }, radius: 100000 } } }).then(function (j) {
+      var p = (j.places || [])[0]; if (!p) return null;
+      return { la: Math.round(p.location.latitude * 1e5) / 1e5, lo: Math.round(p.location.longitude * 1e5) / 1e5, name: p.displayName && p.displayName.text || q, addr: p.formattedAddress || '' };
+    }).catch(function () { return osmGeocode(q, near).then(function (r) { return r ? { la: r.la, lo: r.lo, name: q, addr: (r.label || '').split(',').slice(0, 3).join(',') } : null; }).catch(function () { return null; }); });
+  }
+  function calForm(x) {                                  // tappa nuova (x = null) o da modificare
+    var isNew = !x, it = x ? x : { id: 'k' + newId(), day: calDay, time: '', title: '', place: '', loc: null, order: 0, upd: 0 };
+    var sh = document.createElement('div'); sh.className = 'sheet'; var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
+    function close() { sh.remove(); }
+    sh.addEventListener('click', function (e) { if (e.target === sh) close(); });
+    inn.innerHTML = '<div class="sheethd"><b></b></div><div class="calform"><label>Ora (facoltativa)<input type="time" id="cfTime"></label><label>Cosa si fa<input type="text" id="cfTitle" autocomplete="off" autocapitalize="sentences"></label><label>Luogo (facoltativo)<input type="text" id="cfPlace" autocomplete="off" placeholder="es. Terry Black\'s Barbecue Austin"></label><button class="btn ghost" id="cfFind" type="button">Trova sulla mappa</button><div class="hint" id="cfInfo"></div><div class="btnrow"><button class="btn" id="cfSave" type="button">Salva</button><button class="btn ghost" id="cfCancel" type="button">Annulla</button></div></div>';
+    inn.querySelector('.sheethd b').textContent = isNew ? 'Nuova tappa · ' + calDayLabel(calDay) : 'Modifica la tappa';
+    var $$ = function (id) { return inn.querySelector('#' + id); }; $$('cfTime').value = it.time || ''; $$('cfTitle').value = it.title || ''; $$('cfPlace').value = it.place || '';
+    var found = it.loc ? { la: it.loc.la, lo: it.loc.lo, name: it.place, addr: it.addr || '' } : null; if (found) $$('cfInfo').textContent = 'Sulla mappa: ' + (found.addr || found.name);
+    $$('cfPlace').addEventListener('input', function () { found = null; $$('cfInfo').textContent = ''; });
+    $$('cfFind').onclick = function () {
+      var q = $$('cfPlace').value.trim(); if (!q) { $$('cfInfo').textContent = 'Scrivi prima il luogo.'; return; }
+      $$('cfInfo').textContent = 'Cerco…'; calFindPlace(q).then(function (r) { if (!r) { found = null; $$('cfInfo').textContent = 'Non l\'ho trovato. Controlla il nome o aggiungi la città.'; return; } found = r; $$('cfInfo').textContent = 'Trovato: ' + r.name + (r.addr ? ' · ' + r.addr : ''); });
+    };
+    $$('cfCancel').onclick = close;
+    $$('cfSave').onclick = function () {
+      var title = $$('cfTitle').value.trim(); if (!title) { $$('cfInfo').textContent = 'Scrivi cosa si fa.'; return; }
+      var place = $$('cfPlace').value.trim(), time = $$('cfTime').value;
+      it.title = title; it.time = time; it.place = place; it.loc = place && found ? { la: found.la, lo: found.lo } : null; it.addr = place && found ? found.addr : '';
+      if (isNew) {
+        var items = calItems(calDay), idx = time ? items.findIndex(function (z) { return z.time && z.time > time; }) : -1, mx = items.length ? items[items.length - 1].order : 0;
+        if (idx > 0) it.order = (items[idx - 1].order + items[idx].order) / 2; else if (idx === 0) it.order = items[0].order - 10; else it.order = mx + 10;
+        calState().items[it.id] = it;
+      }
+      calTouch(it); close(); renderTripCal(); calHome();
+    };
+    if (!isNew) { var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost'; del.textContent = 'Elimina la tappa'; del.onclick = function () { if (!confirm('Eliminare questa tappa? Sparisce per tutti.')) return; it.del = true; calTouch(it); close(); renderTripCal(); calHome(); }; inn.querySelector('.calform').appendChild(del); }
+    $('viewerHost').appendChild(sh);
+  }
+  $('calAdd').onclick = function () { calForm(null); };
+  $('calOrder').onclick = function () { calOrder = !calOrder; renderTripCal(); };
+  $('calFind').onclick = function () {
+    var todo = calItems(calDay).filter(function (x) { return x.place && !x.loc; }); if (!todo.length) return; var b = $('calFind'); b.disabled = true; var n = 0;
+    todo.reduce(function (p, x) { return p.then(function () { b.textContent = 'Cerco… ' + (n + 1) + '/' + todo.length; return calFindPlace(x.place).then(function (r) { if (r) { x.loc = { la: r.la, lo: r.lo }; x.addr = r.addr; calTouch(x); n++; } }); }); }, Promise.resolve())
+      .then(function () { b.disabled = false; b.textContent = 'Trova sulla mappa i luoghi di questo giorno'; toast(n + (n === 1 ? ' luogo trovato' : ' luoghi trovati') + ' su ' + todo.length); renderTripCal(); });
+  };
+  function renderCalMap() {
+    var info = $('calMapInfo'), box = $('calMap');
+    if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    box.hidden = false;
+    if (!calMapObj) { calMapObj = L.map(box).setView([29.76, -95.37], 8); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(calMapObj); calMapLayer = L.layerGroup().addTo(calMapObj); }
+    calMapLayer.clearLayers();
+    var c = calState(), all = Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return !x.del && x.loc; }).sort(function (a, b) { return a.day.localeCompare(b.day) || a.order - b.order; });
+    var one = all.filter(function (x) { return x.day === calDay; }), list = one.length ? one : all, pts = [];
+    clusterByPlace(list, function (x) { return { la: x.loc.la, lo: x.loc.lo }; }, 80).forEach(function (g) {
+      pts.push([g.la, g.lo]);
+      groupMarker(calMapLayer, g, '#1a7fc4', function (g) {
+        var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc);
+        g.items.forEach(function (x) { var it = document.createElement('div'); it.className = 'it'; var t = document.createElement('b'); t.textContent = x.title; it.appendChild(t); var d = document.createElement('div'); d.textContent = calDayLabel(x.day) + (x.time ? ' · ' + x.time : ''); it.appendChild(d); var a = document.createElement('a'); a.href = calMapsUrl(x); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Apri in Mappe'; a.style.cssText = 'color:#007aff;font-weight:600'; it.appendChild(a); sc.appendChild(it); });
+        return pop;
+      });
+    });
+    var missing = Object.keys(c.items).filter(function (k) { var x = c.items[k]; return !x.del && x.place && !x.loc; }).length;
+    info.textContent = (one.length ? 'Tappe del ' + calDayLabel(calDay) : 'Tutte le tappe') + ': ' + pts.length + (pts.length === 1 ? ' luogo' : ' luoghi') + ' sulla mappa.' + (missing ? ' ' + missing + ' luoghi non ancora trovati: usa "Trova sulla mappa" in ogni giorno.' : '');
+    setTimeout(function () { calMapObj.invalidateSize(); if (pts.length === 1) calMapObj.setView(pts[0], 14); else if (pts.length) calMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 }); }, 60);
+  }
+
   /* ---------- checklist di viaggio: una lista personale a testa, visibile secondo chi sei ---------- */
   var CHK_LISTS = [['documenti', 'Documenti', true], ['valigia', 'Valigia', true], ['prima', 'Prima di partire', true], ['arrivo', 'Arrivo in Texas', false]];
   var CHK_DEF = {"documenti": ["Passaporto (valido almeno 6 mesi dopo il rientro)", "ESTA approvata (salvata o stampata)", "Carta d'identità", "Patente italiana", "Assicurazione di viaggio (polizza)", "Biglietti aerei", "Carta di credito e bancomat", "Contanti in dollari", "Numeri di emergenza salvati"], "valigia": ["Intimo e calzini", "Magliette", "Maglioni e felpe", "Giacca", "Pantaloni e jeans", "Pigiama", "Scarpe comode", "Necessaire", "Medicine personali", "Occhiali", "Caricabatterie del telefono", "Adattatore per le prese USA", "Power bank", "Cuffie", "Regali per la famiglia"], "prima": ["Fare il check-in online", "Avvisare la banca del viaggio", "Attivare la SIM dati o l'eSIM", "Scaricare le mappe offline", "Salvare i documenti sul telefono", "Controllare le scadenze dei documenti", "Pesare la valigia", "Caricare tutti i dispositivi", "Cambiare un po' di dollari", "Controllare il meteo del Texas"], "arrivo": ["Ritirare i bagagli", "Ritirare l'auto a noleggio", "Controllare i danni dell'auto", "Scrivere ai parenti che siamo arrivati", "Impostare il navigatore", "Fare la spesa da H-E-B", "Mettere i caricabatterie in carica"]};
@@ -1995,7 +2167,7 @@ var APP_VER = 'v44';
     Object.keys(pushed).forEach(function (id) { if (!items[id]) n++; });
     (st.album || []).forEach(function (a) { if (!a.up) n++; });
     n += diaryPending();
-    n += Object.keys((st.chk && st.chk.dirty) || {}).length;
+    n += Object.keys((st.chk && st.chk.dirty) || {}).length + Object.keys((st.cal && st.cal.dirty) || {}).length;
     return n;
   }
   function syncInfo() {
@@ -2035,6 +2207,7 @@ var APP_VER = 'v44';
       (st.album || []).filter(function (a) { return !a.up; }).forEach(function (a) { jobs.push(albumUpload(tr, a)); });
       diarySync(tr, jobs);
       chkSync(tr, jobs);
+      calSync(tr, jobs);
       var to = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 60000); });
       return Promise.race([Promise.all(jobs), to]);
     }).then(function () { st.lastSync = Date.now(); syncErr = ''; }, function (e) {
@@ -2084,6 +2257,7 @@ var APP_VER = 'v44';
   sync();
   checkVersion(false);
   chkSeed(); chkBanner(); chkListen();
+  calSeed(); calHome(); calListen();
   fetchRate(false);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
