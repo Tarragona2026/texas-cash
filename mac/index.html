@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="../vendor/leaflet.css">
 <style>
 /* Layout: barra in alto con Importa file, poi tre colonne (una per persona) e una quarta con il totale. Stile liquid glass come l'app iPhone. */
 :root {
@@ -94,6 +95,45 @@ summary .d { text-transform: capitalize; }
 .drop { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 35%, transparent); font-family: var(--font-display); font-size: 2rem; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.4); }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px; background: var(--glass-strong); border: 1px solid var(--glass-line); padding: 10px 18px; border-radius: 999px; font-weight: 700; box-shadow: var(--glass-shadow); }
 .msg { max-width: 1600px; margin: 0 auto 16px; border-radius: 18px; padding: 12px 18px; color: var(--ink-soft); }
+
+/* tab e cloud */
+.tabs { display: flex; gap: 8px; max-width: 1600px; margin: 0 auto 16px; flex-wrap: wrap; }
+.tab { min-height: 38px; border-radius: 999px; border: 1px solid var(--glass-line); padding: 0 18px; font-weight: 700; background: var(--glass); color: var(--ink); }
+.tab[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.view { max-width: 1600px; margin: 0 auto; }
+.cloudrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .85rem; color: var(--ink-soft); }
+.cloudrow input[type=text] { min-height: 32px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); padding: 0 10px; color: var(--ink); width: 150px; }
+.panel { border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fchip { border-radius: 999px; border: 1px solid var(--glass-line); background: var(--field); padding: 4px 14px; font-weight: 600; font-size: .85rem; color: var(--ink); }
+.fchip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.fchip .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); color: var(--ink); padding: 0 8px; }
+.mapbox { height: 68vh; min-height: 420px; border-radius: 18px; overflow: hidden; position: relative; z-index: 0; isolation: isolate; border: 1px solid var(--glass-line); }
+.pg { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pg button { position: relative; aspect-ratio: 1; border: 0; padding: 0; border-radius: 14px; overflow: hidden; background: var(--field); }
+.pg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pg .tag { position: absolute; left: 6px; bottom: 6px; font-size: .72rem; font-weight: 700; color: #fff; padding: 1px 8px; border-radius: 999px; }
+.mk { width: 30px; height: 30px; display: grid; place-items: center; color: #fff; font: 700 .85rem/1 var(--font-body); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+.mk.s { border-radius: 50%; } .mk.f { border-radius: 8px; } .mk.d { border-radius: 4px; transform: rotate(45deg); } .mk.d span { transform: rotate(-45deg); display: block; }
+.mk.g { border-radius: 50%; background: #333; }
+.lb { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.9); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; }
+.lb img { max-width: 92vw; max-height: 74vh; object-fit: contain; border-radius: 12px; }
+.lb .cap { color: #fff; text-align: center; }
+.lb .btn { background: #fff; color: #111; }
+.lbrow { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.sheetm { position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw); z-index: 25; background: var(--glass-strong); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: -8px 0 40px rgba(0,0,0,.35); overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.sheetm h3 { margin: 0; font-family: var(--font-display); }
+.it { padding: 10px 0; border-top: 1px solid var(--glass-line); display: flex; flex-direction: column; gap: 6px; }
+.it:first-of-type { border-top: 0; }
+.it img { max-width: 100%; max-height: 360px; object-fit: cover; border-radius: 12px; cursor: pointer; }
+.it .tx { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1rem; }
+.dcard { border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.dcard h3 { margin: 0; font-family: var(--font-display); font-size: 1.1rem; text-transform: capitalize; }
+.dph { display: flex; gap: 8px; flex-wrap: wrap; }
+.dph img { width: 100%; max-width: 420px; max-height: 360px; object-fit: cover; border-radius: 14px; cursor: pointer; }
+.lock { max-width: 560px; }
+.lock input[type=password] { min-height: 38px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); padding: 0 12px; color: var(--ink); }
 </style>
 </head>
 <body>
@@ -106,15 +146,35 @@ summary .d { text-transform: capitalize; }
     <button class="btn ghost" id="reset" type="button">Azzera tutto</button>
   </div>
   <input type="file" id="file" accept=".csv,text/csv" multiple hidden>
+  <div class="cloudrow" style="width:100%">
+    <span>Codice viaggio</span><input type="text" id="tripCode" autocomplete="off" autocapitalize="none" spellcheck="false">
+    <button class="btn small" id="cloudGo" type="button">Collega</button>
+    <span id="cloudSt">Non collegato.</span>
+  </div>
 </header>
+<nav class="tabs" id="tabs">
+  <button class="tab" type="button" data-v="spese" aria-pressed="true">Spese</button>
+  <button class="tab" type="button" data-v="mappa" aria-pressed="false">Mappa</button>
+  <button class="tab" type="button" data-v="foto" aria-pressed="false">Foto</button>
+  <button class="tab" type="button" data-v="diario" aria-pressed="false">Diari</button>
+</nav>
 <div class="msg glass" id="msg" hidden></div>
 <main class="cols" id="cols"></main>
+<section class="view" id="mapView" hidden></section>
+<section class="view" id="photoView" hidden></section>
+<section class="view" id="diaryView" hidden></section>
 <div class="drop" id="drop" hidden>Rilascia i file CSV</div>
 <div id="toastHost"></div>
 
 <script src="vendor/jspdf.umd.min.js"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js"></script>
 <script src="report.js"></script>
+<script src="../vendor/firebase-app-compat.js"></script>
+<script src="../vendor/firebase-auth-compat.js"></script>
+<script src="../vendor/firebase-firestore-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script src="../diary-crypto.js"></script>
+<script src="../vendor/leaflet.js"></script>
 <script>
 (function () {
   var KEY = 'texascash.mac.v1';
@@ -175,7 +235,12 @@ summary .d { text-transform: capitalize; }
   /* commento a una spesa: resta salvato anche se reimporti il file del telefono */
   function expItem(u, e) {
     var k = ekey(u, e), box = el('div', 'exp'), cm = el('div', 'cm');
-    box.appendChild(el('div', 'erow', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.desc || e.cat)) + '</span><span class="num">' + usd(e.usd) + '</span>'));
+    box.appendChild(el('div', 'erow', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.store || e.desc || e.cat)) + (e.loc ? ' 📍' : '') + '</span><span class="num">' + usd(e.usd) + '</span>'));
+    if (e.photo && e.id && window.fetchReceiptGlobal) {
+      var rb = el('button', 'cbtn', 'Vedi scontrino'); rb.type = 'button';
+      rb.onclick = function () { rb.textContent = 'Carico…'; window.fetchReceiptGlobal(e.id).then(function (url) { rb.textContent = 'Vedi scontrino'; if (url) window.lightboxGlobal([{ src: url, cap: u + ' · ' + dayLabel(e.data) + ' ' + e.ora + ' · ' + usd(e.usd), link: e.loc ? 'https://maps.apple.com/?ll=' + e.loc.la + ',' + e.loc.lo : '', name: 'scontrino.jpg' }], 0); else toast('Scontrino non disponibile'); }, function () { rb.textContent = 'Vedi scontrino'; toast('Scontrino non disponibile'); }); };
+      box.appendChild(rb);
+    }
     box.appendChild(cm);
     function view() {
       cm.innerHTML = ''; cm.className = 'cm';
@@ -306,7 +371,7 @@ summary .d { text-transform: capitalize; }
     names.forEach(function (n) { cols.appendChild(personCol(n)); });
     for (var i = names.length; i < 3; i++) cols.appendChild(el('section', 'col glass empty', 'In attesa del file della persona ' + (i + 1)));
     cols.appendChild(totalCol(names));
-    $('sub').textContent = names.length ? names.length + (names.length === 1 ? ' registro importato' : ' registri importati') + '. Per aggiornare importa di nuovo il file: sostituisce le spese di quella persona.' : 'Trascina qui i file CSV ricevuti dagli iPhone, oppure usa Importa file.';
+    $('sub').textContent = cloud.last ? names.length + (names.length === 1 ? ' persona' : ' persone') + ' · i dati arrivano da soli dai telefoni. I file CSV restano come copia di sicurezza (Importa file).' : (names.length ? names.length + (names.length === 1 ? ' registro importato' : ' registri importati') + '. Per aggiornare importa di nuovo il file: sostituisce le spese di quella persona.' : 'Collegati con il codice viaggio, oppure trascina qui i file CSV ricevuti dagli iPhone.');
   }
 
   function handleFiles(files) {
@@ -343,7 +408,241 @@ summary .d { text-transform: capitalize; }
     if (!rsArmed) { rsArmed = true; b.textContent = 'Conferma azzera'; setTimeout(function () { rsArmed = false; b.textContent = 'Azzera tutto'; }, 3000); return; }
     st = { people: {}, deleted: [], comments: {} }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
   };
+
+  /* ---------- Firebase: il Mac scarica spese, foto e diari dai telefoni ---------- */
+  var cloud = { db: null, unsubs: [], album: [], diaryRaw: [], diary: [], priv: null, full: {}, view: 'spese', status: 'Non collegato.', last: null };
+  var CLOUD_PAL = ['#c0391f', '#0a84ff', '#1c9b4c', '#bf5af2', '#e07b00'];
+  function slug(x) { return String(x || 'utente').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'utente'; }
+  function p2(n) { return (n < 10 ? '0' : '') + n; }
+  function dkey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); }
+  function hhmm(ts) { var d = new Date(ts); return p2(d.getHours()) + ':' + p2(d.getMinutes()); }
+  function allNames() {
+    var m = {}; Object.keys(st.people).forEach(function (n) { m[n] = 1; });
+    cloud.album.forEach(function (a) { if (a.user) m[a.user] = 1; }); cloud.diary.forEach(function (d) { if (d.user) m[d.user] = 1; });
+    return Object.keys(m).sort();
+  }
+  function personColor(n) { var i = allNames().indexOf(n); return CLOUD_PAL[(i < 0 ? 0 : i) % CLOUD_PAL.length]; }
+  function setCloudStatus(t) { cloud.status = t; $('cloudSt').textContent = t; }
+
+  function applyItems(docs) {
+    var by = {}, rates = [];
+    docs.forEach(function (d) { var v = d.data(); if (v.kind !== 'ricarica' && v.usd > 0 && v.eur > 0) rates.push(v.eur / v.usd); });
+    var rate = rates.length ? rates[rates.length - 1] : 0.86;
+    docs.forEach(function (d) {
+      var v = d.data(), u = (v.user || '').trim() || 'Senza nome', p = by[u] || (by[u] = { expenses: [], topups: [] });
+      var data = dkey(v.ts), ora = hhmm(v.ts);
+      if (v.kind === 'ricarica') p.topups.push({ tipo: 'ricarica', data: data, ora: ora, desc: v.note || 'Ricarica plafond', usd: v.usd, eur: v.usd * rate, id: v.id });
+      else p.expenses.push({ tipo: 'spesa', data: data, ora: ora, desc: v.desc || '', cat: v.cat || 'Altro', usd: v.usd, eur: v.eur != null ? v.eur : v.usd * rate, sub: v.sub, tax: v.tax, tip: v.tip, src: v.src || '', id: v.id, photo: !!v.photo, loc: v.loc || null, store: v.store || '', ts: v.ts });
+    });
+    Object.keys(by).forEach(function (u) {
+      var p = st.people[u] || (st.people[u] = { expenses: [], topups: [] });
+      p.expenses = by[u].expenses;
+      p.topups = by[u].topups.filter(function (t) { return st.deleted.indexOf(tkey(u, t)) < 0; });
+    });
+    persist(); render(); if (cloud.view !== 'spese') showView(cloud.view);
+  }
+  function cloudConnect() {
+    if (!window.firebase || !window.FIREBASE_CONFIG) { setCloudStatus('Firebase non disponibile (serve la rete).'); return; }
+    var code = ($('tripCode').value || '').trim() || 'texas2026'; st.trip = code; persist();
+    cloud.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); cloud.unsubs = [];
+    setCloudStatus('Mi collego…');
+    if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
+    firebase.auth().signInAnonymously().then(function () {
+      cloud.db = firebase.firestore(); var tr = cloud.db.collection('trips').doc(code);
+      function err() { setCloudStatus('Non riesco a leggere i dati: controlla rete e codice.'); }
+      cloud.unsubs.push(tr.collection('items').onSnapshot(function (snap) { cloud.last = Date.now(); applyItems(snap.docs); setCloudStatus('Collegato · ' + snap.size + ' voci · aggiornato ' + hhmm(cloud.last)); }, err));
+      cloud.unsubs.push(tr.collection('album').orderBy('ts', 'desc').limit(500).onSnapshot(function (snap) {
+        cloud.album = snap.docs.map(function (x) { var v = x.data(); return { id: x.id, user: v.user, ts: v.ts, loc: v.loc, thumb: v.thumb }; });
+        if (cloud.view === 'foto' || cloud.view === 'mappa') showView(cloud.view);
+      }, err));
+      cloud.unsubs.push(tr.collection('diary').onSnapshot(function (snap) { cloud.diaryRaw = snap.docs.map(function (x) { return Object.assign({ id: x.id }, x.data()); }); decryptDiaries(); }, err));
+    }, function () { setCloudStatus('Accesso anonimo non riuscito.'); });
+  }
+  function decryptDiaries() {
+    if (!cloud.priv) { cloud.diary = cloud.diaryRaw.map(function (r) { return { id: r.id, user: r.user, day: r.day, locked: true }; }); if (cloud.view === 'diario') showView('diario'); return Promise.resolve(); }
+    return Promise.all(cloud.diaryRaw.map(function (r) {
+      return DiaryCrypto.decryptJson(cloud.priv, r.pack).then(function (e) { return { id: r.id, user: r.user, day: e.day, text: e.text, photos: e.photos || [], loc: e.loc, ts: e.ts, upd: e.upd }; }, function () { return { id: r.id, user: r.user, day: r.day, broken: true }; });
+    })).then(function (list) { cloud.diary = list; if (cloud.view === 'diario' || cloud.view === 'mappa') showView(cloud.view); });
+  }
+  function fetchFullPhoto(id) {
+    if (cloud.full[id]) return Promise.resolve(cloud.full[id]);
+    return cloud.db.collection('trips').doc(st.trip).collection('albumFull').doc(id).get().then(function (d) {
+      if (!d.exists) return null; return fetch(d.data().data).then(function (r) { return r.blob(); }).then(function (b) { return (cloud.full[id] = URL.createObjectURL(b)); });
+    });
+  }
+  function fetchReceipt(id) {
+    var key = 'r_' + id; if (cloud.full[key]) return Promise.resolve(cloud.full[key]);
+    return cloud.db.collection('trips').doc(st.trip).collection('photos').doc(id).get().then(function (d) {
+      if (!d.exists) return null; return fetch(d.data().data).then(function (r) { return r.blob(); }).then(function (b) { return (cloud.full[key] = URL.createObjectURL(b)); });
+    });
+  }
+  function fetchDiaryPhoto(user, id) {
+    var key = 'd_' + user + id; if (cloud.full[key]) return Promise.resolve(cloud.full[key]);
+    return cloud.db.collection('trips').doc(st.trip).collection('diaryPhotos').doc(slug(user) + '_' + id).get().then(function (d) {
+      if (!d.exists) return null; return DiaryCrypto.decryptBlob(cloud.priv, d.data().pack).then(function (b) { return (cloud.full[key] = URL.createObjectURL(b)); });
+    });
+  }
+  function mapsLink(l) { return 'https://maps.apple.com/?ll=' + l.la + ',' + l.lo; }
+  function lightbox(items, i) {                       // items: [{src: Promise<url>|url, cap, link, name}]
+    var lb = el('div', 'lb'), im = document.createElement('img'), cap = el('div', 'cap'), row = el('div', 'lbrow'), idx = i;
+    function close() { document.removeEventListener('keydown', key); lb.remove(); }
+    function key(e) { if (e.key === 'Escape') close(); else if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); }
+    function go(d) { var n = idx + d; if (n < 0 || n >= items.length) return; idx = n; show(); }
+    function show() {
+      var it = items[idx]; cap.textContent = it.cap; im.removeAttribute('src'); im.alt = 'Foto';
+      Promise.resolve(it.src).then(function (u) { if (items[idx] === it && u) im.src = u; });
+      prev.disabled = idx === 0; next.disabled = idx === items.length - 1;
+      dl.onclick = function () { Promise.resolve(it.src).then(function (u) { if (!u) return; var a = document.createElement('a'); a.href = u; a.download = it.name || 'foto.jpg'; document.body.appendChild(a); a.click(); a.remove(); }); };
+      mp.hidden = !it.link; if (it.link) mp.href = it.link;
+    }
+    var prev = el('button', 'btn', '‹ Precedente'), next = el('button', 'btn', 'Successiva ›'), dl = el('button', 'btn', 'Scarica'), mp = el('a', 'btn', 'Apri in Mappe'), cl = el('button', 'btn', 'Chiudi');
+    [prev, next, dl, cl].forEach(function (b) { b.type = 'button'; }); mp.target = '_blank'; mp.rel = 'noopener'; mp.style.cssText = 'display:inline-flex;align-items:center;text-decoration:none';
+    prev.onclick = function () { go(-1); }; next.onclick = function () { go(1); }; cl.onclick = close;
+    [prev, next, dl, mp, cl].forEach(function (b) { row.appendChild(b); });
+    lb.appendChild(im); lb.appendChild(cap); lb.appendChild(row);
+    lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+    document.addEventListener('keydown', key); document.body.appendChild(lb); show();
+  }
+
+  /* --- viste --- */
+  var flt = { who: {}, types: { spesa: true, foto: true, diario: true }, day: '' };
+  function whoChips(box, onChange) {
+    allNames().forEach(function (n) {
+      var b = el('button', 'fchip', '<span class="dot" style="background:' + personColor(n) + '"></span>' + esc(n)); b.type = 'button';
+      b.setAttribute('aria-pressed', String(flt.who[n] !== false)); b.onclick = function () { flt.who[n] = flt.who[n] === false; b.setAttribute('aria-pressed', String(flt.who[n] !== false)); onChange(); }; box.appendChild(b);
+    });
+  }
+  var mapObj = null, mapLayer = null;
+  function placeDist(a, b) { var R = 6371000, r = Math.PI / 180, dl = (b.la - a.la) * r, dn = (b.lo - a.lo) * r, h = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a.la * r) * Math.cos(b.la * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.sqrt(h)); }
+  function mapPoints() {
+    var pts = [];
+    if (flt.types.spesa) Object.keys(st.people).forEach(function (u) { st.people[u].expenses.forEach(function (e) { if (e.loc) pts.push({ t: 'spesa', u: u, loc: e.loc, day: e.data, ts: e.ts, e: e }); }); });
+    if (flt.types.foto) cloud.album.forEach(function (a) { if (a.loc) pts.push({ t: 'foto', u: a.user, loc: a.loc, day: dkey(a.ts), ts: a.ts, a: a }); });
+    if (flt.types.diario) cloud.diary.forEach(function (d) { if (d.loc) pts.push({ t: 'diario', u: d.user, loc: d.loc, day: d.day, ts: d.ts, d: d }); });
+    return pts.filter(function (p) { return flt.who[p.u] !== false && (!flt.day || p.day === flt.day); });
+  }
+  function renderMapView() {
+    var v = $('mapView'); v.innerHTML = '';
+    var panel = el('div', 'panel glass'), f = el('div', 'filters'); panel.appendChild(f);
+    whoChips(f, renderMapView);
+    [['spesa', '$ Spese'], ['foto', 'Foto'], ['diario', 'Diario']].forEach(function (t) {
+      var b = el('button', 'fchip', t[1]); b.type = 'button'; b.setAttribute('aria-pressed', String(flt.types[t[0]])); b.onclick = function () { flt.types[t[0]] = !flt.types[t[0]]; renderMapView(); }; f.appendChild(b);
+    });
+    var daysSet = {}; Object.keys(st.people).forEach(function (u) { st.people[u].expenses.forEach(function (e) { daysSet[e.data] = 1; }); }); cloud.album.forEach(function (a) { daysSet[dkey(a.ts)] = 1; }); cloud.diary.forEach(function (d) { if (d.day) daysSet[d.day] = 1; });
+    var sel = el('select', 'sel'); sel.setAttribute('aria-label', 'Giorno'); sel.appendChild(new Option('Tutti i giorni', ''));
+    Object.keys(daysSet).sort().forEach(function (k) { sel.appendChild(new Option(dayLabel(k), k)); }); sel.value = flt.day; sel.onchange = function () { flt.day = sel.value; renderMapView(); }; f.appendChild(sel);
+    var box = el('div', 'mapbox'); panel.appendChild(box); var info = el('div', 'sub2'); panel.appendChild(info); v.appendChild(panel);
+    if (!window.L) { box.remove(); info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    if (mapObj) { try { mapObj.remove(); } catch (e) {} mapObj = null; }
+    mapObj = L.map(box).setView([29.76, -95.37], 9);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mapObj);
+    mapLayer = L.layerGroup().addTo(mapObj);
+    var pts = mapPoints(), groups = [];
+    pts.forEach(function (p) { var g = groups.filter(function (g) { return placeDist(g, p.loc) <= 60; })[0]; if (g) g.items.push(p); else groups.push({ la: p.loc.la, lo: p.loc.lo, items: [p] }); });
+    var bounds = [];
+    groups.forEach(function (g) {
+      var ll = [g.la, g.lo], n = g.items.length, first = g.items[0], same = g.items.every(function (x) { return x.u === first.u; });
+      var cls = n > 1 ? 'mk g' : 'mk ' + { spesa: 's', foto: 'f', diario: 'd' }[first.t], glyph = n > 1 ? String(n) : { spesa: '$', foto: '▣', diario: '✎' }[first.t];
+      var col = n > 1 && !same ? '#333' : personColor(first.u);
+      var m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="' + cls + '" style="background:' + col + '"><span>' + glyph + '</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(mapLayer);
+      m.on('click', function () { openPlaceSheet(g); }); bounds.push(ll);
+    });
+    info.textContent = pts.length + (pts.length === 1 ? ' elemento' : ' elementi') + ' sulla mappa. Colore = persona; cerchio $ = spesa, quadrato = foto, rombo = diario.';
+    setTimeout(function () { mapObj.invalidateSize(); if (bounds.length === 1) mapObj.setView(bounds[0], 15); else if (bounds.length) mapObj.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 }); }, 60);
+  }
+  function openPlaceSheet(g) {
+    var old = document.querySelector('.sheetm'); if (old) old.remove();
+    var sh = el('aside', 'sheetm'), hd = el('div', '', ''); hd.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px';
+    var cl = el('button', 'btn ghost small', 'Chiudi'); cl.type = 'button'; cl.onclick = function () { sh.remove(); };
+    hd.appendChild(el('h3', '', g.items.length === 1 ? 'Dettaglio' : g.items.length + ' elementi in questo posto')); hd.appendChild(cl); sh.appendChild(hd);
+    var link = el('a', 'cbtn', 'Apri il posto in Mappe'); link.href = mapsLink(g); link.target = '_blank'; link.rel = 'noopener'; sh.appendChild(link);
+    g.items.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); }).forEach(function (p) {
+      var it = el('div', 'it'), who = '<b style="color:' + personColor(p.u) + '">' + esc(p.u || '') + '</b>';
+      if (p.t === 'spesa') { it.appendChild(el('div', '', who + ' · spesa ' + usd(p.e.usd) + ' · ' + esc(p.e.cat) + '<br><span class="sub2">' + esc(p.e.store || p.e.desc || 'senza nome') + ' · ' + esc(dayLabel(p.e.data) + ' ' + p.e.ora) + '</span>')); }
+      else if (p.t === 'foto') {
+        it.appendChild(el('div', '', who + ' · foto · <span class="sub2">' + esc(dayLabel(p.day) + ' ' + hhmm(p.ts)) + '</span>'));
+        var im = document.createElement('img'); im.src = p.a.thumb; im.alt = 'Foto'; im.onclick = function () { openAlbumLightbox(p.a.id); }; it.appendChild(im);
+      } else {
+        it.appendChild(el('div', '', who + ' · diario · <span class="sub2">' + esc(dayLabel(p.day)) + '</span>'));
+        if ((p.d.text || '').trim()) it.appendChild(el('div', 'tx', esc(p.d.text.trim())));
+        var ph = el('div', 'dph'); it.appendChild(ph);
+        (p.d.photos || []).forEach(function (id) { fetchDiaryPhoto(p.u, id).then(function (u) { if (!u) return; var i2 = document.createElement('img'); i2.src = u; i2.alt = 'Foto del diario'; ph.appendChild(i2); }); });
+      }
+      sh.appendChild(it);
+    });
+    document.body.appendChild(sh);
+  }
+  function openAlbumLightbox(id) {
+    var list = cloud.album.filter(function (a) { return flt.who[a.user] !== false; }), i = Math.max(0, list.findIndex(function (a) { return a.id === id; }));
+    lightbox(list.map(function (a) { return { src: fetchFullPhoto(a.id), cap: (a.user || '') + ' · ' + dayLabel(dkey(a.ts)) + ' ' + hhmm(a.ts) + (a.loc ? ' · con posizione' : ''), link: a.loc ? mapsLink(a.loc) : '', name: 'xmas-texas-' + a.id + '.jpg' }; }), i);
+  }
+  function renderPhotoView() {
+    var v = $('photoView'); v.innerHTML = '';
+    var panel = el('div', 'panel glass'), f = el('div', 'filters'); panel.appendChild(f); whoChips(f, renderPhotoView);
+    var list = cloud.album.filter(function (a) { return flt.who[a.user] !== false; });
+    var g = el('div', 'pg'); panel.appendChild(g);
+    list.forEach(function (a) {
+      var b = el('button', ''); b.type = 'button'; var im = document.createElement('img'); im.src = a.thumb; im.alt = 'Foto di ' + (a.user || ''); b.appendChild(im);
+      b.appendChild(el('span', 'tag', esc(a.user || '?'))).style.background = personColor(a.user); b.onclick = function () { openAlbumLightbox(a.id); }; g.appendChild(b);
+    });
+    panel.appendChild(el('div', 'sub2', list.length ? list.length + (list.length === 1 ? ' foto' : ' foto') + ' nell\'album. Tocca una foto per ingrandirla; frecce della tastiera per scorrere.' : 'Ancora nessuna foto nell\'album.'));
+    v.appendChild(panel);
+  }
+  function renderDiaryView() {
+    var v = $('diaryView'); v.innerHTML = '';
+    if (!cloud.priv) {
+      var c = el('div', 'panel glass lock'); c.appendChild(el('h2', '', 'Apri i diari'));
+      c.appendChild(el('div', 'sub2', 'I diari sono cifrati: solo tu li apri. Scegli il file della chiave e scrivi il PIN. Restano in memoria solo finché la pagina è aperta.'));
+      var fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json'; var pin = document.createElement('input'); pin.type = 'password'; pin.placeholder = 'PIN'; pin.autocomplete = 'off';
+      var go = el('button', 'btn', 'Apri i diari'); go.type = 'button'; var msg = el('div', 'sub2', cloud.diaryRaw.length ? cloud.diaryRaw.length + ' voci di diario nel database.' : 'Nessun diario ancora nel database.');
+      go.onclick = function () {
+        if (!fi.files[0] || !pin.value) { msg.textContent = 'Serve il file della chiave e il PIN.'; return; }
+        msg.textContent = 'Apro…'; fi.files[0].text().then(function (t) { return DiaryCrypto.unlockPrivate(JSON.parse(t), pin.value); })
+          .then(function (k) { cloud.priv = k; pin.value = ''; return decryptDiaries(); }).then(function () { renderDiaryView(); })
+          .catch(function () { msg.textContent = 'PIN o file della chiave non corretti.'; });
+      };
+      pin.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
+      c.appendChild(fi); c.appendChild(pin); c.appendChild(go); c.appendChild(msg); v.appendChild(c); return;
+    }
+    var panel = el('div', 'panel glass'), f = el('div', 'filters'); panel.appendChild(f); whoChips(f, renderDiaryView);
+    var lock = el('button', 'btn ghost small', 'Richiudi i diari'); lock.type = 'button'; lock.onclick = function () { cloud.priv = null; decryptDiaries(); renderDiaryView(); }; f.appendChild(lock);
+    v.appendChild(panel);
+    var list = cloud.diary.filter(function (d) { return !d.locked && flt.who[d.user] !== false; }).sort(function (a, b) { return (b.day || '').localeCompare(a.day || '') || (a.user || '').localeCompare(b.user || ''); });
+    if (!list.length) panel.appendChild(el('div', 'sub2', 'Nessuna voce di diario da mostrare.'));
+    list.forEach(function (d) {
+      var c = el('div', 'dcard glass');
+      if (d.broken) { c.appendChild(el('h3', '', esc(d.user) + ' · ' + esc(d.day))); c.appendChild(el('div', 'sub2', 'Non riesco ad aprire questa voce con la tua chiave.')); v.appendChild(c); return; }
+      c.appendChild(el('h3', '', '<span style="color:' + personColor(d.user) + '">' + esc(d.user || '') + '</span> · ' + esc(dayLabel(d.day))));
+      if ((d.text || '').trim()) c.appendChild(el('div', 'tx', esc(d.text.trim())));
+      var ph = el('div', 'dph'); c.appendChild(ph);
+      (d.photos || []).forEach(function (id, i) {
+        fetchDiaryPhoto(d.user, id).then(function (u) {
+          if (!u) return; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario';
+          im.onclick = function () { lightbox((d.photos || []).map(function (pid) { return { src: fetchDiaryPhoto(d.user, pid), cap: d.user + ' · ' + dayLabel(d.day), link: d.loc ? mapsLink(d.loc) : '', name: 'diario-' + pid + '.jpg' }; }), i); }; ph.appendChild(im);
+        });
+      });
+      var ex = ((st.people[d.user] || {}).expenses || []).filter(function (e) { return e.data === d.day; });
+      if (ex.length) {
+        c.appendChild(el('div', 'label', 'Spese del giorno'));
+        ex.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { c.appendChild(el('div', 'row', '<span>' + esc((e.ora ? e.ora + ' · ' : '') + (e.store || e.desc || 'senza nome') + ' · ' + e.cat) + '</span><span class="v num">' + usd(e.usd) + '</span>')); });
+        c.appendChild(el('div', 'row', '<span><b>Totale</b></span><span class="v num">' + usd(sum(ex, 'usd')) + '</span>'));
+      }
+      if (d.loc) { var l = el('a', 'cbtn', 'Apri il posto in Mappe'); l.href = mapsLink(d.loc); l.target = '_blank'; l.rel = 'noopener'; c.appendChild(l); }
+      v.appendChild(c);
+    });
+  }
+  function showView(name) {
+    cloud.view = name;
+    [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === name)); });
+    $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario';
+    if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView();
+  }
+  [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.onclick = function () { showView(b.dataset.v); }; });
+  window.fetchReceiptGlobal = fetchReceipt; window.lightboxGlobal = lightbox;
+  $('tripCode').value = st.trip || 'texas2026';
+  $('cloudGo').onclick = cloudConnect;
   render();
+  cloudConnect();
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
 })();
 </script>
