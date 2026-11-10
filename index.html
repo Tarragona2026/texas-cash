@@ -70,6 +70,9 @@ body.inner .bgimg { filter: blur(12px); }
 body.inner .bgwrap::after { background: var(--scrim-inner); }
 .mapbox { height: 58vh; min-height: 320px; border-radius: 20px; overflow: hidden; position: relative; z-index: 0; isolation: isolate; border: 1px solid var(--glass-line); }
 .mapbox .leaflet-popup-content { margin: 10px 12px; font-family: var(--font-body); color: #1c1c1e; }
+.store-chips .chip { flex: 0 1 auto; padding: 0 14px; min-height: 38px; font-size: .88rem; }
+.store-chips:empty { display: none; }
+.store-chips .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -277,6 +280,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
         <div class="field"><label class="label" for="oTot">Totale pagato</label><div class="money"><span>$</span><input id="oTot" type="text" inputmode="decimal"></div></div>
       </div>
       <div class="hint" id="ocrEur"></div>
+      <div class="chips store-chips" id="storeScan" aria-label="Negozio riconosciuto"></div>
       <input id="descScan" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="catScan" aria-label="Categoria"></select>
       <button class="btn" id="saveScan" type="button">Salva scontrino e spesa</button>
@@ -306,6 +310,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     </section>
     <section class="card" aria-label="Salva nel registro">
       <div class="label">Salva nel registro</div>
+      <div class="chips store-chips" id="storeCalc" aria-label="Negozi vicini"></div>
       <input id="desc" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="cat" aria-label="Categoria"></select>
       <button class="btn" id="save" type="button">Salva spesa</button>
@@ -499,6 +504,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     if (v === 'settings') fillSettings();
     if (v === 'topup') renderTopup();
     if (v === 'map') renderMap();
+    if (v === 'calc') { storeCalc = ''; suggestStores('', 'storeCalc', 'desc'); }
     if (v === 'calc' || v === 'scan') getFix(8000);
   }
   function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
@@ -583,7 +589,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   $('save').onclick = function () {
     var c = calc();
     if (!c.tot) { toast('Inserisci un prezzo'); return; }
-    addExpense({ id: newId(), ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: r2(c.tot), eur: c.tot * st.rate, sub: r2(c.net), tax: r2(c.tax), tip: r2(c.tip), photo: false, src: 'calcolo' });
+    addExpense({ id: newId(), ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: r2(c.tot), eur: c.tot * st.rate, sub: r2(c.net), tax: r2(c.tax), tip: r2(c.tip), photo: false, src: 'calcolo', store: storeCalc || undefined });
     $('desc').value = ''; $('price').value = '';
     toast('Salvata: ' + usd(r2(c.tot)));
     go('home');
@@ -630,7 +636,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   function resetScan() {
     ocrRun++; scanning(false); ocrSource = null; pendingPhoto = null;
     $('pending').hidden = true; ocrStatus('');
-    setFields({}); $('descScan').value = '';
+    setFields({}); $('descScan').value = ''; storeScan = ''; $('storeScan').innerHTML = '';
   }
   function handlePhoto(file) {
     if (!file) return;
@@ -647,6 +653,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     getWorker().then(function (w) { w0 = w; return w.recognize(ocrSource); }).then(function (res) {
       if (run !== ocrRun) return null;
       first = parseReceipt(res.data.text); setFields(first);
+      suggestStores(res.data.text, 'storeScan', 'descScan');
       if (isConsistent(first)) return first;                                    // subtotale + tasse = totale: lettura affidabile
       ocrStatus('Seconda lettura per più precisione…');
       return shrink(ocrFile, 2200, true, true).then(function (b2) { return w0.recognize(b2); }).then(function (res2) {
@@ -683,6 +690,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     var sub = num($('oSub').value), tax = num($('oTax').value), tip = num($('oTip').value);
     var e = { id: id, ts: Date.now(), desc: $('descScan').value.trim(), cat: $('catScan').value, usd: r2(tot), eur: tot * st.rate,
       sub: sub ? r2(sub) : null, tax: tax ? r2(tax) : null, tip: tip ? r2(tip) : null, photo: hasPhoto, src: 'scontrino' };
+    if (storeScan) e.store = storeScan;
     (hasPhoto ? putPhoto(id, pendingPhoto) : Promise.resolve()).then(function () {
       addExpense(e); resetScan();
       toast('Scontrino salvato: ' + usd(e.usd));
@@ -918,6 +926,114 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     toast('Ricaricati ' + usd(r2(v)));
     go('settings');
   };
+
+  /* ---------- riconoscere il negozio: posizione (OpenStreetMap) + testo dello scontrino ---------- */
+  var storeScan = '', storeCalc = '', poiCache = {}, storeRun = 0;
+  var POI_SKIP = /^(parking|parking_space|bench|waste_basket|bicycle_parking|toilets|shelter|fountain|charging_station|post_box|recycling|vending_machine|telephone|atm|bank|school|place_of_worship|drinking_water|clock|bicycle_rental|parking_entrance|motorcycle_parking|taxi|waste_disposal|kindergarten|grave_yard|fire_station|police|townhall|post_office|library|bus_station)$/;
+  function normTxt(x) { return String(x).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim(); }
+  function meters(a, b) {
+    var R = 6371000, r = Math.PI / 180, dl = (b.la - a.la) * r, dn = (b.lo - a.lo) * r;
+    var h = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a.la * r) * Math.cos(b.la * r) * Math.sin(dn / 2) * Math.sin(dn / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function fetchJson(url, opts, ms) {
+    var ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, ms);
+    opts = opts || {}; if (ctl) opts.signal = ctl.signal;
+    return fetch(url, opts).then(function (r) { clearTimeout(to); if (!r.ok) throw new Error('http' + r.status); return r.json(); }, function (e) { clearTimeout(to); throw e; });
+  }
+  function firstOk(ps) {                  // la prima promessa riuscita (come Promise.any)
+    return new Promise(function (res, rej) {
+      var left = ps.length; if (!left) rej(new Error('none'));
+      ps.forEach(function (p) { p.then(res, function (e) { if (--left === 0) rej(e); }); });
+    });
+  }
+  var OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
+  function overpassPlaces(fix) {
+    var q = '[out:json][timeout:10];nwr(around:90,' + fix.la + ',' + fix.lo + ')[name][~"^(shop|amenity|tourism|leisure)$"~"."];out center 40;';
+    return firstOk(OVERPASS.map(function (u) { return fetchJson(u, { method: 'POST', body: 'data=' + encodeURIComponent(q) }, 9000); })).then(function (j) {
+      var out = [];
+      (j.elements || []).forEach(function (el) {
+        var t = el.tags || {}, c = el.center || { lat: el.lat, lon: el.lon };
+        if (!t.name || c.lat == null || POI_SKIP.test(t.amenity || '')) return;
+        out.push({ name: t.name.trim(), d: meters(fix, { la: c.lat, lo: c.lon }), brand: t.brand || '' });
+      });
+      return out;
+    });
+  }
+  function reversePlace(fix) {            // un solo luogo, ma risponde in fretta
+    return fetchJson('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=en&lat=' + fix.la + '&lon=' + fix.lo, null, 8000).then(function (j) {
+      return j && j.name && /^(shop|amenity|tourism|leisure|office)$/.test(j.category || '') && !POI_SKIP.test(j.type || '') ? [{ name: j.name, d: 30, brand: '' }] : [];
+    });
+  }
+  function nearbyPlaces(fix) {
+    var key = fix.la.toFixed(4) + ',' + fix.lo.toFixed(4);
+    if (poiCache[key]) return Promise.resolve(poiCache[key]);
+    return Promise.all([overpassPlaces(fix).catch(function () { return null; }), reversePlace(fix).catch(function () { return []; })]).then(function (rs) {
+      var out = (rs[0] || []).slice(), seen = {};
+      rs[1].forEach(function (p) { if (!out.some(function (o) { return o.name.toLowerCase() === p.name.toLowerCase(); })) out.push(p); });
+      out = out.filter(function (p) { var k = p.name.toLowerCase(); if (seen[k]) return false; seen[k] = 1; return true; });
+      out.sort(function (a, b) { return a.d - b.d; });
+      if (rs[0]) poiCache[key] = out;     // se Overpass era occupato non memorizzo, cosi' riprovo
+      return out;
+    });
+  }
+  function lev(a, b) {
+    var m = a.length, n = b.length, d = [], i, j;
+    for (i = 0; i <= m; i++) { d[i] = [i]; } for (j = 1; j <= n; j++) d[0][j] = j;
+    for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[m][n];
+  }
+  function textMatch(name, text) {      // 0..1: quanto del nome del negozio si ritrova nelle prime righe dello scontrino
+    var nt = normTxt(name).split(' ').filter(function (w) { return w.length >= 3 && w !== 'the' && w !== 'and'; });
+    var flat = normTxt(text).replace(/ /g, ''), words = normTxt(text).split(' ');
+    var whole = normTxt(name), wflat = whole.replace(/ /g, '');
+    if ((' ' + normTxt(text) + ' ').indexOf(' ' + whole + ' ') >= 0 || (wflat.length >= 4 && flat.indexOf(wflat) >= 0)) return 1;
+    var hit = 0;
+    nt.forEach(function (w) { if (words.some(function (x) { return x.length >= 3 && lev(w, x) <= (w.length >= 6 ? 1 : 0); }) || (w.length >= 4 && flat.indexOf(w) >= 0)) hit++; });
+    return nt.length ? hit / nt.length : 0;
+  }
+  function headerGuess(text) {
+    var lines = String(text || '').split(/\n/).slice(0, 8);
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i].replace(/[^A-Za-z0-9&'.\- ]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (/[A-Za-z]{3,}/.test(l) && !/\d+[.,]\d{2}|\d{3,}|total|receipt|thank|welcome|www|\.com|tel|phone|store|order|server|table/i.test(l) && l.length <= 32) return l;
+    }
+    return '';
+  }
+  function suggestStores(text, boxId, inputId) {
+    var box = $(boxId), input = $(inputId), run = ++storeRun, head = text ? text.split('\n').slice(0, 10).join(' ') : '';
+    box.innerHTML = '';
+    function pick(name, auto) {
+      if (boxId === 'storeScan') storeScan = name; else storeCalc = name;
+      input.value = name; [].forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c.textContent === name)); });
+      if (!auto) input.focus();
+    }
+    function show(list, best) {
+      if (run !== storeRun) return;
+      box.innerHTML = '';
+      list.slice(0, 5).forEach(function (n) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = n; b.setAttribute('aria-pressed', 'false');
+        b.onclick = function () { pick(n, false); }; box.appendChild(b);
+      });
+      if (best && !input.value.trim()) pick(best, true);
+    }
+    var guess = head ? headerGuess(text) : '';
+    getFix(8000).then(function (fix) {
+      if (run !== storeRun) return;
+      if (!fix) { if (guess) show([guess], guess); return; }
+      return nearbyPlaces(fix).then(function (places) {
+        if (run !== storeRun) return;
+        var scored = places.map(function (p) { return { n: p.name, d: p.d, m: head ? Math.max(textMatch(p.name, head), p.brand ? textMatch(p.brand, head) : 0) : 0 }; });
+        scored.sort(function (a, b) { return (b.m - a.m) || (a.d - b.d); });
+        var list = scored.map(function (x) { return x.n; }), best = '';
+        if (scored.length && scored[0].m >= 0.5) best = scored[0].n;                                   // il nome si legge sullo scontrino
+        else if (head && guess && !scored.length) best = guess;
+        else if (head && scored.length && scored[0].d <= 25) best = scored[0].n;                        // quasi sicuro: e' il negozio piu' vicino
+        if (guess && list.indexOf(guess) < 0 && (!best || best === guess)) list.unshift(guess);
+        show(list, best);
+      });
+    }).catch(function () { if (guess) show([guess], guess); });
+  }
 
   /* ---------- posizione e mappa ---------- */
   var lastFix = null;
