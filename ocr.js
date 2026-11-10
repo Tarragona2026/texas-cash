@@ -145,7 +145,57 @@
   function count(r) { return [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length; }
   function isConsistent(r) { return !!r && consistent(r.subtotal, r.tax, r.total, r.tip); }
 
-  var api = { parseReceipt: parseReceipt, mergeResults: mergeResults, isConsistent: isConsistent };
+
+  /* data e ora dello scontrino (italiana gg/mm/aaaa o americana mm/gg/aaaa, anche con il mese a parole) */
+  var MONTHS = { gen: 1, jan: 1, feb: 2, mar: 3, apr: 4, mag: 5, may: 5, giu: 6, jun: 6, lug: 7, jul: 7, ago: 8, aug: 8, set: 9, sep: 9, ott: 10, oct: 10, nov: 11, dic: 12, dec: 12 };
+  function validDate(y, m, d) { if (y < 2000 || m < 1 || m > 12 || d < 1 || d > 31) return false; var t = new Date(y, m - 1, d); return t.getMonth() === m - 1 && t.getDate() === d; }
+  function parseReceiptDate(text, now) {
+    now = now || Date.now(); text = String(text || '');
+    var lines = text.split(/\r?\n/), cands = [], re, m, i;
+    var itCue = /\b(iva|scontrino|documento|commerciale|totale|euro|grazie|arrivederci|cassa|resto|contanti|pagamento|fiscale)\b|€/i.test(text);
+    var usCue = /\b(tax|server|tip|subtotal|sub total|thank|guest|table|check|visa|mastercard|debit|credit|change due)\b|\$|\b(TX|Texas|Houston|Austin)\b/i.test(text);
+    function add(line, y, a, b, kind) {              // a, b = i due numeri prima dell'anno
+      if (y < 100) y += 2000;
+      var opts = kind === 'ymd' ? [[y, a, b, 'ymd']] : [[y, b, a, 'it'], [y, a, b, 'us']];
+      opts.forEach(function (o) { if (validDate(o[0], o[1], o[2])) cands.push({ y: o[0], m: o[1], d: o[2], fmt: o[3], line: line, amb: kind !== 'ymd' && a <= 12 && b <= 12 && a !== b }); });
+    }
+    lines.forEach(function (l, li) {
+      re = /(?:^|[^\d])(\d{1,2})\s?[\/\-.]\s?(\d{1,2})\s?[\/\-.]\s?(\d{4}|\d{2})(?!\d)/g;
+      while ((m = re.exec(l))) add(li, +m[3], +m[1], +m[2], 'num');
+      re = /(?:^|[^\d])(20\d{2})[\/\-.](\d{1,2})[\/\-.](\d{1,2})(?!\d)/g;
+      while ((m = re.exec(l))) add(li, +m[1], +m[2], +m[3], 'ymd');
+      re = /(\d{1,2})[\s\/\-.]*([A-Za-z]{3})[a-z]*[\s\/\-.,]*(\d{4}|\d{2})(?!\d)/g;
+      while ((m = re.exec(l))) { var mo = MONTHS[m[2].toLowerCase()]; if (mo) { var y1 = +m[3]; add(li, y1, +m[1], mo, 'ymd-dm'); } }
+      re = /([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})(?!\d)/g;
+      while ((m = re.exec(l))) { var mo2 = MONTHS[m[1].toLowerCase()]; if (mo2) add(li, +m[3], mo2, +m[2], 'ymd'); }
+    });
+    cands = cands.map(function (c) {
+      var t = new Date(c.y, c.m - 1, c.d, 12).getTime(), sc = 0;
+      if (c.y > 100 && t > now + 36 * 3600e3) sc -= 20;                       // nel futuro: impossibile
+      if (now - t > 400 * 86400e3) sc -= 4;
+      if (t >= new Date(2026, 11, 15).getTime() && t <= new Date(2027, 0, 6, 23).getTime()) sc += 3;   // nei giorni del viaggio
+      else if (now - t >= -36 * 3600e3 && now - t < 45 * 86400e3) sc += 1;
+      if (c.amb) { if (c.fmt === 'it' && itCue && !usCue) sc += 2; if (c.fmt === 'us' && usCue && !itCue) sc += 2; if (c.fmt === 'it') sc += 0.1; }
+      c.sc = sc - c.line * 0.01; return c;
+    }).sort(function (a, b) { return b.sc - a.sc; });
+    var best = cands[0]; if (!best || best.sc < -5) return null;
+    function tm(str) {
+      var r = /(?:^|[^\d:])(\d{1,2}):(\d{2})(?::\d{2})?\s?([AaPp]\.?[Mm]\.?)?(?![\d:])/.exec(str);
+      if (!r) return null;
+      var h = +r[1], mi = +r[2], ap = r[3] ? r[3].charAt(0).toLowerCase() : '';
+      if (mi > 59) return null;
+      if (ap) { if (h < 1 || h > 12) return null; if (ap === 'p' && h < 12) h += 12; if (ap === 'a' && h === 12) h = 0; }
+      if (h > 23) return null;
+      return { h: h, mi: mi };
+    }
+    var t = tm(lines[best.line] || '');
+    if (!t) for (i = Math.max(0, best.line - 1); i <= Math.min(lines.length - 1, best.line + 1) && !t; i++) t = tm(lines[i]);
+    if (!t) { var dl = (lines[best.line] || '').split(/\d{1,2}\s?[\/\-.]\s?\d{1,2}\s?[\/\-.]\s?\d{2,4}/).pop(); var r2m = /(?:^|\s)(\d{1,2})\.(\d{2})\s*$/.exec(dl); if (r2m && +r2m[1] < 24 && +r2m[2] < 60) t = { h: +r2m[1], mi: +r2m[2] }; }
+    function p2(n) { return (n < 10 ? '0' : '') + n; }
+    return { y: best.y, m: best.m, d: best.d, fmt: best.fmt, ambiguous: best.amb, date: best.y + '-' + p2(best.m) + '-' + p2(best.d), time: t ? p2(t.h) + ':' + p2(t.mi) : '', ts: new Date(best.y, best.m - 1, best.d, t ? t.h : 12, t ? t.mi : 0).getTime() };
+  }
+
+  var api = { parseReceiptDate: parseReceiptDate, parseReceipt: parseReceipt, mergeResults: mergeResults, isConsistent: isConsistent };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else { root.parseReceipt = parseReceipt; root.mergeResults = mergeResults; root.isConsistent = isConsistent; }
+  else { root.parseReceiptDate = parseReceiptDate; root.parseReceipt = parseReceipt; root.mergeResults = mergeResults; root.isConsistent = isConsistent; }
 })(typeof self !== 'undefined' ? self : this);

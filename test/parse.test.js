@@ -31,5 +31,12 @@ cases.forEach(([n, text, exp]) => {
   const r = parseReceipt(text);
   Object.keys(exp).forEach(k => { try { assert.strictEqual(r[k], exp[k]); } catch (e) { bad++; console.log('FAIL', n, k, 'atteso', exp[k], 'ottenuto', r[k]); } });
 });
+
+const { parseReceiptDate } = require('../ocr.js');
+const now = new Date(2026, 11, 28, 10).getTime();
+[['26/12/2026 14:35\nIVA\nTOTALE EURO 2,70', '2026-12-26', '14:35'], ['12/26/2026 02:35 PM\nTax 3.61', '2026-12-26', '14:35'], ['Dec 27, 2026 9:15 AM\nTotal 5.00', '2026-12-27', '09:15'], ['27 DIC 2026 08:10\nTOTALE', '2026-12-27', '08:10']].forEach(c => {
+  const r = parseReceiptDate(c[0], now);
+  try { assert.strictEqual(r && r.date, c[1]); assert.strictEqual(r.time, c[2]); } catch (e) { bad++; console.log('FAIL data', c[0]); }
+});
 console.log(bad ? bad + ' errori' : 'tutti i test passano (' + cases.length + ')');
 process.exit(bad ? 1 : 0);
