@@ -92,6 +92,22 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .vmap { position: relative; width: 100%; max-width: 520px; height: 130px; border-radius: 14px; overflow: hidden; flex: none; }
 .vcap { color: #fff; font-size: .9rem; text-align: center; }
 .diax { position: absolute; right: 4px; top: 4px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 1rem; line-height: 1; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.cal .dh { font-size: .7rem; font-weight: 700; color: var(--ink-soft); padding: 4px 0; text-transform: uppercase; }
+.cal button, .cal .empty0 { aspect-ratio: 1; border: 0; border-radius: 12px; background: var(--field); font-weight: 600; font-size: .95rem; color: var(--ink); position: relative; padding: 0; }
+.cal .empty0 { background: transparent; }
+.cal button.today { outline: 2px solid var(--accent); }
+.cal button.has::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #e07b00; }
+.cal button.has { background: rgba(224,123,0,.16); }
+.calhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.calhead b { font-family: var(--font-display); font-size: 1.1rem; text-transform: capitalize; }
+.diamap { height: 56vh; min-height: 300px; border-radius: 16px; overflow: hidden; position: relative; z-index: 0; isolation: isolate; border: 1px solid var(--glass-line); }
+.pop { max-width: 220px; font-family: var(--font-body); color: #1c1c1e; }
+.pop b { display: block; text-transform: capitalize; margin-bottom: 4px; }
+.pop p { margin: 0 0 6px; font-size: .85rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pop .ph { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+.pop .ph img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
+.pop button { border: 0; border-radius: 10px; background: #007aff; color: #fff; font-weight: 600; padding: 6px 12px; }
 .diatext { min-height: 180px; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
@@ -387,6 +403,12 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   <!-- DIARIO -->
   <section id="v-dia" class="wrap" aria-label="Diario" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
+    <div class="chips" id="diaTabs" role="tablist">
+      <button class="chip" type="button" data-tab="write" aria-pressed="true">Scrivi</button>
+      <button class="chip" type="button" data-tab="cal" aria-pressed="false">Calendario</button>
+      <button class="chip" type="button" data-tab="map" aria-pressed="false">Mappa</button>
+    </div>
+    <div id="diaWrite" class="wrap">
     <section class="card">
       <div class="label" id="diaDate"></div>
       <textarea class="trarea diatext" id="diaText" placeholder="Cosa hai fatto? Cosa hai visto? Scrivi quello che vuoi: lo leggi solo tu." autocomplete="off" autocapitalize="sentences"></textarea>
@@ -397,6 +419,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       </div>
       <input type="file" id="diaCamFile" accept="image/*" capture="environment" hidden>
       <input type="file" id="diaLibFile" accept="image/*" multiple hidden>
+      <button class="btn" id="diaSave" type="button">Salva</button>
       <div class="hint" id="diaStatus"></div>
       <button class="btn ghost small" id="diaDel" type="button">Elimina questa voce</button>
     </section>
@@ -404,6 +427,16 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="label">I tuoi giorni</div>
       <div class="chips" id="diaDays"></div>
       <div class="hint">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
+    </section>
+    </div>
+    <section class="card" id="diaCal" hidden>
+      <div class="calhead"><button class="btn ghost small" id="calPrev" type="button" aria-label="Mese precedente">‹</button><b id="calTitle"></b><button class="btn ghost small" id="calNext" type="button" aria-label="Mese successivo">›</button></div>
+      <div class="cal" id="calGrid"></div>
+      <div class="hint">Il puntino arancione indica i giorni con testo o foto. Tocca un giorno per aprirlo.</div>
+    </section>
+    <section class="card" id="diaMapCard" hidden>
+      <div class="diamap" id="diaMap"></div>
+      <div class="hint" id="diaMapInfo"></div>
     </section>
   </section>
 
@@ -509,7 +542,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v37';
+var APP_VER = 'v38';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1340,7 +1373,7 @@ var APP_VER = 'v37';
     if (!diaryActive()) el.textContent = base + ' · salvato su questo telefono (manca ancora la chiave per inviarlo cifrato).';
     else { var n = diaryPending(); el.textContent = base + ' · ' + (n ? 'in coda per l\'invio cifrato' : 'inviato cifrato'); }
   }
-  function openDiary() { if (!diaDay) diaDay = dayKey(); renderDiary(); }
+  function openDiary() { if (!diaDay) diaDay = dayKey(); setDiaTab(diaTab); }
   function renderDiary() {
     $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : '');
     var e = diaGet(false); if (document.activeElement !== $('diaText')) $('diaText').value = e ? e.text || '' : '';
@@ -1386,6 +1419,14 @@ var APP_VER = 'v37';
   $('diaLib').onclick = function () { $('diaLibFile').value = ''; $('diaLibFile').click(); };
   $('diaCamFile').addEventListener('change', function () { diaAddFiles($('diaCamFile').files); });
   $('diaLibFile').addEventListener('change', function () { diaAddFiles($('diaLibFile').files); });
+  $('diaSave').onclick = function () {
+    clearTimeout(diaTimer);
+    var txt = $('diaText').value, e = diaGet(!!txt.trim());
+    if (!e || (!txt.trim() && !(e.photos || []).length)) { toast('Scrivi qualcosa o aggiungi una foto'); return; }
+    if (e.text !== txt) { e.text = txt; e.upd = Date.now(); }
+    diaTouchLoc(e); persist(); try { $('diaText').blur(); } catch (x) {}
+    toast('Diario salvato · ' + dayLabel(diaDay)); renderDiary(); sync(true);
+  };
   $('diaDel').onclick = function () {
     var e = diaGet(false); if (!e) return;
     if (!confirm('Eliminare la voce del ' + dayLabel(diaDay) + ' con tutte le sue foto?')) return;
@@ -1393,6 +1434,69 @@ var APP_VER = 'v37';
   };
   $('alDia').checked = st.albDia !== false;
   $('alDia').onchange = function () { st.albDia = $('alDia').checked; persist(); };
+
+  /* ---------- diario: calendario e mappa ---------- */
+  var diaTab = 'write', diaMonth = null, diaMapObj = null, diaMapLayer = null, diaMapUrls = [];
+  function hasEntry(k) { var e = st.diary && st.diary[k]; return !!(e && ((e.text || '').trim() || (e.photos || []).length)); }
+  function setDiaTab(t) {
+    diaTab = t;
+    [].forEach.call(document.querySelectorAll('#diaTabs .chip'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.tab === t)); });
+    $('diaWrite').hidden = t !== 'write'; $('diaCal').hidden = t !== 'cal'; $('diaMapCard').hidden = t !== 'map';
+    if (t === 'write') renderDiary(); else if (t === 'cal') renderCal(); else renderDiaMap();
+    window.scrollTo(0, 0);
+  }
+  [].forEach.call(document.querySelectorAll('#diaTabs .chip'), function (b) { b.onclick = function () { setDiaTab(b.dataset.tab); }; });
+  function renderCal() {
+    if (!diaMonth) { var n = new Date(); diaMonth = { y: n.getFullYear(), m: n.getMonth() }; }
+    var y = diaMonth.y, m = diaMonth.m, first = new Date(y, m, 1), days = new Date(y, m + 1, 0).getDate(), lead = (first.getDay() + 6) % 7;
+    $('calTitle').textContent = first.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+    var g = $('calGrid'); g.innerHTML = '';
+    ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'].forEach(function (d) { var e = document.createElement('div'); e.className = 'dh'; e.textContent = d; g.appendChild(e); });
+    for (var i = 0; i < lead; i++) { var z = document.createElement('div'); z.className = 'empty0'; g.appendChild(z); }
+    var today = dayKey();
+    for (var d = 1; d <= days; d++) {
+      (function (d) {
+        var k = y + '-' + pad(m + 1) + '-' + pad(d), b = document.createElement('button'); b.type = 'button'; b.textContent = d;
+        if (hasEntry(k)) { b.className = 'has'; b.setAttribute('aria-label', d + ': ci sono testo o foto'); }
+        if (k === today) b.classList.add('today');
+        b.onclick = function () { diaDay = k; setDiaTab('write'); };
+        g.appendChild(b);
+      })(d);
+    }
+  }
+  $('calPrev').onclick = function () { diaMonth.m--; if (diaMonth.m < 0) { diaMonth.m = 11; diaMonth.y--; } renderCal(); };
+  $('calNext').onclick = function () { diaMonth.m++; if (diaMonth.m > 11) { diaMonth.m = 0; diaMonth.y++; } renderCal(); };
+  function renderDiaMap() {
+    var info = $('diaMapInfo'), box = $('diaMap');
+    if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    box.hidden = false;
+    if (!diaMapObj) {
+      diaMapObj = L.map(box).setView([29.76, -95.37], 9);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(diaMapObj);
+      diaMapLayer = L.layerGroup().addTo(diaMapObj);
+    }
+    diaMapLayer.clearLayers(); diaMapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaMapUrls = [];
+    var keys = Object.keys(st.diary || {}).filter(hasEntry).sort(), pts = [], noloc = 0;
+    keys.forEach(function (k) {
+      var e = st.diary[k]; if (!e.loc) { noloc++; return; }
+      var ll = [e.loc.la, e.loc.lo]; pts.push(ll);
+      var mk = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: '#e07b00', fillOpacity: 1 }).addTo(diaMapLayer);
+      mk.on('click', function () {
+        var pop = document.createElement('div'); pop.className = 'pop';
+        var t = document.createElement('b'); t.textContent = dayLabel(k); pop.appendChild(t);
+        if ((e.text || '').trim()) { var p = document.createElement('p'); var tx = e.text.trim(); p.textContent = tx.length > 180 ? tx.slice(0, 180) + '…' : tx; pop.appendChild(p); }
+        var ph = document.createElement('div'); ph.className = 'ph'; pop.appendChild(ph);
+        (e.photos || []).slice(0, 4).forEach(function (id) { getPhoto('dia_' + id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); diaMapUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.onload = function () { try { mk.getPopup().update(); } catch (x) {} }; im.src = u; ph.appendChild(im); }); });
+        var go = document.createElement('button'); go.type = 'button'; go.textContent = 'Apri il giorno'; go.onclick = function () { diaDay = k; setDiaTab('write'); }; pop.appendChild(go);
+        mk.bindPopup(pop, { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup();
+      });
+    });
+    info.textContent = !keys.length ? 'Ancora nessun giorno scritto.' : pts.length + (pts.length === 1 ? ' giorno sulla mappa' : ' giorni sulla mappa') + (noloc ? ' · ' + noloc + ' senza posizione' : '') + '. Tocca un punto per vedere testo e foto.';
+    setTimeout(function () {
+      diaMapObj.invalidateSize();
+      if (pts.length === 1) diaMapObj.setView(pts[0], 14); else if (pts.length) diaMapObj.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
+    }, 60);
+  }
 
   /* ---------- album foto condiviso ---------- */
   var albUnsub = null, albRemote = [], albLast = null, albUrls = [];
