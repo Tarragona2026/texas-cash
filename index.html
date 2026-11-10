@@ -73,6 +73,19 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .store-chips .chip { flex: 0 1 auto; padding: 0 14px; min-height: 38px; font-size: .88rem; }
 .store-chips:empty { display: none; }
 .store-chips .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.trarea { width: 100%; min-height: 96px; resize: vertical; background: var(--field); border: 0; border-radius: 14px; padding: 12px; font: inherit; color: inherit; }
+.trdir { display: flex; align-items: center; gap: 8px; }
+.trdir .lang { flex: 1; text-align: center; font-weight: 700; padding: 10px 4px; border-radius: 12px; background: var(--field); }
+.trdir .swap { flex: none; width: 48px; height: 44px; border-radius: 14px; border: 0; background: var(--accent); color: var(--accent-ink); font-size: 1.2rem; font-weight: 700; }
+.trout { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; line-height: 1.25; overflow-wrap: anywhere; min-height: 1.5em; }
+.trmic { min-height: 64px; border-radius: 20px; border: 0; font-weight: 700; font-size: 1.05rem; background: var(--bad); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.trmic.on { background: var(--good); animation: pulse 1s ease-in-out infinite alternate; }
+.trmic svg { width: 26px; height: 26px; }
+@keyframes pulse { from { opacity: 1; } to { opacity: .7; } }
+#phrCats .chip { flex: 0 0 auto; padding: 0 14px; }
+.phr { display: flex; flex-direction: column; gap: 8px; }
+.phr button { text-align: left; border: 0; background: var(--field); border-radius: 14px; padding: 10px 12px; font-weight: 600; color: var(--ink); }
+.phr button small { display: block; font-weight: 500; color: var(--ink-soft); margin-top: 2px; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -124,6 +137,7 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .app .ic.blue { background: linear-gradient(180deg, #2b95ff, #007aff); }
 .app .ic.indigo { background: linear-gradient(180deg, #7c7aff, #5e5ce6); }
 .app .ic.green { background: linear-gradient(180deg, #4cd964, #248a3d); }
+.app .ic.teal { background: linear-gradient(180deg, #40c8e0, #0a84a8); }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
 @media (prefers-reduced-motion: reduce) { .app { transition: none; } }
@@ -252,6 +266,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
       <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
       <button class="app" id="goLog" type="button"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span>Registro <span id="cnt"></span></span></button>
+      <button class="app" id="goTr" type="button"><span class="ic teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h9M8.500 3v2M6 5c.5 3 2.500 5.500 5 7M11 5c-.5 3-3 6-6.500 8"/><path d="M12 20l4.500-10L21 20M13.600 16.500h5.800"/></svg></span>Traduttore</button>
       <button class="app" id="goMap" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span>Mappa</button>
       <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
     </nav>
@@ -353,6 +368,28 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <div class="hint" id="mapInfo"></div>
   </section>
 
+  <!-- TRADUTTORE -->
+  <section id="v-tr" class="wrap" aria-label="Traduttore" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Traduttore</h2><span></span></div>
+    <section class="card">
+      <div class="trdir"><div class="lang" id="trFrom">Italiano</div><button class="swap" id="trSwap" type="button" aria-label="Inverti le lingue">⇄</button><div class="lang" id="trTo">Inglese (USA)</div></div>
+      <button class="trmic" id="trMic" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21"/></svg><span id="trMicTxt">Parla</span></button>
+      <textarea class="trarea" id="trIn" placeholder="Oppure scrivi qui" autocomplete="off" autocapitalize="sentences"></textarea>
+      <button class="btn" id="trGo" type="button">Traduci</button>
+      <div class="hint" id="trHint"></div>
+    </section>
+    <section class="card" id="trOutCard" hidden>
+      <div class="label">Traduzione</div>
+      <div class="trout" id="trOut"></div>
+      <div class="btnrow"><button class="btn ghost" id="trSpeak" type="button">Ascolta</button><button class="btn ghost" id="trCopy" type="button">Copia</button></div>
+    </section>
+    <section class="card">
+      <div class="label">Frasi pronte (anche senza rete)</div>
+      <div class="chips" id="phrCats"></div>
+      <div class="phr" id="phrList"></div>
+    </section>
+  </section>
+
   <!-- IMPOSTAZIONI -->
   <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
@@ -415,7 +452,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
-  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map'];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr'];
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
@@ -506,6 +543,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     if (v === 'settings') fillSettings();
     if (v === 'topup') renderTopup();
     if (v === 'map') renderMap();
+    if (v === 'tr') renderTr();
     if (v === 'calc') { storeCalc = ''; suggestStores('', 'storeCalc', 'desc'); }
     if (v === 'calc' || v === 'scan') getFix(8000);
   }
@@ -513,6 +551,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   window.addEventListener('hashchange', function () { show(hashView()); });
   document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : 'home'); }; });
   $('goCalc').onclick = function () { go('calc'); };
+  $('goTr').onclick = function () { go('tr'); };
   $('goMap').onclick = function () { go('map'); };
   $('goLog').onclick = function () { go('log'); };
   $('goSettings').onclick = function () { go('settings'); };
@@ -1114,6 +1153,76 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       return geocodeAddress(addr, gps, guess).then(function (a) { if (run !== storeRun) return; return a ? work(a, true) : work(gps, false); }, function () { return work(gps, false); });
     }).catch(function () { if (guess) show([guess], guess); });
   }
+
+  /* ---------- traduttore italiano <-> inglese americano ---------- */
+  var PHRASES = {"Ristorante": [["Un tavolo per tre, per favore.", "A table for three, please."], ["Possiamo avere il menù?", "Can we see the menu, please?"], ["Cosa ci consiglia?", "What do you recommend?"], ["Sono allergico alle noci.", "I'm allergic to nuts."], ["Non posso mangiare glutine.", "I can't eat gluten."], ["Senza ghiaccio, per favore.", "No ice, please."], ["Acqua del rubinetto, per favore.", "Tap water, please."], ["Possiamo avere una confezione da asporto?", "Can I get a to-go box?"], ["La mancia è inclusa?", "Is the tip included?"], ["Possiamo pagare separatamente?", "Can we pay separately?"], ["Il conto, per favore.", "Check, please."], ["Il cibo è delizioso!", "The food is delicious!"]], "Hotel": [["Ho una prenotazione a nome Fusi.", "I have a reservation under Fusi."], ["A che ora è il check-out?", "What time is check-out?"], ["Possiamo lasciare i bagagli qui?", "Can we leave our luggage here?"], ["Mi serve un asciugamano in più.", "I need an extra towel."], ["Qual è la password del Wi-Fi?", "What's the Wi-Fi password?"], ["Dov'è il bagno?", "Where is the restroom?"]], "Benzina": [["Pieno di benzina normale, per favore.", "Fill it up with regular, please."], ["Posso pagare alla pompa con la carta?", "Can I pay at the pump with a card?"], ["Dov'è il bagno?", "Where is the restroom?"], ["Dove posso gonfiare le gomme?", "Where can I put air in my tires?"]], "Dogana": [["Siamo qui in vacanza.", "We're here on vacation."], ["Restiamo due settimane.", "We're staying for two weeks."], ["Stiamo dalla famiglia a Houston.", "We're staying with family in Houston."], ["Non ho nulla da dichiarare.", "I have nothing to declare."], ["Dove ritiro i bagagli?", "Where is baggage claim?"], ["Dov'è il noleggio auto?", "Where is the car rental?"]], "Negozi": [["Quanto costa?", "How much is this?"], ["Ha una taglia più grande?", "Do you have a bigger size?"], ["Ha una taglia più piccola?", "Do you have a smaller size?"], ["Posso provarlo?", "Can I try this on?"], ["Dov'è il camerino?", "Where is the fitting room?"], ["Accettate carte?", "Do you take credit cards?"], ["Posso avere lo scontrino?", "Can I have the receipt, please?"], ["Vorrei restituire questo.", "I'd like to return this."]], "Aiuto": [["Ho bisogno di aiuto.", "I need help."], ["Chiami un'ambulanza!", "Call an ambulance!"], ["Mi sono perso.", "I'm lost."], ["Dov'è l'ospedale più vicino?", "Where is the nearest hospital?"], ["Parla italiano?", "Do you speak Italian?"], ["Può parlare più lentamente?", "Could you speak more slowly?"], ["Può ripetere, per favore?", "Could you say that again, please?"], ["Non capisco.", "I don't understand."], ["Grazie mille!", "Thank you so much!"]]};
+  var trDir = 'it-en', trCat = 'Ristorante', trGoogleOk = true, trViaBackup = false, trBusy = false, rec = null;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  function trLang() { return trDir === 'it-en' ? { from: 'it', to: 'en', fromV: 'it-IT', toV: 'en-US', fromN: 'Italiano', toN: 'Inglese (USA)' } : { from: 'en', to: 'it', fromV: 'en-US', toV: 'it-IT', toN: 'Italiano', fromN: 'Inglese (USA)' }; }
+  function decodeHtml(t) { var e = document.createElement('textarea'); e.innerHTML = t; return e.value; }
+  function translateText(text) {
+    var L = trLang(); trViaBackup = false;
+    function mymemory() {
+      trViaBackup = true;
+      return fetchJson('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + L.from + '|' + L.to, null, 9000).then(function (j) {
+        if (!j || !j.responseData || !j.responseData.translatedText || (j.responseStatus && Number(j.responseStatus) !== 200)) throw new Error('mm');
+        return decodeHtml(j.responseData.translatedText);
+      });
+    }
+    if (trGoogleOk && window.GOOGLE_PLACES_KEY) {
+      return fetchJson('https://translation.googleapis.com/language/translate/v2?key=' + encodeURIComponent(window.GOOGLE_PLACES_KEY), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: text, source: L.from, target: L.to, format: 'text' }) }, 9000)
+        .then(function (j) { return decodeHtml(j.data.translations[0].translatedText); }, function () { trGoogleOk = false; return mymemory(); });
+    }
+    return mymemory();
+  }
+  function speak(text, lang) {
+    if (!window.speechSynthesis || !text) { toast('Questo telefono non legge ad alta voce'); return; }
+    try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = lang; u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {}
+  }
+  function showOut(text) { $('trOutCard').hidden = false; $('trOut').textContent = text; }
+  function doTranslate(autoSpeak) {
+    var text = $('trIn').value.trim(); if (!text || trBusy) return;
+    if (navigator.onLine === false) { $('trHint').textContent = 'Nessuna rete: usa le frasi pronte qui sotto.'; return; }
+    trBusy = true; $('trHint').textContent = 'Traduco…';
+    translateText(text).then(function (out) {
+      $('trHint').textContent = trViaBackup ? 'Servizio gratuito di riserva: può sbagliare, controlla le frasi importanti o usa quelle pronte.' : ''; showOut(out);
+      if (autoSpeak) speak(out, trLang().toV);
+    }, function () { $('trHint').textContent = 'Non riesco a tradurre ora (rete o limite del servizio). Prova con una frase pronta.'; })
+      .then(function () { trBusy = false; });
+  }
+  function renderTr() {
+    var L = trLang(); $('trFrom').textContent = L.fromN; $('trTo').textContent = L.toN;
+    $('trMicTxt').textContent = SR ? 'Parla in ' + L.fromN.split(' ')[0].toLowerCase() : 'Microfono non disponibile';
+    $('trMic').disabled = !SR;
+    $('trIn').placeholder = SR ? 'Oppure scrivi qui' : 'Scrivi qui, o usa il microfono della tastiera';
+    $('phrCats').innerHTML = '';
+    Object.keys(PHRASES).forEach(function (c) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c; b.setAttribute('aria-pressed', String(c === trCat));
+      b.onclick = function () { trCat = c; renderTr(); }; $('phrCats').appendChild(b);
+    });
+    $('phrList').innerHTML = '';
+    PHRASES[trCat].forEach(function (p) {
+      var b = document.createElement('button'); b.type = 'button';
+      var main = trDir === 'it-en' ? p[0] : p[1], sub = trDir === 'it-en' ? p[1] : p[0];
+      b.textContent = main; var sm = document.createElement('small'); sm.textContent = sub; b.appendChild(sm);
+      b.onclick = function () { showOut(p[1]); $('trOutCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); speak(p[1], 'en-US'); };
+      $('phrList').appendChild(b);
+    });
+  }
+  $('trSwap').onclick = function () { trDir = trDir === 'it-en' ? 'en-it' : 'it-en'; var o = $('trOut').textContent; if (!$('trOutCard').hidden && o) { $('trIn').value = o; $('trOutCard').hidden = true; } renderTr(); };
+  $('trGo').onclick = function () { doTranslate(false); };
+  $('trSpeak').onclick = function () { speak($('trOut').textContent, trLang().toV); };
+  $('trCopy').onclick = function () { try { navigator.clipboard.writeText($('trOut').textContent).then(function () { toast('Copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
+  $('trMic').onclick = function () {
+    if (!SR) return;
+    if (rec) { try { rec.stop(); } catch (e) {} return; }
+    var r = new SR(); rec = r; r.lang = trLang().fromV; r.interimResults = false; r.maxAlternatives = 1;
+    $('trMic').classList.add('on'); $('trMicTxt').textContent = 'Ti ascolto… tocca per fermare';
+    r.onresult = function (e) { $('trIn').value = e.results[0][0].transcript; doTranslate(true); };
+    r.onerror = function (e) { $('trHint').textContent = e.error === 'not-allowed' ? 'Serve il permesso al microfono.' : 'Non ho sentito bene, riprova.'; };
+    r.onend = function () { rec = null; $('trMic').classList.remove('on'); renderTr(); };
+    try { r.start(); } catch (e) { rec = null; $('trMic').classList.remove('on'); }
+  };
 
   /* ---------- posizione e mappa ---------- */
   var lastFix = null;
