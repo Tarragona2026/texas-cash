@@ -377,6 +377,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="ocrEur"></div>
       <div class="chips store-chips" id="storeScan" aria-label="Negozio riconosciuto"></div>
       <div class="hint" id="storeHint"></div>
+      <div class="row2" style="grid-template-columns:1fr auto"><input id="storeQ" type="text" placeholder="Negozio non trovato? Cerca nome o indirizzo" autocomplete="off"><button class="chip" id="storeQBtn" type="button" style="min-height:44px;padding:0 16px">Cerca</button></div>
       <input id="descScan" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="catScan" aria-label="Categoria"></select>
       <button class="btn" id="saveScan" type="button">Salva scontrino e spesa</button>
@@ -633,7 +634,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v45';
+var APP_VER = 'v46';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -871,7 +872,7 @@ var APP_VER = 'v45';
   function resetScan() {
     ocrRun++; scanning(false); ocrSource = null; pendingPhoto = null;
     $('pending').hidden = true; ocrStatus('');
-    setFields({}); $('descScan').value = ''; storeScan = ''; scanLoc = null; $('storeScan').innerHTML = ''; $('storeHint').textContent = '';
+    setFields({}); $('descScan').value = ''; storeScan = ''; scanLoc = null; $('storeScan').innerHTML = ''; $('storeHint').textContent = ''; $('storeQ').value = '';
   }
   function handlePhoto(file) {
     if (!file) return;
@@ -881,6 +882,27 @@ var APP_VER = 'v45';
     ocrFile = file; ocrSource = null;
     shrink(file, 2200, true).then(function (b) { ocrSource = b; readReceipt(run); });
   }
+  function headerBlob(file) {             // solo la parte alta dello scontrino, ingrandita: il nome e l'indirizzo sono scritti piccoli
+    return new Promise(function (res) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var h = Math.round(img.height * 0.4), sc = Math.min(3, 2400 / img.width), c = document.createElement('canvas');
+        c.width = Math.round(img.width * sc); c.height = Math.round(h * sc);
+        c.getContext('2d').drawImage(img, 0, 0, img.width, h, 0, 0, c.width, c.height);
+        try { enhanceCanvas(c); } catch (e) {}
+        URL.revokeObjectURL(url); c.toBlob(function (b) { res(b); }, 'image/png');
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); res(null); };
+      img.src = url;
+    });
+  }
+  function headerText(w) {
+    return headerBlob(ocrFile).then(function (b) {
+      if (!b) return '';
+      return w.setParameters({ tessedit_pageseg_mode: '4' }).then(function () { return w.recognize(b); }).then(function (r) { return r.data.text; })
+        .catch(function () { return ''; }).then(function (t) { return w.setParameters({ tessedit_pageseg_mode: '6' }).catch(function () {}).then(function () { return t; }); });
+    });
+  }
   function readReceipt(run) {
     if (!ocrSource) return;
     ocrStatus('Preparo la lettura…');
@@ -888,7 +910,22 @@ var APP_VER = 'v45';
     getWorker().then(function (w) { w0 = w; return w.recognize(ocrSource); }).then(function (res) {
       if (run !== ocrRun) return null;
       first = parseReceipt(res.data.text); setFields(first);
-      suggestStores(res.data.text, 'storeScan', 'descScan');
+      var full = res.data.text;
+      return headerText(w0).then(function (ht) {
+        if (run !== ocrRun) return null;
+        suggestStores((ht ? ht + '\n' : '') + full, 'storeScan', 'descScan');
+        return full;
+      }).then(function (t) {
+        if (t === null) return null;
+        return afterFirst(first, run, w0);
+      });
+    }).catch(function (e) {
+      console.error('ocr', e);
+      if (run === ocrRun) { scanning(false); ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.'); }
+    });
+  }
+  function afterFirst(first, run, w0) {
+    return Promise.resolve().then(function () {
       if (isConsistent(first)) return first;                                    // subtotale + tasse = totale: lettura affidabile
       ocrStatus('Seconda lettura per più precisione…');
       return shrink(ocrFile, 2200, true, true).then(function (b2) { return w0.recognize(b2); }).then(function (res2) {
@@ -907,6 +944,8 @@ var APP_VER = 'v45';
       if (run === ocrRun) { scanning(false); ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.'); }
     });
   }
+  $('storeQBtn').onclick = manualStoreSearch;
+  $('storeQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); manualStoreSearch(); } });
   $('goScan').onclick = function () {
     resetScan();
     $('camFile').value = '';
@@ -1164,7 +1203,7 @@ var APP_VER = 'v45';
   };
 
   /* ---------- riconoscere il negozio: posizione (OpenStreetMap) + testo dello scontrino ---------- */
-  var storeScan = '', storeCalc = '', scanLoc = null, poiCache = {}, storeRun = 0;
+  var placeLoc = {}, storeScan = '', storeCalc = '', scanLoc = null, poiCache = {}, storeRun = 0;
   var POI_SKIP = /^(parking|parking_space|bench|waste_basket|bicycle_parking|toilets|shelter|fountain|charging_station|post_box|recycling|vending_machine|telephone|atm|bank|school|place_of_worship|drinking_water|clock|bicycle_rental|parking_entrance|motorcycle_parking|taxi|waste_disposal|kindergarten|grave_yard|fire_station|police|townhall|post_office|library|bus_station)$/;
   function normTxt(x) { return String(x).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim(); }
   function meters(a, b) {
@@ -1217,22 +1256,33 @@ var APP_VER = 'v45';
     return gpCall('searchNearby', { maxResultCount: 12, rankPreference: 'DISTANCE', excludedTypes: GP_SKIP, locationRestriction: { circle: { center: { latitude: fix.la, longitude: fix.lo }, radius: 80 } } })
       .then(function (j) { return gpPlaces(j, fix); });
   }
-  function googleText(addr, near, guess) {
+  function googleText(addr, near, guess, phone, alts) {
     function q(text) {
       var body = { textQuery: text, maxResultCount: 5 };
       if (near) body.locationBias = { circle: { center: { latitude: near.la, longitude: near.lo }, radius: 50000 } };
-      return gpCall('searchText', body).then(function (j) { return gpPlaces(j, null); });
+      return gpCall('searchText', body).then(function (j) { return gpPlaces(j, null); }).catch(function () { return []; });
     }
-    // 1) l'indirizzo da solo, per sapere DOVE e'; 2) nome + indirizzo, per i candidati, tenuti solo se vicini a quel punto
-    return Promise.all([q(addr), guess ? q(guess + ' ' + addr).catch(function () { return []; }) : Promise.resolve([])]).then(function (rs) {
-      var base = rs[0][0] || rs[1][0]; if (!base) return null;
+    // 1) l'indirizzo da solo, per sapere DOVE e'; 2) nome + indirizzo e telefono, per i candidati, tenuti solo se vicini a quel punto
+    var names = [guess].concat(alts || []).filter(function (n, i, a) { return n && a.indexOf(n) === i; }).slice(0, 3);
+    var jobs = [q(addr)].concat(names.map(function (n) { return q(n + ' ' + addr); }));
+    if (phone) jobs.push(q(phone));
+    return Promise.all(jobs).then(function (rs) {
+      var base = rs[0][0]; for (var k = 1; !base && k < rs.length; k++) base = rs[k][0];
+      if (!base) return null;
       var f = { la: Math.round(base.la * 1e5) / 1e5, lo: Math.round(base.lo * 1e5) / 1e5, ac: 30, label: '' };
-      var seen = {}, ps = rs[1].concat(rs[0]).filter(function (p) {
-        p.d = meters(f, { la: p.la, lo: p.lo }); var k = p.name.toLowerCase();
-        if (p.d > 150 || seen[k]) return false; seen[k] = 1; return true;
+      var seen = {}, all = [];
+      rs.slice(1).concat([rs[0]]).forEach(function (r) { all = all.concat(r); });
+      f.places = all.filter(function (p) {
+        p.d = meters(f, { la: p.la, lo: p.lo }); var key = p.name.toLowerCase();
+        if (p.d > 200 || seen[key]) return false; seen[key] = 1; return true;
       });
-      f.places = ps; return f;
+      return f;
     });
+  }
+  function googleFree(text, near) {          // ricerca libera scritta a mano
+    var body = { textQuery: text, maxResultCount: 6 };
+    if (near) body.locationBias = { circle: { center: { latitude: near.la, longitude: near.lo }, radius: 50000 } };
+    return gpCall('searchText', body).then(function (j) { return gpPlaces(j, near); });
   }
   function nearbyPlaces(fix) {
     var key = fix.la.toFixed(4) + ',' + fix.lo.toFixed(4);
@@ -1250,19 +1300,34 @@ var APP_VER = 'v45';
     });
   }
   var STREET = /\b(via|viale|v\.le|piazza|piazzale|p\.zza|p\.le|corso|c\.so|strada|str\.|largo|vicolo|borgo|lungoparma|street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|highway|hwy|parkway|pkwy|lane|ln|way)\b\.?/i;
-  function extractAddress(text) {
-    var lines = String(text || '').split(/\n/).map(function (l) { return l.replace(/[|_]/g, ' ').replace(/\s+/g, ' ').trim(); }).filter(Boolean).slice(0, 14);
-    for (var i = 0; i < lines.length; i++) {
-      var l = lines[i];
-      if (!STREET.test(l) || !/\d/.test(l) || /\d+[.,]\d{2}\b/.test(l)) continue;
-      var cap = [lines[i + 1], lines[i + 2]].filter(function (x) { return x && /\b\d{5}\b/.test(x) && !/\d+[.,]\d{2}/.test(x) && x.length < 40; })[0];
-      if (cap) l += ', ' + cap;
-      return l;
-    }
-    return '';
+  function addrLines(text) {
+    return String(text || '').split(/\n/).map(function (l) { return l.replace(/[|_~]/g, ' ').replace(/\b5t\b/g, 'St').replace(/\s+/g, ' ').trim(); }).filter(Boolean).slice(0, 22);
   }
-  function geocodeAddress(addr, near, guess) {
-    return googleText(addr, near, guess).catch(function () { return null; }).then(function (r) { return r || osmGeocode(addr, near); });
+  var CITYLINE = /(\b\d{5}\b\s+[A-Za-z][A-Za-z'. ]{2,}(\s*\(?[A-Z]{2}\)?)?\s*$)|([A-Za-z][A-Za-z'. ]{2,},?\s+\(?(TX|TK|Texas|[A-Z]{2})\)?\s+\d{5}(-\d{4})?\b)/;
+  var HWY = /\b(FM|RM|SH|US|IH|CR|Hwy|Highway|I-?\d{2,3})\s?-?\d{1,4}\b/i;
+  function extractPhone(text) {
+    var m = /(\(?\b\d{3}\)?[\s.\-]{1,2}\d{3}[\s.\-]\d{4}\b)|(\b0\d{1,3}[\s.\/\-]?\d{5,8}\b)/.exec(String(text || '').split(/\n/).slice(0, 22).join('\n'));
+    return m ? m[0].trim() : '';
+  }
+  function extractAddress(text) {
+    var lines = addrLines(text), street = '', city = '', i;
+    for (i = 0; i < lines.length && !street; i++) {
+      var l = lines[i];
+      if (/\d+[.,]\d{2}\b/.test(l) || /^\s*(tel|phone|p\.?\s?iva|c\.?f|vat)/i.test(l)) continue;
+      if (((STREET.test(l) || HWY.test(l)) && /\d/.test(l)) || /^\d{1,5}\s+[A-Za-z]{3,}(\s+[A-Za-z]{2,})+$/.test(l)) street = l;
+    }
+    var from = Math.max(0, i - 1);
+    for (var j = from; j < Math.min(lines.length, from + 4); j++) {
+      var c = lines[j];
+      if (c === street || /\d+[.,]\d{2}\b/.test(c) || c.length > 50) continue;
+      if (CITYLINE.test(c)) { city = c; break; }
+    }
+    if (street && city && street.indexOf(city) >= 0) city = '';
+    if (street) return street + (city ? ', ' + city : '');
+    return city;
+  }
+  function geocodeAddress(addr, near, guess, phone, alts) {
+    return googleText(addr, near, guess, phone, alts).catch(function () { return null; }).then(function (r) { return r || osmGeocode(addr, near); });
   }
   function osmGeocode(addr, near) {
     var qs = [addr], bare = addr.replace(STREET, ' ').replace(/\b(PR|MI|RM|TO|BO)\b/g, ' ').replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();   // OSM a volte usa un altro nome ("Piazza Arturo X" per "Piazzale X")
@@ -1295,19 +1360,37 @@ var APP_VER = 'v45';
     nt.forEach(function (w) { if (words.some(function (x) { return x.length >= 3 && lev(w, x) <= (w.length >= 6 ? 1 : 0); }) || (w.length >= 4 && flat.indexOf(w) >= 0)) hit++; });
     return nt.length ? hit / nt.length : 0;
   }
-  function headerGuess(text) {
-    var lines = String(text || '').split(/\n/).slice(0, 8);
-    for (var i = 0; i < lines.length; i++) {
-      var l = lines[i].replace(/[^A-Za-z0-9&'.\- ]/g, ' ').replace(/\s+/g, ' ').trim();
-      if (/[A-Za-z]{3,}/.test(l) && !/\d+[.,]\d{2}|\d{3,}|total|receipt|thank|welcome|www|\.com|tel|phone|\bstore\b|order|server|table|\b(via|viale|v\.le|piazza|piazzale|p\.zza|p\.le|corso|c\.so|strada|largo|vicolo|borgo|street|avenue|road|boulevard|highway)\b|\biva\b|scontrino|fiscale|commerciale|documento|cassa|operatore|\bdata\b|\bora\b|\bcap\b/i.test(l) && !/\b\d{1,4}\s*$/.test(l) && l.length <= 32) return l;
+  function headerGuesses(text, n) {
+    var lines = String(text || '').split(/\n/).slice(0, 10), out = [];
+    for (var i = 0; i < lines.length && out.length < (n || 1); i++) {
+      var l = lines[i].replace(/[^A-Za-z0-9&'.\- ]/g, ' ').replace(/\b(srl|spa|snc|sas)\b\.?/gi, ' ').replace(/\s+/g, ' ').trim();
+      if (/[A-Za-z]{3,}/.test(l) && !/\d+[.,]\d{2}|\d{3,}|total|receipt|thank|welcome|www|\.com|tel|phone|\bstore\b|order|server|table|\b(via|viale|v\.le|piazza|piazzale|p\.zza|p\.le|corso|c\.so|strada|largo|vicolo|borgo|street|avenue|road|boulevard|highway)\b|\biva\b|scontrino|fiscale|commerciale|documento|cassa|operatore|\bdata\b|\bora\b|\bcap\b|\bs\.r\.l|\bp\.?\s?i\b|\bc\.?f\b|arrivederci|grazie/i.test(l) && !/\b\d{1,4}\s*$/.test(l) && l.length <= 32 && out.indexOf(l) < 0) out.push(l);
     }
-    return '';
+    return out;
+  }
+  function headerGuess(text) { return headerGuesses(text, 1)[0] || ''; }
+  function manualStoreSearch() {
+    var q = $('storeQ').value.trim(); if (!q) return;
+    var hint = $('storeHint'); hint.textContent = 'Cerco…';
+    getFix(4000).then(function (gps) {
+      return googleFree(q, gps).catch(function () { return osmGeocode(q, gps).then(function (r) { return r ? [{ name: q, la: r.la, lo: r.lo, d: 0 }] : []; }); });
+    }).then(function (ps) {
+      var box = $('storeScan'); box.innerHTML = ''; storeRun++;
+      if (!ps.length) { hint.textContent = 'Non trovato: scrivi il nome qui sotto.'; return; }
+      hint.textContent = '';
+      ps.slice(0, 5).forEach(function (p) {
+        placeLoc[p.name] = { la: Math.round(p.la * 1e5) / 1e5, lo: Math.round(p.lo * 1e5) / 1e5 };
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = p.name; b.setAttribute('aria-pressed', 'false');
+        b.onclick = function () { storeScan = p.name; $('descScan').value = p.name; scanLoc = { la: placeLoc[p.name].la, lo: placeLoc[p.name].lo, ac: 20, src: 'indirizzo' }; [].forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); }); };
+        box.appendChild(b);
+      });
+    });
   }
   function suggestStores(text, boxId, inputId) {
     var box = $(boxId), input = $(inputId), run = ++storeRun, head = text ? text.split('\n').slice(0, 10).join(' ') : '';
     box.innerHTML = '';
     function pick(name, auto) {
-      if (boxId === 'storeScan') storeScan = name; else storeCalc = name;
+      if (boxId === 'storeScan') { storeScan = name; if (placeLoc[name] && scanLoc) scanLoc = { la: placeLoc[name].la, lo: placeLoc[name].lo, ac: 20, src: 'indirizzo' }; } else storeCalc = name;
       input.value = name; [].forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c.textContent === name)); });
       if (!auto) input.focus();
     }
@@ -1320,16 +1403,20 @@ var APP_VER = 'v45';
       });
       if (best && !input.value.trim()) pick(best, true);
     }
-    var guess = head ? headerGuess(text) : '', addr = head ? extractAddress(text) : '', hint = boxId === 'storeScan' ? $('storeHint') : null;
+    var guess = head ? headerGuess(text) : '', alts = head ? headerGuesses(text, 3) : [], phone = head ? extractPhone(text) : '', addr = head ? extractAddress(text) : '', hint = boxId === 'storeScan' ? $('storeHint') : null;
     if (hint) hint.textContent = '';
     if (boxId === 'storeScan') scanLoc = null;
+    var lastGps = null;
     function work(fix, fromAddr) {
       if (!fix) { if (guess) show([guess], guess); return; }
       if (fromAddr && boxId === 'storeScan') scanLoc = { la: fix.la, lo: fix.lo, ac: fix.ac, src: 'indirizzo' };
       if (hint && fromAddr) hint.textContent = 'Indirizzo letto sullo scontrino: ' + addr;
-      return nearbyPlaces(fix).then(function (places) {
+      var gpsP = (fromAddr && lastGps && meters(lastGps, fix) < 300) ? nearbyPlaces(lastGps).catch(function () { return []; }) : Promise.resolve([]);
+      return Promise.all([nearbyPlaces(fix), gpsP]).then(function (rr) {
+        var places = rr[0].concat(rr[1].filter(function (p) { return !rr[0].some(function (q) { return q.name.toLowerCase() === p.name.toLowerCase(); }); }));
         if (run !== storeRun) return;
         if (fix.places) places = fix.places.concat(places.filter(function (p) { return !fix.places.some(function (q) { return q.name.toLowerCase() === p.name.toLowerCase(); }); }));
+        places.forEach(function (p) { if (p.la != null) placeLoc[p.name] = { la: Math.round(p.la * 1e5) / 1e5, lo: Math.round(p.lo * 1e5) / 1e5 }; });
         var scored = places.map(function (p) { return { n: p.name, d: p.d, m: head ? Math.max(textMatch(p.name, head), p.brand ? textMatch(p.brand, head) : 0) : 0 }; });
         scored.sort(function (a, b) { return (b.m - a.m) || (a.d - b.d); });
         var list = scored.map(function (x) { return x.n; }), best = '';
@@ -1343,8 +1430,9 @@ var APP_VER = 'v45';
     }
     getFix(8000).then(function (gps) {
       if (run !== storeRun) return;
+      lastGps = gps;
       if (!addr) return work(gps, false);
-      return geocodeAddress(addr, gps, guess).then(function (a) { if (run !== storeRun) return; return a ? work(a, true) : work(gps, false); }, function () { return work(gps, false); });
+      return geocodeAddress(addr, gps, guess, phone, alts).then(function (a) { if (run !== storeRun) return; return a ? work(a, true) : work(gps, false); }, function () { return work(gps, false); });
     }).catch(function () { if (guess) show([guess], guess); });
   }
 
