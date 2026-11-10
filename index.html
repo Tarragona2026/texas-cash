@@ -281,6 +281,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       </div>
       <div class="hint" id="ocrEur"></div>
       <div class="chips store-chips" id="storeScan" aria-label="Negozio riconosciuto"></div>
+      <div class="hint" id="storeHint"></div>
       <input id="descScan" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="catScan" aria-label="Categoria"></select>
       <button class="btn" id="saveScan" type="button">Salva scontrino e spesa</button>
@@ -543,7 +544,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
   /* ---------- salvataggio spese ---------- */
   function addExpense(e) {
-    var fx0 = freshFix(); if (fx0) e.loc = fx0;
+    var fx0 = e.loc ? null : freshFix(); if (fx0) e.loc = fx0;
     st.expenses.push(e); persist();
     if (!e.loc) getFix(8000).then(function (f) { if (f && !e.loc) { e.loc = f; persist(); } });
   }
@@ -636,7 +637,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   function resetScan() {
     ocrRun++; scanning(false); ocrSource = null; pendingPhoto = null;
     $('pending').hidden = true; ocrStatus('');
-    setFields({}); $('descScan').value = ''; storeScan = ''; $('storeScan').innerHTML = '';
+    setFields({}); $('descScan').value = ''; storeScan = ''; scanLoc = null; $('storeScan').innerHTML = ''; $('storeHint').textContent = '';
   }
   function handlePhoto(file) {
     if (!file) return;
@@ -691,6 +692,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     var e = { id: id, ts: Date.now(), desc: $('descScan').value.trim(), cat: $('catScan').value, usd: r2(tot), eur: tot * st.rate,
       sub: sub ? r2(sub) : null, tax: tax ? r2(tax) : null, tip: tip ? r2(tip) : null, photo: hasPhoto, src: 'scontrino' };
     if (storeScan) e.store = storeScan;
+    if (scanLoc) e.loc = { la: scanLoc.la, lo: scanLoc.lo, ac: scanLoc.ac, src: 'indirizzo' };
     (hasPhoto ? putPhoto(id, pendingPhoto) : Promise.resolve()).then(function () {
       addExpense(e); resetScan();
       toast('Scontrino salvato: ' + usd(e.usd));
@@ -928,7 +930,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   };
 
   /* ---------- riconoscere il negozio: posizione (OpenStreetMap) + testo dello scontrino ---------- */
-  var storeScan = '', storeCalc = '', poiCache = {}, storeRun = 0;
+  var storeScan = '', storeCalc = '', scanLoc = null, poiCache = {}, storeRun = 0;
   var POI_SKIP = /^(parking|parking_space|bench|waste_basket|bicycle_parking|toilets|shelter|fountain|charging_station|post_box|recycling|vending_machine|telephone|atm|bank|school|place_of_worship|drinking_water|clock|bicycle_rental|parking_entrance|motorcycle_parking|taxi|waste_disposal|kindergarten|grave_yard|fire_station|police|townhall|post_office|library|bus_station)$/;
   function normTxt(x) { return String(x).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim(); }
   function meters(a, b) {
@@ -977,6 +979,34 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       return out;
     });
   }
+  var STREET = /\b(via|viale|v\.le|piazza|piazzale|p\.zza|p\.le|corso|c\.so|strada|str\.|largo|vicolo|borgo|lungoparma|street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|highway|hwy|parkway|pkwy|lane|ln|way)\b\.?/i;
+  function extractAddress(text) {
+    var lines = String(text || '').split(/\n/).map(function (l) { return l.replace(/[|_]/g, ' ').replace(/\s+/g, ' ').trim(); }).filter(Boolean).slice(0, 14);
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i];
+      if (!STREET.test(l) || !/\d/.test(l) || /\d+[.,]\d{2}\b/.test(l)) continue;
+      var cap = [lines[i + 1], lines[i + 2]].filter(function (x) { return x && /\b\d{5}\b/.test(x) && !/\d+[.,]\d{2}/.test(x) && x.length < 40; })[0];
+      if (cap) l += ', ' + cap;
+      return l;
+    }
+    return '';
+  }
+  function geocodeAddress(addr, near) {
+    var qs = [addr], bare = addr.replace(STREET, ' ').replace(/\b(PR|MI|RM|TO|BO)\b/g, ' ').replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();   // OSM a volte usa un altro nome ("Piazza Arturo X" per "Piazzale X")
+    if (bare && bare !== addr) qs.push(bare);
+    function one(q) {
+      var u = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=en&q=' + encodeURIComponent(q);
+      if (near) u += '&viewbox=' + (near.lo - 1.5) + ',' + (near.la + 1.5) + ',' + (near.lo + 1.5) + ',' + (near.la - 1.5);
+      return fetchJson(u, null, 8000).then(function (j) {
+        if (!j || !j.length) return null;
+        return { la: Math.round(Number(j[0].lat) * 1e5) / 1e5, lo: Math.round(Number(j[0].lon) * 1e5) / 1e5, ac: 30, label: j[0].display_name };
+      });
+    }
+    return one(qs[0]).then(function (r) {
+      if (r || qs.length < 2) return r;
+      return new Promise(function (res) { setTimeout(res, 1100); }).then(function () { return one(qs[1]); });   // Nominatim: al massimo una richiesta al secondo
+    });
+  }
   function lev(a, b) {
     var m = a.length, n = b.length, d = [], i, j;
     for (i = 0; i <= m; i++) { d[i] = [i]; } for (j = 1; j <= n; j++) d[0][j] = j;
@@ -996,7 +1026,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     var lines = String(text || '').split(/\n/).slice(0, 8);
     for (var i = 0; i < lines.length; i++) {
       var l = lines[i].replace(/[^A-Za-z0-9&'.\- ]/g, ' ').replace(/\s+/g, ' ').trim();
-      if (/[A-Za-z]{3,}/.test(l) && !/\d+[.,]\d{2}|\d{3,}|total|receipt|thank|welcome|www|\.com|tel|phone|store|order|server|table/i.test(l) && l.length <= 32) return l;
+      if (/[A-Za-z]{3,}/.test(l) && !/\d+[.,]\d{2}|\d{3,}|total|receipt|thank|welcome|www|\.com|tel|phone|\bstore\b|order|server|table|\b(via|viale|v\.le|piazza|piazzale|p\.zza|p\.le|corso|c\.so|strada|largo|vicolo|borgo|street|avenue|road|boulevard|highway)\b|\biva\b|scontrino|fiscale|commerciale|documento|cassa|operatore|\bdata\b|\bora\b|\bcap\b/i.test(l) && !/\b\d{1,4}\s*$/.test(l) && l.length <= 32) return l;
     }
     return '';
   }
@@ -1017,10 +1047,13 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       });
       if (best && !input.value.trim()) pick(best, true);
     }
-    var guess = head ? headerGuess(text) : '';
-    getFix(8000).then(function (fix) {
-      if (run !== storeRun) return;
+    var guess = head ? headerGuess(text) : '', addr = head ? extractAddress(text) : '', hint = boxId === 'storeScan' ? $('storeHint') : null;
+    if (hint) hint.textContent = '';
+    if (boxId === 'storeScan') scanLoc = null;
+    function work(fix, fromAddr) {
       if (!fix) { if (guess) show([guess], guess); return; }
+      if (fromAddr && boxId === 'storeScan') scanLoc = { la: fix.la, lo: fix.lo, ac: fix.ac, src: 'indirizzo' };
+      if (hint && fromAddr) hint.textContent = 'Indirizzo letto sullo scontrino: ' + addr;
       return nearbyPlaces(fix).then(function (places) {
         if (run !== storeRun) return;
         var scored = places.map(function (p) { return { n: p.name, d: p.d, m: head ? Math.max(textMatch(p.name, head), p.brand ? textMatch(p.brand, head) : 0) : 0 }; });
@@ -1028,10 +1061,16 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
         var list = scored.map(function (x) { return x.n; }), best = '';
         if (scored.length && scored[0].m >= 0.5) best = scored[0].n;                                   // il nome si legge sullo scontrino
         else if (head && guess && !scored.length) best = guess;
-        else if (head && scored.length && scored[0].d <= 25) best = scored[0].n;                        // quasi sicuro: e' il negozio piu' vicino
-        if (guess && list.indexOf(guess) < 0 && (!best || best === guess)) list.unshift(guess);
+        else if (head && !fromAddr && scored.length && scored[0].d <= 25) best = scored[0].n;           // quasi sicuro: e' il negozio piu' vicino
+        else if (head && guess) best = guess;                                                          // il nome in cima allo scontrino
+        if (guess && list.indexOf(guess) < 0) list.unshift(guess);
         show(list, best);
       });
+    }
+    getFix(8000).then(function (gps) {
+      if (run !== storeRun) return;
+      if (!addr) return work(gps, false);
+      return geocodeAddress(addr, gps).then(function (a) { if (run !== storeRun) return; return a ? work(a, true) : work(gps, false); }, function () { return work(gps, false); });
     }).catch(function () { if (guess) show([guess], guess); });
   }
 
