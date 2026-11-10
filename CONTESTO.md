@@ -9,7 +9,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 ## Come lavorare
 - Parla in italiano, risposte brevi e semplici: Matteo non è un programmatore.
 - Dopo ogni modifica: commit e push su `main` (pubblica l'app in 1–3 minuti).
-- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v49**; Mac `mac/sw.js` v11).
+- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v50**; Mac `mac/sw.js` v11).
 - Prima il telefono (`index.html`), poi il Mac (`mac/index.html`).
 - Prova nel browser prima di pubblicare; cancella i dati di prova da Firebase (viaggi `_prova_*`).
 - Il repository è pubblico: MAI scrivere nel codice indirizzi privati, numeri di telefono, PIN o la chiave privata del diario. L'indirizzo di casa di Flavi non va nel codice.
@@ -22,6 +22,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 - `firebase-config.js`, `google-config.js`, `diary-crypto.js`, `diario-config.js` (chiave pubblica diario), `diario-chiavi.html`.
 - Firebase progetto `xmas-texas`, codice viaggio `texas2026`; raccolte sotto `trips/{codice}`: items, photos, album, albumFull, diary, diaryPhotos, checklist, calendar.
 - Dati locali: localStorage `texascash.v1`, foto in IndexedDB `texascash` / `photos`.
+- Documenti: archivio a parte, mai in sync né nel backup: IndexedDB `texascash-docs` / `files` e localStorage `texascash.docs.v1` (scheda Flavia e dati del PIN). PDF mostrati con `vendor/pdf.min.js` (pdf.js 3.11 legacy, caricato solo quando serve).
 
 ## Fatto
 - Spese, ricariche, categorie, cambio, grafico, sincronizzazione Firebase.
@@ -31,16 +32,17 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 - Album foto condiviso; diario privato cifrato con calendario e mappa.
 - Checklist per persona (Leslie vede le 3, Matteo la sua e di Leo, Leo solo la sua, il Mac tutte).
 - Calendario di viaggio con itinerario aggiornato (id `c2_...`, `seedVer` 2) e scheda "Domani".
+- Documenti (v50, solo telefono): cartella "Viaggio" (foto o PDF), cartella "Personali" cifrata con un PIN scelto su ogni telefono (AES-GCM, chiave dal PIN; si richiude uscendo), scheda "Flavia" (indirizzo, telefono, note scritti nell'app; tasti WhatsApp, Chiama, Mappe).
 - App Mac: spese, mappa, foto, diari (file chiave + PIN), checklist.
 
 ## Da fare (in ordine)
-1. **Documenti** (prossimo, non ancora iniziato): solo sul telefono, mai su Firebase, anche senza rete. Cartella "Viaggio" (ESTA, assicurazione, biglietti: foto o PDF), cartella "Personali" dietro PIN (solo foto), scheda "Flavia" con indirizzo e telefono inseriti da Matteo nell'app e tasto WhatsApp. Vedi SPECIFICHE.md punto 9.
-2. Chiamata rapida (wa.me / tel:, contatti modificabili nelle Impostazioni).
-3. "Dove sono i miei" (ultima posizione di Leslie e Leo).
-4. Copia di sicurezza completa.
-5. Grafica e tasti: Matteo li rivede quando lo dice lui.
-6. Calendario sul Mac; PDF Mac con diari, foto e mappa (facoltativi).
+1. Chiamata rapida (wa.me / tel:, contatti modificabili nelle Impostazioni).
+2. "Dove sono i miei" (ultima posizione di Leslie e Leo).
+3. Copia di sicurezza completa.
+4. Grafica e tasti: Matteo li rivede quando lo dice lui.
+5. Calendario sul Mac; PDF Mac con diari, foto e mappa (facoltativi).
 
 ## Da confermare con Matteo
+- Documenti: provati solo nel browser del Mac con file finti. Da provare su iPhone: foto dalla fotocamera, PDF veri (biglietti, assicurazione), PIN.
 - Scontrini veri: la lettura di indirizzo, negozio e data è stata provata solo con scontrini finti.
 - Itinerario: mancano indirizzi di steak house del 23, colazione del 24, Airbnb di Galveston, BBQ del 28.

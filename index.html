@@ -173,7 +173,7 @@ h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; mar
 .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); font-weight: 700; }
 .hint { font-size: .85rem; color: var(--ink-soft); }
 
-input[type=text], select {
+input[type=text], input[type=password], input[type=tel], select {
   background: var(--field); border: 0; border-radius: 12px; padding: 10px 12px; min-height: 44px; width: 100%; min-width: 0;
 }
 input::placeholder { color: var(--ink-soft); opacity: .8; }
@@ -206,6 +206,22 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .app .ic.lime { background: linear-gradient(180deg, #7ed957, #2e9e3a); }
 .app .ic.sky { background: linear-gradient(180deg, #5ac8fa, #1a7fc4); }
 .app .ic.teal { background: linear-gradient(180deg, #40c8e0, #0a84a8); }
+.app .ic.purple { background: linear-gradient(180deg, #c07cff, #8a3fd1); }
+.doclist { display: flex; flex-direction: column; gap: 8px; }
+.docrow { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: var(--field); border-radius: 14px; padding: 8px 12px 8px 8px; text-align: left; color: var(--ink); min-height: 64px; }
+.docrow img, .docico { flex: none; width: 48px; height: 48px; border-radius: 10px; object-fit: cover; }
+.docico { display: grid; place-items: center; background: var(--bad); color: #fff; font-weight: 800; font-size: .75rem; }
+.docrow b { display: block; overflow-wrap: anywhere; }
+.docrow small { color: var(--ink-soft); }
+.viewer.docv { justify-content: flex-start; padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.docvbody { flex: 1; min-height: 0; width: 100%; overflow: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.viewer.docv .docvbody > img, .docvbody > canvas { width: 100%; max-width: none; max-height: none; height: auto; border-radius: 6px; flex: none; }
+.viewer.docv .docvbody.zoom > img, .docvbody.zoom > canvas { width: 250%; }
+.docvbody > .vcap { width: 100%; padding: 30px 0; }
+.viewer.docv .btnrow { width: 100%; flex: none; }
+.viewer.docv .btnrow .btn { flex: 1 1 40%; }
+.flaaddr { font-size: 1.15rem; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
+a.btn { text-decoration: none; }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
 @media (prefers-reduced-motion: reduce) { .app { transition: none; } }
@@ -346,6 +362,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goAlbum" type="button"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.500" cy="10" r="1.600"/><path d="M21 16l-5-5-8 8"/></svg></span>Foto</button>
       <button class="app" id="goTr" type="button"><span class="ic teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h9M8.500 3v2M6 5c.5 3 2.500 5.500 5 7M11 5c-.5 3-3 6-6.500 8"/><path d="M12 20l4.500-10L21 20M13.600 16.500h5.800"/></svg></span>Traduttore</button>
       <button class="app" id="goMap" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span>Mappa</button>
+      <button class="app" id="goDocs" type="button"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.500 7.500A2.500 2.500 0 0 1 6 5h3.600l2 2.200H18a2.500 2.500 0 0 1 2.500 2.500v7.300A2.500 2.500 0 0 1 18 19.500H6A2.500 2.500 0 0 1 3.500 17z"/><path d="M8 12.500h8M8 15.500h5"/></svg></span>Documenti</button>
       <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
     </nav>
     <section class="card" id="tomCard" hidden><div class="label" id="tomLabel">Domani</div><div id="tomList"></div></section>
@@ -574,6 +591,69 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     </section>
   </section>
 
+  <!-- DOCUMENTI: restano solo su questo telefono -->
+  <section id="v-docs" class="wrap" aria-label="Documenti" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Documenti</h2><span></span></div>
+    <div class="chips" id="docTabs" role="tablist">
+      <button class="chip" type="button" data-tab="v" aria-pressed="true">Viaggio</button>
+      <button class="chip" type="button" data-tab="p" aria-pressed="false">Personali</button>
+      <button class="chip" type="button" data-tab="f" aria-pressed="false">Flavia</button>
+    </div>
+    <div id="docV" class="wrap">
+      <section class="card">
+        <button class="btn" id="docAddV" type="button">Aggiungi foto o PDF</button>
+        <input type="file" id="docFileV" accept="image/*,application/pdf" hidden>
+        <div class="doclist" id="docListV"></div>
+        <div class="hint">ESTA, assicurazione, biglietti, prenotazioni. Restano solo su questo telefono: non vanno online, non entrano nel backup e si aprono anche senza rete.</div>
+      </section>
+    </div>
+    <div id="docP" class="wrap" hidden>
+      <section class="card" id="docLock">
+        <div class="label" id="docLockT"></div>
+        <input type="password" id="docPin" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN" aria-label="PIN">
+        <input type="password" id="docPin2" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Ripeti il PIN" aria-label="Ripeti il PIN">
+        <button class="btn" id="docUnlock" type="button">Apri</button>
+        <div class="hint" id="docLockHint"></div>
+        <button class="btn ghost small" id="docForgot" type="button">Ho dimenticato il PIN</button>
+      </section>
+      <section class="card" id="docOpenP" hidden>
+        <button class="btn" id="docAddP" type="button">Aggiungi foto</button>
+        <input type="file" id="docFileP" accept="image/*" hidden>
+        <div class="agrid" id="docGridP"></div>
+        <div class="hint" id="docHintP">Carta d'identità e passaporto, solo come foto. Sono salvate cifrate con il tuo PIN e restano solo su questo telefono.</div>
+        <div class="btnrow">
+          <button class="btn ghost" id="docClose" type="button">Chiudi cartella</button>
+          <button class="btn ghost" id="docChPin" type="button">Cambia PIN</button>
+        </div>
+      </section>
+    </div>
+    <div id="docF" class="wrap" hidden>
+      <section class="card" id="flaView">
+        <div class="label">Flavia</div>
+        <div class="flaaddr" id="flaAddrT"></div>
+        <div class="num" id="flaTelT"></div>
+        <div class="hint" id="flaNoteT"></div>
+        <div class="btnrow">
+          <a class="btn" id="flaWa" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn ghost" id="flaCall">Chiama</a>
+        </div>
+        <div class="btnrow">
+          <a class="btn ghost" id="flaMap" target="_blank" rel="noopener">Apri in Mappe</a>
+          <button class="btn ghost" id="flaCopy" type="button">Copia indirizzo</button>
+        </div>
+        <button class="btn ghost small" id="flaEditBtn" type="button">Modifica</button>
+      </section>
+      <section class="card" id="flaEdit" hidden>
+        <div class="label">Scheda di Flavia</div>
+        <div class="field"><label class="label" for="flaAddr">Indirizzo</label><textarea class="trarea" id="flaAddr" autocomplete="off" placeholder="Via, città, stato, CAP"></textarea></div>
+        <div class="field"><label class="label" for="flaTel">Telefono (con prefisso, es. +1…)</label><input type="tel" id="flaTel" autocomplete="off" placeholder="+1"></div>
+        <div class="field"><label class="label" for="flaNote">Note (facoltative)</label><input type="text" id="flaNote" autocomplete="off" placeholder="es. codice del cancello"></div>
+        <button class="btn" id="flaSave" type="button">Salva</button>
+        <div class="hint">Indirizzo e numero restano solo su questo telefono: vanno scritti su ognuno dei tre.</div>
+      </section>
+    </div>
+  </section>
+
   <!-- IMPOSTAZIONI -->
   <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
@@ -636,11 +716,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v49';
+var APP_VER = 'v50';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
-  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album', 'dia', 'chk', 'cal'];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album', 'dia', 'chk', 'cal', 'docs'];
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
@@ -737,6 +817,8 @@ var APP_VER = 'v49';
     if (v === 'dia') openDiary();
     if (v === 'chk') renderChk();
     if (v === 'cal') openCal();
+    if (v !== 'docs') docLock();
+    if (v === 'docs') renderDocs();
     if (v === 'calc') { storeCalc = ''; suggestStores('', 'storeCalc', 'desc'); }
     if (v === 'calc' || v === 'scan') getFix(8000);
   }
@@ -751,6 +833,7 @@ var APP_VER = 'v49';
   $('goTr').onclick = function () { go('tr'); };
   $('goMap').onclick = function () { go('map'); };
   $('goLog').onclick = function () { go('log'); };
+  $('goDocs').onclick = function () { go('docs'); };
   $('goSettings').onclick = function () { go('settings'); };
   $('goTopup').onclick = function () { go('topup'); };
 
@@ -2372,6 +2455,277 @@ var APP_VER = 'v49';
   /* ---------- avvio ---------- */
   $('cat').innerHTML = $('catScan').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  /* ---------- documenti: solo su questo telefono, mai online né nel backup ---------- */
+  /* Archivio separato (IndexedDB "texascash-docs" e chiave localStorage a parte): così non finisce in sync né nel backup.
+     La cartella Personali è cifrata (AES-GCM) con una chiave ricavata dal PIN: il PIN non viene salvato da nessuna parte. */
+  var DOCKEY = 'texascash.docs.v1', dm = {}, ddbp = null, docTab = 'v', docKey = null, docUrls = [], docHideTs = 0, flaEditing = false, pdfp = null;
+  try { dm = JSON.parse(localStorage.getItem(DOCKEY)) || {}; } catch (e) { dm = {}; }
+  function docMeta() { try { localStorage.setItem(DOCKEY, JSON.stringify(dm)); } catch (e) {} }
+  function ddb() {
+    if (!ddbp) ddbp = new Promise(function (res, rej) {
+      try {
+        var r = indexedDB.open('texascash-docs', 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('files', { keyPath: 'id' }); };
+        r.onsuccess = function () { res(r.result); };
+        r.onerror = function () { rej(r.error); };
+      } catch (e) { rej(e); }
+    });
+    return ddbp;
+  }
+  function docPutAll(recs) {
+    return ddb().then(function (d) { return new Promise(function (res, rej) {
+      var t = d.transaction('files', 'readwrite'), s = t.objectStore('files');
+      recs.forEach(function (r) { s.put(r); });
+      t.oncomplete = function () { res(); }; t.onerror = t.onabort = function () { rej(t.error || new Error('db')); };
+    }); });
+  }
+  function docPut(rec) { return docPutAll([rec]); }
+  function docAll(f) {
+    return ddb().then(function (d) { return new Promise(function (res) {
+      var q = d.transaction('files').objectStore('files').getAll();
+      q.onsuccess = function () { res((q.result || []).filter(function (x) { return x.f === f; }).sort(function (a, b) { return b.ts - a.ts; })); };
+      q.onerror = function () { res([]); };
+    }); }).catch(function () { return []; });
+  }
+  function docDelMany(ids) {
+    return ddb().then(function (d) { return new Promise(function (res) {
+      var t = d.transaction('files', 'readwrite'), s = t.objectStore('files');
+      ids.forEach(function (id) { s.delete(id); });
+      t.oncomplete = res; t.onerror = t.onabort = res;
+    }); }).catch(function () {});
+  }
+  function docDay(ts) { return new Date(ts).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }); }
+
+  /* cifratura della cartella Personali */
+  function b64(buf) { var b = new Uint8Array(buf), s = '', i; for (i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s); }
+  function unb64(s) { var t = atob(s), b = new Uint8Array(t.length), i; for (i = 0; i < t.length; i++) b[i] = t.charCodeAt(i); return b; }
+  function pinKey(pin, salt) {
+    return crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']).then(function (k) {
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: salt, iterations: 250000, hash: 'SHA-256' }, k, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    });
+  }
+  function docEnc(key, buf) { var iv = crypto.getRandomValues(new Uint8Array(12)); return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, buf).then(function (d) { return { iv: iv, data: d }; }); }
+  function docDec(key, rec) { return crypto.subtle.decrypt({ name: 'AES-GCM', iv: rec.iv }, key, rec.data); }
+  function pinNew(pin) {
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    return pinKey(pin, salt).then(function (k) {
+      return docEnc(k, new TextEncoder().encode('texas-ok')).then(function (e) { return { key: k, pin: { salt: b64(salt), iv: b64(e.iv), chk: b64(e.data) } }; });
+    });
+  }
+  function pinCheck(pin) {
+    return pinKey(pin, unb64(dm.pin.salt)).then(function (k) {
+      return crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(dm.pin.iv) }, k, unb64(dm.pin.chk)).then(function () { return k; }, function () { return null; });
+    });
+  }
+  function pinOk(p) { if (!/^\d{4,12}$/.test(p)) { toast('Il PIN deve avere almeno 4 cifre (solo numeri)'); return false; } return true; }
+  function docLock() {
+    docKey = null;
+    docUrls.forEach(function (u) { URL.revokeObjectURL(u); }); docUrls = [];
+    $('docGridP').innerHTML = ''; $('docPin').value = ''; $('docPin2').value = '';
+    Array.prototype.forEach.call(document.querySelectorAll('#viewerHost .docv'), function (v) { if (v._close) v._close(); else v.remove(); });
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { docHideTs = Date.now(); return; }
+    if (docKey && docHideTs && Date.now() - docHideTs > 180000) { docLock(); if (hashView() === 'docs') renderDocs(); }
+  });
+
+  /* schermata */
+  function renderDocs() {
+    Array.prototype.forEach.call($('docTabs').children, function (b) { b.setAttribute('aria-pressed', b.dataset.tab === docTab ? 'true' : 'false'); });
+    $('docV').hidden = docTab !== 'v'; $('docP').hidden = docTab !== 'p'; $('docF').hidden = docTab !== 'f';
+    if (docTab === 'v') renderDocV();
+    if (docTab === 'p') renderDocP();
+    if (docTab === 'f') renderFla();
+  }
+  Array.prototype.forEach.call($('docTabs').children, function (b) { b.onclick = function () { if (docTab === 'p' && b.dataset.tab !== 'p') docLock(); docTab = b.dataset.tab; flaEditing = false; renderDocs(); }; });
+
+  /* cartella Viaggio */
+  function renderDocV() {
+    docAll('v').then(function (list) {
+      var h = $('docListV'); h.innerHTML = '';
+      if (!list.length) { var e = document.createElement('div'); e.className = 'hint'; e.textContent = 'Ancora nessun documento.'; h.appendChild(e); return; }
+      list.forEach(function (rec) {
+        var r = document.createElement('button'), ic, tx = document.createElement('span'), nm = document.createElement('b'), sm = document.createElement('small');
+        r.type = 'button'; r.className = 'docrow';
+        if (rec.kind === 'img' && rec.thumb) { ic = document.createElement('img'); ic.alt = ''; ic.src = rec.thumb; } else { ic = document.createElement('span'); ic.className = 'docico'; ic.textContent = rec.kind === 'pdf' ? 'PDF' : 'FOTO'; }
+        nm.textContent = rec.name; sm.textContent = (rec.kind === 'pdf' ? 'PDF' : 'Foto') + ' · ' + docDay(rec.ts);
+        tx.appendChild(nm); tx.appendChild(sm); r.appendChild(ic); r.appendChild(tx);
+        r.onclick = function () { docView(rec, rec.buf, renderDocV); };
+        h.appendChild(r);
+      });
+    });
+  }
+  $('docAddV').onclick = function () { $('docFileV').value = ''; $('docFileV').click(); };
+  $('docFileV').addEventListener('change', function () {
+    var fl = $('docFileV').files[0]; if (!fl) return;
+    var pdf = fl.type === 'application/pdf' || /\.pdf$/i.test(fl.name);
+    if (!pdf && fl.type.indexOf('image/') !== 0) { toast('Scegli una foto o un PDF'); return; }
+    if (pdf && fl.size > 30 * 1024 * 1024) { toast('PDF troppo grande (più di 30 MB)'); return; }
+    var def = pdf ? fl.name.replace(/\.pdf$/i, '') : '';
+    var name = prompt('Che documento è? (es. ESTA Matteo, Assicurazione, Biglietto aereo)', def);
+    if (name === null) return;
+    name = name.trim() || def || 'Documento';
+    var job = pdf ? fl.arrayBuffer().then(function (b) { return { buf: b, type: 'application/pdf', thumb: '' }; })
+      : shrink(fl, 2200).then(function (b) { return Promise.all([b.arrayBuffer(), shrink(b, 240).then(blobToData)]).then(function (r) { return { buf: r[0], type: b.type || 'image/jpeg', thumb: r[1] || '' }; }); });
+    job.then(function (x) { return docPut({ id: newId(), f: 'v', name: name, kind: pdf ? 'pdf' : 'img', ts: Date.now(), type: x.type, buf: x.buf, thumb: x.thumb }); })
+      .then(function () { toast('Salvato sul telefono'); renderDocV(); })
+      .catch(function () { toast('Non sono riuscito a salvarlo: forse manca spazio'); });
+  });
+
+  /* visualizzatore: foto o PDF, tocco per ingrandire */
+  function pdfLib() {
+    if (!pdfp) pdfp = new Promise(function (res, rej) {
+      var s = document.createElement('script'); s.src = 'vendor/pdf.min.js';
+      s.onload = function () { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js'; res(window.pdfjsLib); } catch (e) { pdfp = null; rej(e); } };
+      s.onerror = function () { pdfp = null; rej(new Error('pdf')); };
+      document.head.appendChild(s);
+    });
+    return pdfp;
+  }
+  function docPdf(buf, body) {
+    var MAXP = 20;
+    pdfLib().then(function (lib) { return lib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise; }).then(function (pdf) {
+      body.innerHTML = '';
+      var n = Math.min(pdf.numPages, MAXP), i = 1;
+      function next() {
+        if (!body.isConnected) return;
+        if (i > n) { if (pdf.numPages > MAXP) { var m = document.createElement('div'); m.className = 'vcap'; m.textContent = 'Mostrate le prime ' + MAXP + ' pagine di ' + pdf.numPages + '. Per vederle tutte usa "Condividi".'; body.appendChild(m); } return; }
+        return pdf.getPage(i++).then(function (p) {
+          var w = p.getViewport({ scale: 1 }).width, vp = p.getViewport({ scale: Math.min(3, 1200 / w) }), c = document.createElement('canvas');
+          c.width = Math.round(vp.width); c.height = Math.round(vp.height); body.appendChild(c);
+          return p.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+        }).then(next);
+      }
+      return next();
+    }).catch(function () { body.innerHTML = ''; var m = document.createElement('div'); m.className = 'vcap'; m.textContent = 'Non riesco a mostrare questo PDF qui. Tocca "Condividi" per aprirlo con un\'altra app.'; body.appendChild(m); });
+  }
+  /* rec: scheda del documento; buf: contenuto in chiaro; after: cosa ridisegnare dopo rinomina o eliminazione */
+  function docView(rec, buf, after) {
+    var host = $('viewerHost'), v = document.createElement('div'), body = document.createElement('div'), cap = document.createElement('div'), row = document.createElement('div'), url = null;
+    v.className = 'viewer docv'; body.className = 'docvbody'; cap.className = 'vcap'; row.className = 'btnrow'; cap.textContent = rec.name;
+    function close() { if (url) { URL.revokeObjectURL(url); url = null; } if (v.parentNode) v.remove(); }
+    v._close = close;
+    function btn(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.onclick = fn; row.appendChild(b); }
+    if (rec.kind === 'pdf') { var w = document.createElement('div'); w.className = 'vcap'; w.textContent = 'Apro il PDF…'; body.appendChild(w); docPdf(buf, body); }
+    else { var img = document.createElement('img'); img.alt = rec.name; url = URL.createObjectURL(new Blob([buf], { type: rec.type || 'image/jpeg' })); img.src = url; body.appendChild(img); }
+    body.onclick = function () { body.classList.toggle('zoom'); };
+    btn('Chiudi', close);
+    btn('Condividi', function () {
+      var file = new File([buf], rec.name.replace(/[\/\\:*?"<>|]/g, ' ') + (rec.kind === 'pdf' ? '.pdf' : '.jpg'), { type: rec.type || 'image/jpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: rec.name }).catch(function () {});
+      else download(file);
+    });
+    btn('Rinomina', function () {
+      var n = prompt('Nome del documento', rec.name); if (!n || !n.trim()) return;
+      rec.name = n.trim(); cap.textContent = rec.name;
+      docPut(rec).then(after, function () { toast('Non sono riuscito a rinominarlo'); });
+    });
+    btn('Elimina', function () {
+      if (!confirm('Eliminare "' + rec.name + '" da questo telefono?')) return;
+      docDelMany([rec.id]).then(function () { close(); after(); });
+    });
+    v.appendChild(body); v.appendChild(cap); v.appendChild(row); host.appendChild(v);
+  }
+
+  /* cartella Personali (dietro PIN) */
+  function renderDocP() {
+    var setup = !dm.pin, open = !!docKey;
+    $('docLock').hidden = open; $('docOpenP').hidden = !open;
+    if (!open) {
+      $('docLockT').textContent = setup ? 'Scegli un PIN per questa cartella' : 'Cartella protetta';
+      $('docPin2').hidden = !setup; $('docForgot').hidden = setup;
+      $('docUnlock').textContent = setup ? 'Crea PIN' : 'Apri';
+      $('docLockHint').textContent = setup ? 'Almeno 4 cifre, e non lo stesso del telefono. Attenzione: se lo dimentichi le foto di questa cartella non si recuperano.' : 'Scrivi il tuo PIN per vedere carta d\'identità e passaporto.';
+      return;
+    }
+    var key = docKey;
+    docAll('p').then(function (list) {
+      return Promise.all(list.map(function (rec) { return docDec(key, rec).then(function (buf) { return [rec, buf]; }, function () { return null; }); }));
+    }).then(function (items) {
+      if (key !== docKey) return;
+      var g = $('docGridP'); g.innerHTML = '';
+      docUrls.forEach(function (u) { URL.revokeObjectURL(u); }); docUrls = [];
+      items = items.filter(Boolean);
+      $('docHintP').textContent = (items.length ? '' : 'Ancora nessuna foto. ') + 'Carta d\'identità e passaporto, solo come foto. Sono salvate cifrate con il tuo PIN e restano solo su questo telefono.';
+      items.forEach(function (it) {
+        var rec = it[0], buf = it[1], t = document.createElement('button'), img = document.createElement('img'), tag = document.createElement('span');
+        var u = URL.createObjectURL(new Blob([buf], { type: rec.type || 'image/jpeg' })); docUrls.push(u);
+        t.type = 'button'; t.className = 'atile'; img.alt = rec.name; img.src = u; tag.className = 'atag'; tag.textContent = rec.name;
+        t.appendChild(img); t.appendChild(tag);
+        t.onclick = function () { docView(rec, buf, renderDocP); };
+        g.appendChild(t);
+      });
+    });
+  }
+  $('docUnlock').onclick = function () {
+    if (!window.crypto || !crypto.subtle) { toast('Su questo telefono la cartella protetta non funziona'); return; }
+    var p = $('docPin').value.trim();
+    if (!pinOk(p)) return;
+    if (!dm.pin) {
+      if (p !== $('docPin2').value.trim()) { toast('I due PIN non sono uguali'); return; }
+      pinNew(p).then(function (r) { dm.pin = r.pin; dm.fail = 0; dm.wait = 0; docMeta(); docKey = r.key; $('docPin').value = ''; $('docPin2').value = ''; renderDocP(); toast('PIN creato'); });
+      return;
+    }
+    var w = (dm.wait || 0) - Date.now();
+    if (w > 0) { toast('Troppi tentativi: riprova tra ' + Math.ceil(w / 1000) + ' secondi'); return; }
+    pinCheck(p).then(function (k) {
+      $('docPin').value = '';
+      if (!k) { dm.fail = (dm.fail || 0) + 1; if (dm.fail >= 5) dm.wait = Date.now() + 60000; docMeta(); toast('PIN sbagliato'); return; }
+      dm.fail = 0; dm.wait = 0; docMeta(); docKey = k; renderDocP();
+    });
+  };
+  $('docPin').addEventListener('keydown', function (e) { if (e.key === 'Enter' && dm.pin) $('docUnlock').click(); });
+  $('docForgot').onclick = function () {
+    if (!confirm('Senza PIN le foto di questa cartella non si possono aprire.\n\nVuoi cancellarle tutte e scegliere un PIN nuovo?')) return;
+    docAll('p').then(function (l) { return docDelMany(l.map(function (x) { return x.id; })); }).then(function () { delete dm.pin; dm.fail = 0; dm.wait = 0; docMeta(); docLock(); renderDocP(); toast('Cartella svuotata: scegli un PIN nuovo'); });
+  };
+  $('docClose').onclick = function () { docLock(); renderDocP(); };
+  $('docChPin').onclick = function () {
+    var key = docKey; if (!key) return;
+    var p = prompt('Nuovo PIN (almeno 4 cifre)'); if (p === null) return; p = p.trim();
+    if (!pinOk(p)) return;
+    if (prompt('Ripeti il nuovo PIN') !== p) { toast('I due PIN non sono uguali'); return; }
+    Promise.all([pinNew(p), docAll('p')]).then(function (r) {
+      var nw = r[0];
+      return Promise.all(r[1].map(function (rec) { return docDec(key, rec).then(function (buf) { return docEnc(nw.key, buf); }).then(function (e) { rec.iv = e.iv; rec.data = e.data; return rec; }); }))
+        .then(function (recs) { return docPutAll(recs); }).then(function () { dm.pin = nw.pin; docMeta(); docKey = nw.key; toast('PIN cambiato'); renderDocP(); });
+    }).catch(function () { toast('Non sono riuscito a cambiare il PIN: è rimasto quello di prima'); });
+  };
+  $('docAddP').onclick = function () { $('docFileP').value = ''; $('docFileP').click(); };
+  $('docFileP').addEventListener('change', function () {
+    var fl = $('docFileP').files[0], key = docKey; if (!fl) return;
+    if (!key) { toast('La cartella si è richiusa: riaprila e riprova'); renderDocP(); return; }
+    if (fl.type.indexOf('image/') !== 0) { toast('Qui vanno solo foto'); return; }
+    var name = prompt('Che documento è? (es. Passaporto Leo, Carta d\'identità)', '');
+    if (name === null) return;
+    name = name.trim() || 'Documento';
+    shrink(fl, 2200).then(function (b) { return b.arrayBuffer().then(function (buf) { return docEnc(key, buf); }).then(function (e) {
+      return docPut({ id: newId(), f: 'p', name: name, kind: 'img', ts: Date.now(), type: b.type || 'image/jpeg', iv: e.iv, data: e.data });
+    }); }).then(function () { toast('Salvata nella cartella protetta'); renderDocP(); })
+      .catch(function () { toast('Non sono riuscito a salvarla: forse manca spazio'); });
+  });
+
+  /* scheda Flavia: indirizzo e numero li scrive Matteo qui dentro, mai nel codice */
+  function renderFla() {
+    var fl = dm.flavia || {}, has = !!(fl.addr || fl.tel), edit = flaEditing || !has;
+    $('flaView').hidden = edit; $('flaEdit').hidden = !edit;
+    if (edit) { $('flaAddr').value = fl.addr || ''; $('flaTel').value = fl.tel || ''; $('flaNote').value = fl.note || ''; return; }
+    var tel = (fl.tel || '').replace(/[^\d+]/g, ''), wa = tel.replace(/^\+/, '').replace(/^00/, '');
+    $('flaAddrT').textContent = fl.addr || 'Indirizzo non ancora scritto'; $('flaTelT').textContent = fl.tel || '';
+    $('flaNoteT').textContent = fl.note || ''; $('flaNoteT').hidden = !fl.note;
+    $('flaWa').hidden = $('flaCall').hidden = !tel; $('flaMap').hidden = $('flaCopy').hidden = !fl.addr;
+    $('flaWa').href = 'https://wa.me/' + wa; $('flaCall').href = 'tel:' + tel;
+    $('flaMap').href = 'https://maps.apple.com/?q=' + encodeURIComponent((fl.addr || '').replace(/\s*\n\s*/g, ', '));
+  }
+  $('flaEditBtn').onclick = function () { flaEditing = true; renderFla(); };
+  $('flaSave').onclick = function () {
+    var tel = $('flaTel').value.trim();
+    dm.flavia = { addr: $('flaAddr').value.trim(), tel: tel, note: $('flaNote').value.trim() }; docMeta();
+    flaEditing = false; renderFla();
+    if (tel && tel.charAt(0) !== '+' && tel.indexOf('00') !== 0) toast('Salvato. Per WhatsApp serve il prefisso (es. +1)'); else toast('Salvato su questo telefono');
+  };
+  $('flaCopy').onclick = function () { try { navigator.clipboard.writeText((dm.flavia || {}).addr || '').then(function () { toast('Indirizzo copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
+
   show('home');
   loadBg();
   sync();
