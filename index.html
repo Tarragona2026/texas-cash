@@ -134,6 +134,10 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .chkadd { display: flex; gap: 8px; }
 .chkadd input { flex: 1; }
 .chkbar { width: 100%; }
+.chkperson { display: grid; grid-template-columns: 7rem 1fr auto; align-items: center; gap: 10px; width: 100%; border: 0; background: var(--field); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; color: var(--ink); font-weight: 700; text-align: left; }
+.chkperson[aria-pressed="true"] { outline: 2px solid var(--accent); }
+.chkperson .pb { height: 8px; border-radius: 4px; background: rgba(120,140,170,.3); overflow: hidden; display: block; }
+.chkperson .pb i { display: block; height: 100%; background: var(--good); border-radius: 4px; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -432,6 +436,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   <section id="v-chk" class="wrap" aria-label="Checklist" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Checklist</h2><span></span></div>
     <section class="card">
+      <div class="label">Avanzamento</div>
+      <div id="chkOver"></div>
       <div class="sumline"><b id="chkTot"></b><button class="btn ghost small" id="chkEdit" type="button">Modifica</button></div>
       <div class="bar"><i id="chkBarFill"></i></div>
       <div class="chips" id="chkTabs"></div>
@@ -592,7 +598,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v43';
+var APP_VER = 'v44';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1371,26 +1377,32 @@ var APP_VER = 'v43';
   $('trIn').addEventListener('focus', function () { trLastTxt = $('trIn').value; });
   $('trIn').addEventListener('blur', function () { var v = $('trIn').value.trim(); if (v && v !== trLastTxt.trim()) setTimeout(function () { doTranslate(false); }, 200); });
 
-  /* ---------- checklist di viaggio ---------- */
-  var CHK_LISTS = [['documenti', 'Documenti', false], ['valigia', 'Valigia', true], ['prima', 'Prima di partire', false], ['arrivo', 'Arrivo in Texas', false]];
-  var CHK_DEF = {"documenti": ["Passaporto (valido almeno 6 mesi dopo il rientro)", "ESTA approvata (salvata o stampata)", "Carta d'identità", "Patente italiana", "Assicurazione di viaggio (polizza)", "Biglietti aerei", "Prenotazione auto a noleggio", "Carta di credito e bancomat", "Contanti in dollari", "Numeri di emergenza salvati"], "valigia": ["Intimo e calzini", "Magliette", "Maglioni e felpe", "Giacca", "Pantaloni e jeans", "Pigiama", "Scarpe comode", "Necessaire", "Medicine personali", "Occhiali", "Caricabatterie del telefono", "Adattatore per le prese USA", "Power bank", "Cuffie", "Regali per la famiglia"], "prima": ["Fare il check-in online", "Avvisare la banca del viaggio", "Attivare la SIM dati o l'eSIM", "Scaricare le mappe offline", "Salvare i documenti sul telefono", "Controllare le scadenze dei documenti", "Pesare le valigie", "Caricare tutti i dispositivi", "Cambiare un po' di dollari", "Controllare il meteo del Texas", "Chiudere casa e lasciare le chiavi"], "arrivo": ["Ritirare i bagagli", "Ritirare l'auto a noleggio", "Controllare i danni dell'auto", "Scrivere ai parenti che siamo arrivati", "Impostare il navigatore", "Fare la spesa da H-E-B", "Mettere i caricabatterie in carica"]};
-  var CHK_DEPART = new Date(2026, 11, 22, 0, 0, 0).getTime(), chkTab = 'documenti', chkEdit = false, chkUnsub = null;
+  /* ---------- checklist di viaggio: una lista personale a testa, visibile secondo chi sei ---------- */
+  var CHK_LISTS = [['documenti', 'Documenti', true], ['valigia', 'Valigia', true], ['prima', 'Prima di partire', true], ['arrivo', 'Arrivo in Texas', false]];
+  var CHK_DEF = {"documenti": ["Passaporto (valido almeno 6 mesi dopo il rientro)", "ESTA approvata (salvata o stampata)", "Carta d'identità", "Patente italiana", "Assicurazione di viaggio (polizza)", "Biglietti aerei", "Carta di credito e bancomat", "Contanti in dollari", "Numeri di emergenza salvati"], "valigia": ["Intimo e calzini", "Magliette", "Maglioni e felpe", "Giacca", "Pantaloni e jeans", "Pigiama", "Scarpe comode", "Necessaire", "Medicine personali", "Occhiali", "Caricabatterie del telefono", "Adattatore per le prese USA", "Power bank", "Cuffie", "Regali per la famiglia"], "prima": ["Fare il check-in online", "Avvisare la banca del viaggio", "Attivare la SIM dati o l'eSIM", "Scaricare le mappe offline", "Salvare i documenti sul telefono", "Controllare le scadenze dei documenti", "Pesare la valigia", "Caricare tutti i dispositivi", "Cambiare un po' di dollari", "Controllare il meteo del Texas"], "arrivo": ["Ritirare i bagagli", "Ritirare l'auto a noleggio", "Controllare i danni dell'auto", "Scrivere ai parenti che siamo arrivati", "Impostare il navigatore", "Fare la spesa da H-E-B", "Mettere i caricabatterie in carica"]};
+  var CHK_VIEW = { leslie: ['matteo', 'leslie', 'leo'], matteo: ['matteo', 'leo'], leo: ['leo'] };       // chi vede quali liste
+  var CHK_NAMES = { matteo: 'Matteo', leslie: 'Leslie', leo: 'Leo' };
+  var CHK_DEPART = new Date(2026, 11, 22, 0, 0, 0).getTime(), chkTab = 'documenti', chkEdit = false, chkUnsub = null, chkWho = '';
+  function chkMe() { return slug(String(st.user || '').split(/\s+/)[0]); }
+  function chkVisible() { var me = st.user ? chkMe() : ''; if (!me) return []; return CHK_VIEW[me] ? CHK_VIEW[me].slice() : [me]; }
+  function chkName(w) { return CHK_NAMES[w] || (w.charAt(0).toUpperCase() + w.slice(1)); }
   function chkState() { if (!st.chk) st.chk = { items: {}, dirty: {}, seeded: {} }; if (!st.chk.items) st.chk.items = {}; if (!st.chk.dirty) st.chk.dirty = {}; if (!st.chk.seeded) st.chk.seeded = {}; return st.chk; }
-  function chkOwner(list) { return list === 'valigia' ? slug(st.user) : ''; }
   function chkSeed() {                                  // voci di partenza uguali su tutti i telefoni: stessi id, nessun doppione
-    var c = chkState();
+    var c = chkState(), vis = chkVisible();
     CHK_LISTS.forEach(function (L) {
-      var owner = chkOwner(L[0]); if (L[2] && !st.user) return;
-      var key = L[0] + '|' + owner; if (c.seeded[key]) return;
-      CHK_DEF[L[0]].forEach(function (t, i) { var id = (L[2] ? 'v_' + owner : 'd_' + L[0]) + '_' + (i < 10 ? '0' : '') + i; if (!c.items[id]) c.items[id] = { id: id, list: L[0], text: t, done: false, order: (i + 1) * 10, owner: owner, upd: 0 }; });
-      c.seeded[key] = 1;
+      (L[2] ? vis : ['']).forEach(function (who) {
+        var key = L[0] + '|' + who + '|2'; if (c.seeded[key]) return;
+        CHK_DEF[L[0]].forEach(function (t, i) { var id = (L[2] ? 'p_' + L[0] + '_' + who : 'd_' + L[0]) + '_' + (i < 10 ? '0' : '') + i; if (!c.items[id]) c.items[id] = { id: id, list: L[0], text: t, done: false, order: (i + 1) * 10, owner: who, upd: 0 }; });
+        c.seeded[key] = 1;
+      });
     });
   }
-  function chkItems(list) {
-    var c = chkState(), owner = chkOwner(list);
+  function chkItems(list, who) {
+    var c = chkState(), L = CHK_LISTS.filter(function (x) { return x[0] === list; })[0], owner = L[2] ? who : '';
     return Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return x.list === list && !x.del && (x.owner || '') === owner; }).sort(function (a, b) { return a.order - b.order; });
   }
-  function chkCounts() { var done = 0, tot = 0; CHK_LISTS.forEach(function (L) { var it = chkItems(L[0]); tot += it.length; done += it.filter(function (x) { return x.done; }).length; }); return { done: done, tot: tot }; }
+  function chkCounts(who) { var done = 0, tot = 0; CHK_LISTS.forEach(function (L) { if (!L[2]) return; var it = chkItems(L[0], who); tot += it.length; done += it.filter(function (x) { return x.done; }).length; }); return { done: done, tot: tot }; }
+  function chkMine() { var me = chkMe(), c = chkCounts(me), a = chkItems('arrivo', me); return { done: c.done + a.filter(function (x) { return x.done; }).length, tot: c.tot + a.length }; }
   function chkTouch(x) { x.upd = Date.now(); x.by = st.user || ''; chkState().dirty[x.id] = 1; persist(); }
   function chkSync(tr, jobs) {
     var c = chkState();
@@ -1404,52 +1416,68 @@ var APP_VER = 'v43';
     if (chkUnsub) return;
     fbReady().then(function (d) {
       chkUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('checklist').onSnapshot(function (snap) {
-        var c = chkState(), changed = false;
-        snap.docs.forEach(function (doc) { var v = doc.data(), l = c.items[doc.id]; if (!l || (v.upd || 0) > (l.upd || 0)) { c.items[doc.id] = v; if (c.dirty[doc.id] && (v.upd || 0) >= (l ? l.upd || 0 : 0)) delete c.dirty[doc.id]; changed = true; } });
+        var c = chkState(), changed = false, vis = chkVisible();
+        snap.docs.forEach(function (doc) {
+          var v = doc.data(), l = c.items[doc.id];
+          if (v.owner && vis.indexOf(v.owner) < 0) return;                       // le liste che non puoi vedere non le tieni sul telefono
+          if (!l || (v.upd || 0) > (l.upd || 0)) { c.items[doc.id] = v; if (c.dirty[doc.id]) delete c.dirty[doc.id]; changed = true; }
+        });
         if (changed) { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} if (!$('v-chk').hidden) renderChk(); chkBanner(); }
       }, function () {});
     }).catch(function () {});
   }
   function chkBanner() {
-    var c = chkCounts(), left = c.tot - c.done, days = Math.ceil((CHK_DEPART - Date.now()) / 86400000), b = $('chkBar'), cnt = $('chkCnt');
+    var c = chkMine(), left = c.tot - c.done, days = Math.ceil((CHK_DEPART - Date.now()) / 86400000), b = $('chkBar'), cnt = $('chkCnt');
     cnt.textContent = c.tot ? '(' + c.done + '/' + c.tot + ')' : '';
-    if (c.tot && left > 0 && days <= 8 && days >= 0) { b.hidden = false; b.textContent = (days === 0 ? 'Si parte oggi' : days === 1 ? 'Si parte domani' : 'Mancano ' + days + ' giorni alla partenza') + ': ' + left + (left === 1 ? ' voce' : ' voci') + ' della checklist da fare'; }
+    if (c.tot && left > 0 && days <= 8 && days >= 0) { b.hidden = false; b.textContent = (days === 0 ? 'Si parte oggi' : days === 1 ? 'Si parte domani' : 'Mancano ' + days + ' giorni alla partenza') + ': ' + left + (left === 1 ? ' voce' : ' voci') + ' della tua checklist da fare'; }
     else b.hidden = true;
   }
   function renderChk() {
-    chkSeed(); var c = chkCounts();
-    $('chkTot').textContent = c.done + ' di ' + c.tot + ' fatte'; $('chkBarFill').style.width = (c.tot ? c.done / c.tot * 100 : 0) + '%';
-    $('chkEdit').textContent = chkEdit ? 'Fine' : 'Modifica';
+    chkSeed(); var vis = chkVisible(), me = chkMe();
+    if (!st.user) { $('chkOver').innerHTML = ''; $('chkTabs').innerHTML = ''; $('chkList').innerHTML = ''; $('chkTot').textContent = 'Scrivi il tuo nome'; $('chkHint').textContent = 'Scrivi il tuo nome in Impostazioni per vedere la tua checklist.'; $('chkBarFill').style.width = '0'; $('chkNew').disabled = $('chkAdd').disabled = true; return; }
+    if (vis.indexOf(chkWho) < 0) chkWho = me;
+    var over = $('chkOver'); over.innerHTML = '';
+    vis.slice().sort(function (a, b) { return (a === me ? -1 : 0) - (b === me ? -1 : 0); }).forEach(function (w) {
+      var c = chkCounts(w), r = document.createElement('button'); r.type = 'button'; r.className = 'chkperson'; r.setAttribute('aria-pressed', String(w === chkWho));
+      var pct = c.tot ? Math.round(c.done / c.tot * 100) : 0;
+      r.innerHTML = '<span class="pn"></span><span class="pb"><i></i></span><span class="pc num"></span>'; r.querySelector('.pn').textContent = chkName(w) + (w === me ? ' (tu)' : ''); r.querySelector('.pb i').style.width = pct + '%'; r.querySelector('.pc').textContent = c.done + '/' + c.tot;
+      r.onclick = function () { chkWho = w; chkEdit = false; renderChk(); }; over.appendChild(r);
+    });
+    var cs = chkCounts(chkWho);
+    $('chkTot').textContent = (chkWho === me ? 'La tua checklist' : chkName(chkWho)) + ': ' + cs.done + ' di ' + cs.tot + ' fatte'; $('chkBarFill').style.width = (cs.tot ? cs.done / cs.tot * 100 : 0) + '%';
     var tabs = $('chkTabs'); tabs.innerHTML = '';
     CHK_LISTS.forEach(function (L) {
-      var it = chkItems(L[0]), d = it.filter(function (x) { return x.done; }).length, b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 12px';
+      var it = chkItems(L[0], chkWho), d = it.filter(function (x) { return x.done; }).length, b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 12px';
       b.textContent = L[1] + ' ' + d + '/' + it.length; b.setAttribute('aria-pressed', String(L[0] === chkTab)); b.onclick = function () { chkTab = L[0]; renderChk(); }; tabs.appendChild(b);
     });
-    var L = CHK_LISTS.filter(function (x) { return x[0] === chkTab; })[0], items = chkItems(chkTab), box = $('chkList'); box.innerHTML = '';
-    $('chkHint').textContent = L[2] ? (st.user ? 'La valigia è solo tua: gli altri non la vedono.' : 'Scrivi il tuo nome in Impostazioni per avere la tua valigia.') : 'Lista condivisa: se qualcuno spunta una voce, la vedete tutti.';
+    var L = CHK_LISTS.filter(function (x) { return x[0] === chkTab; })[0], items = chkItems(chkTab, chkWho), box = $('chkList'); box.innerHTML = '';
+    var canEdit = !L[2] || chkWho === me; if (!canEdit) chkEdit = false;
+    $('chkEdit').hidden = !canEdit; $('chkEdit').textContent = chkEdit ? 'Fine' : 'Modifica'; document.querySelector('.chkadd').hidden = !canEdit;
+    $('chkHint').textContent = !L[2] ? 'Lista di tutti: se qualcuno spunta una voce, la vedete tutti.' : canEdit ? 'Questa lista è tua: gli altri possono solo guardarla.' : 'Sola lettura: la lista di ' + chkName(chkWho) + ' la spunta solo lui o lei.';
     items.forEach(function (x, i) {
       var r = document.createElement('div'); r.className = 'chkrow' + (x.done ? ' done' : '');
-      var cb = document.createElement('button'); cb.type = 'button'; cb.className = 'chkbox'; cb.setAttribute('aria-label', (x.done ? 'Togli la spunta: ' : 'Spunta: ') + x.text); cb.textContent = x.done ? '✓' : '';
-      var tx = document.createElement('button'); tx.type = 'button'; tx.className = 'txt'; tx.textContent = x.text;
+      var cb = document.createElement('button'); cb.type = 'button'; cb.className = 'chkbox'; cb.setAttribute('aria-label', (x.done ? 'Fatto: ' : 'Da fare: ') + x.text); cb.textContent = x.done ? '✓' : ''; cb.disabled = !canEdit; if (!canEdit) cb.style.opacity = '.7';
+      var tx = document.createElement('button'); tx.type = 'button'; tx.className = 'txt'; tx.textContent = x.text; tx.disabled = !canEdit;
       if (!L[2] && x.done && x.by) { var sm = document.createElement('small'); sm.textContent = 'fatto da ' + x.by; tx.appendChild(sm); }
       function tog() { x.done = !x.done; chkTouch(x); renderChk(); chkBanner(); }
       cb.onclick = tog; tx.onclick = chkEdit ? function () { var n = prompt('Modifica la voce', x.text); if (n && n.trim()) { x.text = n.trim(); chkTouch(x); renderChk(); } } : tog;
       r.appendChild(cb); r.appendChild(tx);
-      if (chkEdit) {
+      if (chkEdit && canEdit) {
         function act(label, aria, fn, dis) { var a = document.createElement('button'); a.type = 'button'; a.className = 'chkact'; a.textContent = label; a.setAttribute('aria-label', aria); a.disabled = !!dis; if (dis) a.style.opacity = '.35'; a.onclick = fn; r.appendChild(a); }
         function move(d) { var o = items[i + d]; if (!o) return; var t = x.order; x.order = o.order; o.order = t; chkTouch(x); chkTouch(o); renderChk(); }
         act('▲', 'Sposta su', function () { move(-1); }, i === 0); act('▼', 'Sposta giù', function () { move(1); }, i === items.length - 1);
-        act('✕', 'Elimina la voce', function () { if (!confirm('Eliminare "' + x.text + '"? Sparisce per tutti.')) return; x.del = true; chkTouch(x); renderChk(); chkBanner(); });
+        act('✕', 'Elimina la voce', function () { if (!confirm('Eliminare "' + x.text + '"?' + (L[2] ? '' : ' Sparisce per tutti.'))) return; x.del = true; chkTouch(x); renderChk(); chkBanner(); });
       }
       box.appendChild(r);
     });
     if (!items.length) { var e = document.createElement('div'); e.className = 'hint'; e.textContent = 'Nessuna voce in questa lista.'; box.appendChild(e); }
-    $('chkNew').disabled = $('chkAdd').disabled = L[2] && !st.user;
+    $('chkNew').disabled = $('chkAdd').disabled = !canEdit;
   }
   function chkAdd() {
-    var v = $('chkNew').value.trim(); if (!v) return; if (chkTab === 'valigia' && !st.user) { toast('Scrivi prima il tuo nome in Impostazioni'); return; }
-    var c = chkState(), items = chkItems(chkTab), id = 'x' + newId(), mx = items.length ? items[items.length - 1].order : 0;
-    c.items[id] = { id: id, list: chkTab, text: v, done: false, order: mx + 10, owner: chkOwner(chkTab), upd: 0 }; chkTouch(c.items[id]); $('chkNew').value = ''; renderChk(); chkBanner();
+    var v = $('chkNew').value.trim(); if (!v || !st.user) return;
+    var L = CHK_LISTS.filter(function (x) { return x[0] === chkTab; })[0], who = chkMe(); if (L[2] && chkWho !== who) return;
+    var c = chkState(), items = chkItems(chkTab, who), id = 'x' + newId(), mx = items.length ? items[items.length - 1].order : 0;
+    c.items[id] = { id: id, list: chkTab, text: v, done: false, order: mx + 10, owner: L[2] ? who : '', upd: 0 }; chkTouch(c.items[id]); $('chkNew').value = ''; renderChk(); chkBanner();
   }
   $('chkAdd').onclick = chkAdd; $('chkNew').addEventListener('keydown', function (e) { if (e.key === 'Enter') chkAdd(); });
   $('chkEdit').onclick = function () { chkEdit = !chkEdit; renderChk(); };

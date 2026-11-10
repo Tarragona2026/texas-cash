@@ -133,6 +133,17 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
 .dph { display: flex; gap: 8px; flex-wrap: wrap; }
 .dph img { width: 100%; max-width: 420px; max-height: 360px; object-fit: cover; border-radius: 14px; cursor: pointer; }
 .lock { max-width: 560px; }
+.chkgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: start; }
+.chkcol { border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.chkcol h3 { margin: 0; font-family: var(--font-display); display: flex; justify-content: space-between; align-items: baseline; }
+.chkcol h4 { margin: 10px 0 2px; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); display: flex; justify-content: space-between; }
+.ci { display: flex; gap: 8px; align-items: flex-start; font-size: .88rem; padding: 2px 0; }
+.ci .bx { flex: none; width: 17px; height: 17px; border-radius: 5px; border: 2px solid var(--ink-soft); display: grid; place-items: center; font-size: .7rem; color: #fff; margin-top: 1px; }
+.ci.done .bx { background: var(--good); border-color: var(--good); }
+.ci.done .t { color: var(--ink-soft); text-decoration: line-through; }
+.ci small { display: block; color: var(--ink-soft); text-decoration: none; font-size: .72rem; }
+.ovr { display: grid; grid-template-columns: 8rem 1fr auto; gap: 12px; align-items: center; }
+
 .lock input[type=password] { min-height: 38px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); padding: 0 12px; color: var(--ink); }
 </style>
 </head>
@@ -157,12 +168,14 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
   <button class="tab" type="button" data-v="mappa" aria-pressed="false">Mappa</button>
   <button class="tab" type="button" data-v="foto" aria-pressed="false">Foto</button>
   <button class="tab" type="button" data-v="diario" aria-pressed="false">Diari</button>
+  <button class="tab" type="button" data-v="checklist" aria-pressed="false">Checklist</button>
 </nav>
 <div class="msg glass" id="msg" hidden></div>
 <main class="cols" id="cols"></main>
 <section class="view" id="mapView" hidden></section>
 <section class="view" id="photoView" hidden></section>
 <section class="view" id="diaryView" hidden></section>
+<section class="view" id="chkView" hidden></section>
 <div class="drop" id="drop" hidden>Rilascia i file CSV</div>
 <div id="toastHost"></div>
 
@@ -455,6 +468,7 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
         cloud.album = snap.docs.map(function (x) { var v = x.data(); return { id: x.id, user: v.user, ts: v.ts, loc: v.loc, thumb: v.thumb }; });
         if (cloud.view === 'foto' || cloud.view === 'mappa') showView(cloud.view);
       }, err));
+      cloud.unsubs.push(tr.collection('checklist').onSnapshot(function (snap) { snap.docs.forEach(function (x) { cloud.chk[x.id] = x.data(); }); snap.docChanges().forEach(function (ch) { if (ch.type === 'removed') delete cloud.chk[ch.doc.id]; }); if (cloud.view === 'checklist') renderChkView(); }, err));
       cloud.unsubs.push(tr.collection('diary').onSnapshot(function (snap) { cloud.diaryRaw = snap.docs.map(function (x) { return Object.assign({ id: x.id }, x.data()); }); decryptDiaries(); }, err));
     }, function () { setCloudStatus('Accesso anonimo non riuscito.'); });
   }
@@ -502,6 +516,45 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
     lb.appendChild(im); lb.appendChild(cap); lb.appendChild(row);
     lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
     document.addEventListener('keydown', key); document.body.appendChild(lb); show();
+  }
+
+
+  /* ---------- checklist: il Mac le vede tutte e tre ---------- */
+  var CHK_DEF = {"documenti": ["Passaporto (valido almeno 6 mesi dopo il rientro)", "ESTA approvata (salvata o stampata)", "Carta d'identità", "Patente italiana", "Assicurazione di viaggio (polizza)", "Biglietti aerei", "Carta di credito e bancomat", "Contanti in dollari", "Numeri di emergenza salvati"], "valigia": ["Intimo e calzini", "Magliette", "Maglioni e felpe", "Giacca", "Pantaloni e jeans", "Pigiama", "Scarpe comode", "Necessaire", "Medicine personali", "Occhiali", "Caricabatterie del telefono", "Adattatore per le prese USA", "Power bank", "Cuffie", "Regali per la famiglia"], "prima": ["Fare il check-in online", "Avvisare la banca del viaggio", "Attivare la SIM dati o l'eSIM", "Scaricare le mappe offline", "Salvare i documenti sul telefono", "Controllare le scadenze dei documenti", "Pesare la valigia", "Caricare tutti i dispositivi", "Cambiare un po' di dollari", "Controllare il meteo del Texas"], "arrivo": ["Ritirare i bagagli", "Ritirare l'auto a noleggio", "Controllare i danni dell'auto", "Scrivere ai parenti che siamo arrivati", "Impostare il navigatore", "Fare la spesa da H-E-B", "Mettere i caricabatterie in carica"]};
+  var CHK_LISTS = [['documenti', 'Documenti', true], ['valigia', 'Valigia', true], ['prima', 'Prima di partire', true], ['arrivo', 'Arrivo in Texas', false]];
+  var CHK_NAMES = { matteo: 'Matteo', leslie: 'Leslie', leo: 'Leo' };
+  cloud.chk = {};
+  function chkWhos() { var m = { matteo: 1, leslie: 1, leo: 1 }; Object.keys(cloud.chk).forEach(function (k) { var o = cloud.chk[k].owner; if (o) m[o] = 1; }); return Object.keys(m); }
+  function chkName(w) { return CHK_NAMES[w] || (w.charAt(0).toUpperCase() + w.slice(1)); }
+  function chkAll() {                                      // voci di partenza + modifiche arrivate dai telefoni
+    var items = {};
+    CHK_LISTS.forEach(function (L) { (L[2] ? chkWhos() : ['']).forEach(function (who) { CHK_DEF[L[0]].forEach(function (t, i) { var id = (L[2] ? 'p_' + L[0] + '_' + who : 'd_' + L[0]) + '_' + (i < 10 ? '0' : '') + i; items[id] = { id: id, list: L[0], text: t, done: false, order: (i + 1) * 10, owner: who, upd: 0 }; }); }); });
+    Object.keys(cloud.chk).forEach(function (id) { var v = cloud.chk[id], l = items[id]; if (!l || (v.upd || 0) >= (l.upd || 0)) items[id] = v; });
+    return items;
+  }
+  function chkList(items, list, who) { return Object.keys(items).map(function (k) { return items[k]; }).filter(function (x) { return x.list === list && !x.del && (x.owner || '') === who; }).sort(function (a, b) { return a.order - b.order; }); }
+  function chkCount(items, who) { var d = 0, t = 0; CHK_LISTS.forEach(function (L) { if (!L[2]) return; var it = chkList(items, L[0], who); t += it.length; d += it.filter(function (x) { return x.done; }).length; }); return { d: d, t: t }; }
+  function renderChkView() {
+    var v = $('chkView'); v.innerHTML = ''; var items = chkAll(), whos = chkWhos();
+    var panel = el('div', 'panel glass'); panel.appendChild(el('div', 'label', 'Avanzamento'));
+    var tot = { d: 0, t: 0 };
+    whos.forEach(function (w) {
+      var c = chkCount(items, w), pct = c.t ? Math.round(c.d / c.t * 100) : 0; tot.d += c.d; tot.t += c.t;
+      panel.appendChild(el('div', 'ovr', '<b>' + esc(chkName(w)) + '</b><div class="bar"><i style="width:' + pct + '%"></i></div><span class="num">' + c.d + '/' + c.t + ' · ' + pct + '%</span>'));
+    });
+    panel.appendChild(el('div', 'ovr', '<b>Tutti</b><div class="bar"><i style="width:' + (tot.t ? Math.round(tot.d / tot.t * 100) : 0) + '%"></i></div><span class="num">' + tot.d + '/' + tot.t + '</span>'));
+    panel.appendChild(el('div', 'sub2', 'Sola lettura: le liste si spuntano dai telefoni.'));
+    v.appendChild(panel);
+    var grid = el('div', 'chkgrid'); grid.style.marginTop = '16px';
+    function line(col, x, shared) { var r = el('div', 'ci' + (x.done ? ' done' : ''), '<span class="bx">' + (x.done ? '✓' : '') + '</span><span class="t">' + esc(x.text) + (shared && x.done && x.by ? '<small>fatto da ' + esc(x.by) + '</small>' : '') + '</span>'); col.appendChild(r); }
+    whos.forEach(function (w) {
+      var col = el('section', 'chkcol glass'), c = chkCount(items, w); col.appendChild(el('h3', '', '<span>' + esc(chkName(w)) + '</span><span class="sub2 num">' + c.d + '/' + c.t + '</span>'));
+      CHK_LISTS.forEach(function (L) { if (!L[2]) return; var it = chkList(items, L[0], w), d = it.filter(function (x) { return x.done; }).length; col.appendChild(el('h4', '', '<span>' + esc(L[1]) + '</span><span class="num">' + d + '/' + it.length + '</span>')); it.forEach(function (x) { line(col, x, false); }); });
+      grid.appendChild(col);
+    });
+    var sh = el('section', 'chkcol glass'), ar = chkList(items, 'arrivo', ''), ad = ar.filter(function (x) { return x.done; }).length;
+    sh.appendChild(el('h3', '', '<span>Arrivo in Texas</span><span class="sub2 num">' + ad + '/' + ar.length + '</span>')); sh.appendChild(el('div', 'sub2', 'Lista di tutti')); ar.forEach(function (x) { line(sh, x, true); }); grid.appendChild(sh);
+    v.appendChild(grid);
   }
 
   /* --- viste --- */
@@ -634,8 +687,8 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
   function showView(name) {
     cloud.view = name;
     [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === name)); });
-    $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario';
-    if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView();
+    $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist';
+    if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView(); else if (name === 'checklist') renderChkView();
   }
   [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.onclick = function () { showView(b.dataset.v); }; });
   window.fetchReceiptGlobal = fetchReceipt; window.lightboxGlobal = lightbox;
