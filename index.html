@@ -232,6 +232,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="google-config.js"></script>
 </head>
 <body>
 <div class="bgwrap" aria-hidden="true"><div class="bgimg" id="bgimg"></div></div>
@@ -967,9 +968,37 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       return j && j.name && /^(shop|amenity|tourism|leisure|office)$/.test(j.category || '') && !POI_SKIP.test(j.type || '') ? [{ name: j.name, d: 30, brand: '' }] : [];
     });
   }
+  /* Google Places (New): piu' preciso di OpenStreetMap; se non risponde si usa OpenStreetMap */
+  var GP = 'https://places.googleapis.com/v1/places:';
+  function gpCall(method, body) {
+    var k = window.GOOGLE_PLACES_KEY; if (!k) return Promise.reject(new Error('nokey'));
+    return fetchJson(GP + method, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': k, 'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress' }, body: JSON.stringify(body) }, 9000);
+  }
+  function gpPlaces(j, fix) {
+    return (j.places || []).filter(function (p) { return p.displayName && p.displayName.text && p.location; }).map(function (p) {
+      return { name: p.displayName.text, d: fix ? meters(fix, { la: p.location.latitude, lo: p.location.longitude }) : 0, brand: '', la: p.location.latitude, lo: p.location.longitude };
+    });
+  }
+  function googleNearby(fix) {
+    return gpCall('searchNearby', { maxResultCount: 12, rankPreference: 'DISTANCE', locationRestriction: { circle: { center: { latitude: fix.la, longitude: fix.lo }, radius: 80 } } })
+      .then(function (j) { return gpPlaces(j, fix); });
+  }
+  function googleText(query, near) {
+    var body = { textQuery: query, maxResultCount: 5 };
+    if (near) body.locationBias = { circle: { center: { latitude: near.la, longitude: near.lo }, radius: 50000 } };
+    return gpCall('searchText', body).then(function (j) {
+      var ps = gpPlaces(j, null); if (!ps.length) return null;
+      var f = { la: Math.round(ps[0].la * 1e5) / 1e5, lo: Math.round(ps[0].lo * 1e5) / 1e5, ac: 30, label: '' };
+      ps.forEach(function (p) { p.d = meters(f, { la: p.la, lo: p.lo }); });
+      f.places = ps; return f;
+    });
+  }
   function nearbyPlaces(fix) {
     var key = fix.la.toFixed(4) + ',' + fix.lo.toFixed(4);
     if (poiCache[key]) return Promise.resolve(poiCache[key]);
+    return googleNearby(fix).then(function (ps) { if (!ps.length) throw new Error('vuoto'); poiCache[key] = ps; return ps; }).catch(function () { return osmNearby(fix, key); });
+  }
+  function osmNearby(fix, key) {
     return Promise.all([overpassPlaces(fix).catch(function () { return null; }), reversePlace(fix).catch(function () { return []; })]).then(function (rs) {
       var out = (rs[0] || []).slice(), seen = {};
       rs[1].forEach(function (p) { if (!out.some(function (o) { return o.name.toLowerCase() === p.name.toLowerCase(); })) out.push(p); });
@@ -991,7 +1020,10 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     }
     return '';
   }
-  function geocodeAddress(addr, near) {
+  function geocodeAddress(addr, near, guess) {
+    return googleText((guess ? guess + ' ' : '') + addr, near).catch(function () { return null; }).then(function (r) { return r || osmGeocode(addr, near); });
+  }
+  function osmGeocode(addr, near) {
     var qs = [addr], bare = addr.replace(STREET, ' ').replace(/\b(PR|MI|RM|TO|BO)\b/g, ' ').replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();   // OSM a volte usa un altro nome ("Piazza Arturo X" per "Piazzale X")
     if (bare && bare !== addr) qs.push(bare);
     function one(q) {
@@ -1056,6 +1088,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       if (hint && fromAddr) hint.textContent = 'Indirizzo letto sullo scontrino: ' + addr;
       return nearbyPlaces(fix).then(function (places) {
         if (run !== storeRun) return;
+        if (fix.places) places = fix.places.concat(places.filter(function (p) { return !fix.places.some(function (q) { return q.name.toLowerCase() === p.name.toLowerCase(); }); }));
         var scored = places.map(function (p) { return { n: p.name, d: p.d, m: head ? Math.max(textMatch(p.name, head), p.brand ? textMatch(p.brand, head) : 0) : 0 }; });
         scored.sort(function (a, b) { return (b.m - a.m) || (a.d - b.d); });
         var list = scored.map(function (x) { return x.n; }), best = '';
@@ -1070,7 +1103,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     getFix(8000).then(function (gps) {
       if (run !== storeRun) return;
       if (!addr) return work(gps, false);
-      return geocodeAddress(addr, gps).then(function (a) { if (run !== storeRun) return; return a ? work(a, true) : work(gps, false); }, function () { return work(gps, false); });
+      return geocodeAddress(addr, gps, guess).then(function (a) { if (run !== storeRun) return; return a ? work(a, true) : work(gps, false); }, function () { return work(gps, false); });
     }).catch(function () { if (guess) show([guess], guess); });
   }
 
