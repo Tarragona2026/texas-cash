@@ -79,9 +79,7 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .trdir .swap { flex: none; width: 48px; height: 44px; border-radius: 14px; border: 0; background: var(--accent); color: var(--accent-ink); font-size: 1.2rem; font-weight: 700; }
 .trout { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; line-height: 1.25; overflow-wrap: anywhere; min-height: 1.5em; }
 .trmic { min-height: 64px; border-radius: 20px; border: 0; font-weight: 700; font-size: 1.05rem; background: var(--bad); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.trmic.on { background: var(--good); animation: pulse 1s ease-in-out infinite alternate; }
 .trmic svg { width: 26px; height: 26px; }
-@keyframes pulse { from { opacity: 1; } to { opacity: .7; } }
 #phrCats .chip { flex: 0 0 auto; padding: 0 14px; }
 .phr { display: flex; flex-direction: column; gap: 8px; }
 .phr button { text-align: left; border: 0; background: var(--field); border-radius: 14px; padding: 10px 12px; font-weight: 600; color: var(--ink); }
@@ -373,8 +371,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Traduttore</h2><span></span></div>
     <section class="card">
       <div class="trdir"><div class="lang" id="trFrom">Italiano</div><button class="swap" id="trSwap" type="button" aria-label="Inverti le lingue">⇄</button><div class="lang" id="trTo">Inglese (USA)</div></div>
-      <button class="trmic" id="trMic" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21"/></svg><span id="trMicTxt">Parla</span></button>
-      <button class="btn ghost small" id="trKb" type="button">Dettatura con la tastiera</button>
+      <button class="trmic" id="trKb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21"/></svg><span>Parla (dettatura tastiera)</span></button>
+      <div class="hint">Si apre la tastiera: tocca il microfono in basso a destra, parla, poi chiudi la tastiera. La traduzione parte da sola.</div>
       <textarea class="trarea" id="trIn" placeholder="Oppure scrivi qui" autocomplete="off" autocapitalize="sentences"></textarea>
       <button class="btn" id="trGo" type="button">Traduci</button>
       <label class="toggle"><input type="checkbox" id="trAuto"> Leggi la traduzione ad alta voce da sola</label>
@@ -1158,8 +1156,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
   /* ---------- traduttore italiano <-> inglese americano ---------- */
   var PHRASES = {"Ristorante": [["Un tavolo per tre, per favore.", "A table for three, please."], ["Possiamo avere il menù?", "Can we see the menu, please?"], ["Cosa ci consiglia?", "What do you recommend?"], ["Sono allergico alle noci.", "I'm allergic to nuts."], ["Non posso mangiare glutine.", "I can't eat gluten."], ["Senza ghiaccio, per favore.", "No ice, please."], ["Acqua del rubinetto, per favore.", "Tap water, please."], ["Possiamo avere una confezione da asporto?", "Can I get a to-go box?"], ["La mancia è inclusa?", "Is the tip included?"], ["Possiamo pagare separatamente?", "Can we pay separately?"], ["Il conto, per favore.", "Check, please."], ["Il cibo è delizioso!", "The food is delicious!"]], "Hotel": [["Ho una prenotazione a nome Fusi.", "I have a reservation under Fusi."], ["A che ora è il check-out?", "What time is check-out?"], ["Possiamo lasciare i bagagli qui?", "Can we leave our luggage here?"], ["Mi serve un asciugamano in più.", "I need an extra towel."], ["Qual è la password del Wi-Fi?", "What's the Wi-Fi password?"], ["Dov'è il bagno?", "Where is the restroom?"]], "Benzina": [["Pieno di benzina normale, per favore.", "Fill it up with regular, please."], ["Posso pagare alla pompa con la carta?", "Can I pay at the pump with a card?"], ["Dov'è il bagno?", "Where is the restroom?"], ["Dove posso gonfiare le gomme?", "Where can I put air in my tires?"]], "Dogana": [["Siamo qui in vacanza.", "We're here on vacation."], ["Restiamo due settimane.", "We're staying for two weeks."], ["Stiamo dalla famiglia a Houston.", "We're staying with family in Houston."], ["Non ho nulla da dichiarare.", "I have nothing to declare."], ["Dove ritiro i bagagli?", "Where is baggage claim?"], ["Dov'è il noleggio auto?", "Where is the car rental?"]], "Negozi": [["Quanto costa?", "How much is this?"], ["Ha una taglia più grande?", "Do you have a bigger size?"], ["Ha una taglia più piccola?", "Do you have a smaller size?"], ["Posso provarlo?", "Can I try this on?"], ["Dov'è il camerino?", "Where is the fitting room?"], ["Accettate carte?", "Do you take credit cards?"], ["Posso avere lo scontrino?", "Can I have the receipt, please?"], ["Vorrei restituire questo.", "I'd like to return this."]], "Aiuto": [["Ho bisogno di aiuto.", "I need help."], ["Chiami un'ambulanza!", "Call an ambulance!"], ["Mi sono perso.", "I'm lost."], ["Dov'è l'ospedale più vicino?", "Where is the nearest hospital?"], ["Parla italiano?", "Do you speak Italian?"], ["Può parlare più lentamente?", "Could you speak more slowly?"], ["Può ripetere, per favore?", "Could you say that again, please?"], ["Non capisco.", "I don't understand."], ["Grazie mille!", "Thank you so much!"]]};
-  var trDir = 'it-en', trCat = 'Ristorante', trGoogleOk = true, trViaBackup = false, trBusy = false, rec = null;
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var trDir = 'it-en', trCat = 'Ristorante', trGoogleOk = true, trViaBackup = false, trBusy = false;
   function trLang() { return trDir === 'it-en' ? { from: 'it', to: 'en', fromV: 'it-IT', toV: 'en-US', fromN: 'Italiano', toN: 'Inglese (USA)' } : { from: 'en', to: 'it', fromV: 'en-US', toV: 'it-IT', toN: 'Italiano', fromN: 'Inglese (USA)' }; }
   function decodeHtml(t) { var e = document.createElement('textarea'); e.innerHTML = t; return e.value; }
   function translateText(text) {
@@ -1194,9 +1191,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   }
   function renderTr() {
     var L = trLang(); $('trFrom').textContent = L.fromN; $('trTo').textContent = L.toN;
-    $('trMicTxt').textContent = SR ? 'Parla in ' + L.fromN.split(' ')[0].toLowerCase() : 'Microfono non disponibile';
-    $('trMic').disabled = !SR;
-    $('trIn').placeholder = SR ? 'Oppure scrivi qui' : 'Scrivi qui, o usa il microfono della tastiera';
+    $('trIn').placeholder = 'Parla con la tastiera o scrivi qui';
     $('phrCats').innerHTML = '';
     Object.keys(PHRASES).forEach(function (c) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c; b.setAttribute('aria-pressed', String(c === trCat));
@@ -1215,39 +1210,12 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   $('trGo').onclick = function () { doTranslate(false); };
   $('trSpeak').onclick = function () { speak($('trOut').textContent, trLang().toV); };
   $('trCopy').onclick = function () { try { navigator.clipboard.writeText($('trOut').textContent).then(function () { toast('Copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
-  var MIC_ERR = { 'not-allowed': 'Il microfono è bloccato. In Impostazioni di iPhone, Safari (o l\'app), consenti il microfono e il riconoscimento vocale.', 'service-not-allowed': 'Il riconoscimento vocale non è consentito in questa app. Attiva "Dettatura" in Impostazioni, Generali, Tastiera, oppure usa il microfono della tastiera.', 'no-speech': 'Non ho sentito nulla: parla subito dopo aver toccato il tasto.', 'audio-capture': 'Non trovo il microfono.', 'network': 'Serve la rete per riconoscere la voce.', 'language-not-supported': 'Lingua non supportata dal riconoscimento vocale.', 'aborted': '' };
-  var srInst = null;
-  function micIdle() { rec = null; $('trMic').classList.remove('on'); renderTr(); }
-  $('trMic').onclick = function () {
-    if (!SR) return;
-    try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}          // la voce che parla blocca il microfono su iPhone
-    if (rec) { var old = rec; rec = null; try { old.abort(); } catch (e) {} micIdle(); return; }   // secondo tocco: ferma e libera subito
-    var r = srInst || (srInst = new SR()), got = false, err = '', sent = false, dead = false;
-    rec = r; r.lang = trLang().fromV; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
-    $('trHint').textContent = ''; $('trIn').value = '';
-    $('trMic').classList.add('on'); $('trMicTxt').textContent = 'Ti ascolto… tocca per fermare';
-    var guard = setTimeout(function () { if (!dead) { try { r.abort(); } catch (e) {} } }, 15000);
-    function end() {
-      if (dead) return; dead = true; clearTimeout(guard); r.onresult = r.onerror = r.onend = r.onspeechend = null;
-      if (rec === r) micIdle();
-      if (got && !sent && $('trIn').value.trim()) { sent = true; setTimeout(function () { doTranslate(true); }, 350); }
-      if (!got && !err) $('trHint').textContent = 'Non ho sentito nulla. Parla subito dopo aver toccato il tasto, oppure usa la dettatura con la tastiera.';
-    }
-    r.onresult = function (e) {
-      var txt = '', fin = false;
-      for (var k = 0; k < e.results.length; k++) { txt += e.results[k][0].transcript; if (e.results[k].isFinal) fin = true; }
-      got = true; $('trIn').value = txt;
-      if (fin) { sent = true; try { r.stop(); } catch (x) {} dead = true; clearTimeout(guard); r.onresult = r.onerror = r.onend = r.onspeechend = null; if (rec === r) micIdle(); setTimeout(function () { doTranslate(true); }, 350); }   // microfono libero subito, traduzione e voce dopo
-    };
-    r.onerror = function (e) { err = e.error || 'errore'; $('trHint').textContent = MIC_ERR[err] !== undefined ? MIC_ERR[err] : 'Errore del microfono (' + err + '). Prova con la dettatura della tastiera.'; };
-    r.onend = end; r.onspeechend = function () { try { r.stop(); } catch (e) {} };
-    setTimeout(function () {
-      try { r.start(); } catch (e) { dead = true; clearTimeout(guard); micIdle(); $('trHint').textContent = 'Non riesco ad avviare il microfono: ' + (e && e.name || 'errore') + '. Chiudi e riapri l\'app, oppure usa la dettatura della tastiera.'; }
-    }, 250);
-  };
   $('trAuto').checked = !!st.trAuto;
   $('trAuto').onchange = function () { st.trAuto = $('trAuto').checked; persist(); if (st.trAuto) toast('Se il microfono smette di sentire, spegni questa opzione'); };
-  $('trKb').onclick = function () { $('trIn').focus(); $('trHint').textContent = 'Tocca il microfono sulla tastiera di iPhone, parla, poi premi Traduci.'; };
+  $('trKb').onclick = function () { $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = ''; $('trIn').focus(); };
+  var trLastTxt = '';
+  $('trIn').addEventListener('focus', function () { trLastTxt = $('trIn').value; });
+  $('trIn').addEventListener('blur', function () { var v = $('trIn').value.trim(); if (v && v !== trLastTxt.trim()) setTimeout(function () { doTranslate(false); }, 200); });
 
   /* ---------- posizione e mappa ---------- */
   var lastFix = null;
