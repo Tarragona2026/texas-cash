@@ -225,6 +225,7 @@ a.btn { text-decoration: none; }
 .app .ic.mint { background: linear-gradient(180deg, #5fe0a6, #12a36a); }
 .app .ic.coral { background: linear-gradient(180deg, #ff9a76, #e2552d); }
 a.docrow { text-decoration: none; }
+.btn.posask { background: var(--warn); color: #fff; }
 .btn.callsos { background: var(--bad); color: #fff; min-height: 56px; font-size: 1.1rem; }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
@@ -321,6 +322,7 @@ a.docrow { text-decoration: none; }
 
 .list { display: flex; flex-direction: column; gap: 10px; }
 .item { border-radius: 20px; padding: 12px; display: flex; gap: 12px; align-items: center; }
+.item.focus { outline: 3px solid var(--accent); outline-offset: 2px; }
 .item .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .item .t { font-weight: 700; overflow-wrap: anywhere; }
 .item .m { font-size: .8rem; color: var(--ink-soft); }
@@ -371,6 +373,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hero-foot"><span class="num" id="spent"></span><span class="num" id="leftEur"></span></div>
     </section>
     <button class="btn chkbar" id="chkBar" type="button" hidden></button>
+    <button class="btn chkbar posask" id="posAsk" type="button" hidden></button>
     <nav class="apps" aria-label="Sezioni">
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
       <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
@@ -685,7 +688,12 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   <section id="v-pos" class="wrap" aria-label="Dove sono i miei" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Dove sono i miei</h2><span></span></div>
     <section class="card">
-      <button class="btn" id="posHere" type="button">Sono qui</button>
+      <div class="btnrow">
+        <button class="btn" id="posHere" type="button">Sono qui</button>
+        <button class="btn ghost" id="posAskAll" type="button">Chiedi dove sono</button>
+      </div>
+      <div class="hint" id="posAskInfo" hidden></div>
+      <div class="btnrow" id="posAskWa" hidden></div>
       <div class="doclist" id="posList"></div>
       <div class="diamap" id="posMap" hidden></div>
       <div class="hint" id="posInfo"></div>
@@ -760,7 +768,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v53';
+var APP_VER = 'v54';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -849,7 +857,7 @@ var APP_VER = 'v53';
     VIEWS.forEach(function (x) { $('v-' + x).hidden = x !== v; });
     document.body.classList.toggle('inner', v !== 'home');
     window.scrollTo(0, 0);
-    if (v === 'home') { renderHome(); chkBanner(); calHome(); }
+    if (v === 'home') { renderHome(); chkBanner(); calHome(); posAskBanner(); }
     if (v === 'calc') renderCalc();
     if (v === 'log') renderLog();
     if (v === 'settings') { fillSettings(); renderContacts(); }
@@ -1141,7 +1149,7 @@ var APP_VER = 'v53';
       lg.appendChild(d);
     });
   }
-  var logTab = 'spese';
+  var logTab = 'spese', logFocus = '';
   function setTab(t) { logTab = t; renderLog(); }
   $('tabSpese').onclick = function () { setTab('spese'); };
   $('tabRic').onclick = function () { setTab('ric'); };
@@ -1185,6 +1193,7 @@ var APP_VER = 'v53';
     }
     st.expenses.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (e) {
       var el = document.createElement('div'); el.className = 'item';
+      if (e.id === logFocus) { logFocus = ''; el.classList.add('focus'); setTimeout(function () { el.scrollIntoView({ block: 'center' }); }, 80); setTimeout(function () { el.classList.remove('focus'); }, 3500); }
       var th = document.createElement('div');
       if (e.photo) {
         var pb = document.createElement('button'); pb.type = 'button'; pb.className = 'photo-btn'; pb.setAttribute('aria-label', 'Apri scontrino');
@@ -2314,7 +2323,7 @@ var APP_VER = 'v53';
     });
     draw('exp', 40, function (g) { return g.items.length === 1 ? (CAT_COLORS[g.items[0].x.cat] || '#d70015') : '#d70015'; }, function (g) {
       var pop = mapPop();
-      g.items.slice().sort(function (a, b) { return b.x.ts - a.x.ts; }).forEach(function (p) { var e = p.x; mapRow(pop.firstChild, usd(e.usd) + ' · ' + e.cat, (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts)); });
+      g.items.slice().sort(function (a, b) { return b.x.ts - a.x.ts; }).forEach(function (p) { var e = p.x, it = mapRow(pop.firstChild, usd(e.usd) + ' · ' + e.cat, (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts)), b = document.createElement('button'); b.type = 'button'; b.textContent = 'Apri'; b.style.marginTop = '4px'; b.onclick = function () { logFocus = e.id; logTab = 'spese'; go('log'); }; it.appendChild(b); });
       return pop;
     });
     draw('pho', 40, '#d6246e', function (g) {
@@ -2811,6 +2820,7 @@ var APP_VER = 'v53';
   function posSet(f) {                                   // chiamata da "Sono qui" e quando si salva una spesa, una foto o il diario
     if (!f || !st.user) return;
     st.pos = { la: f.la, lo: f.lo, ac: f.ac || 0, ts: Date.now(), sent: false }; persist();
+    posAskBanner();
     if (hashView() === 'pos') renderPos();
   }
   function posSync(tr, jobs) {
@@ -2845,14 +2855,14 @@ var APP_VER = 'v53';
     list.forEach(function (p, i) {
       p.col = p.me ? '#636366' : POS_COL[i % POS_COL.length];
       var r = document.createElement('a'), ic = document.createElement('span'), tx = document.createElement('span'), nm = document.createElement('b'), sm = document.createElement('small');
-      r.className = 'docrow'; r.target = '_blank'; r.rel = 'noopener'; r.href = 'https://maps.apple.com/?ll=' + p.la + ',' + p.lo + '&q=' + encodeURIComponent(p.me ? 'La mia posizione' : p.name);
+      r.className = 'docrow'; r.target = '_blank'; r.rel = 'noopener'; r.href = p.me ? 'https://maps.apple.com/?ll=' + p.la + ',' + p.lo + '&q=' + encodeURIComponent('La mia posizione') : 'https://maps.apple.com/?daddr=' + p.la + ',' + p.lo + '&dirflg=d';
       ic.className = 'docico'; ic.style.cssText = 'border-radius:50%;font-size:1.1rem;background:' + p.col; ic.textContent = p.name.charAt(0).toUpperCase();
       nm.textContent = p.name;
-      sm.textContent = posAgo(p.ts) + (!p.me && mine ? ' · a ' + posDist(mine, p) + ' da te' : '') + (p.ac > 150 ? ' · posizione poco precisa' : '') + (p.wait ? ' · in attesa di rete' : '');
+      sm.textContent = posAgo(p.ts) + (!p.me && mine ? ' · a ' + posDist(mine, p) + ' da te' : '') + (p.ac > 150 ? ' · posizione poco precisa' : '') + (p.wait ? ' · in attesa di rete' : '') + (p.me ? '' : ' · tocca per il tragitto');
       tx.appendChild(nm); tx.appendChild(sm); r.appendChild(ic); r.appendChild(tx); box.appendChild(r);
     });
     info.textContent = !st.user ? 'Scrivi prima il tuo nome in Impostazioni.'
-      : (!src.length ? 'Gli altri non hanno ancora mandato la posizione. ' : '') + 'La posizione si aggiorna con "Sono qui" e quando si salva una spesa, una foto o il diario. Non è un tracciato continuo: vedi l\'ultimo punto e a che ora. Tocca un nome per aprirlo in Mappe.'
+      : (!src.length ? 'Gli altri non hanno ancora mandato la posizione. ' : '') + 'La posizione si aggiorna con "Sono qui" e quando si salva una spesa, una foto o il diario. Non è un tracciato continuo: vedi l\'ultimo punto e a che ora. Tocca un nome e Mappe ti porta da lui.'
         + (navigator.onLine === false ? ' Senza rete vedi le ultime posizioni ricevute.' : '');
     var mb = $('posMap');
     if (!window.L || !list.length) { mb.hidden = true; return; }
@@ -2866,6 +2876,43 @@ var APP_VER = 'v53';
     });
     setTimeout(function () { posMap.invalidateSize(); if (pts.length === 1) posMap.setView(pts[0], 14); else posMap.fitBounds(pts, { padding: [40, 40], maxZoom: 15 }); }, 60);
   }
+  /* richiesta "dove sei?": niente notifiche, gli altri la vedono come avviso arancione quando aprono l'app */
+  var posReqUnsub = null, posReq = null;
+  function posReqListen() {
+    if (posReqUnsub) return;
+    fbReady().then(function (d) {
+      if (posReqUnsub) return;
+      posReqUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('posreq').onSnapshot(function (snap) {
+        var me = st.user ? chkMe() : '', best = null;
+        snap.docs.forEach(function (doc) { var v = doc.data(); if (doc.id !== me && v && v.ts && (!best || v.ts > best.ts)) best = { from: v.from || doc.id, ts: v.ts }; });
+        posReq = best; posAskBanner();
+      }, function () {});
+    }).catch(function () {});
+  }
+  function posAskBanner() {                              // vale 3 ore e sparisce appena mando una posizione più recente
+    var b = $('posAsk'), r = posReq, on = !!(r && st.user && Date.now() - r.ts < 3 * 3600000 && r.ts > ((st.pos && st.pos.ts) || 0));
+    b.hidden = !on; if (on) b.textContent = r.from + ' chiede dove sei · tocca per inviare la posizione';
+  }
+  $('posAsk').onclick = function () {
+    var b = $('posAsk'); b.disabled = true; b.textContent = 'Cerco la posizione…';
+    getFix(12000).then(function (f) {
+      b.disabled = false;
+      if (!f) { posAskBanner(); toast('Non trovo la posizione: controlla che sia attiva per questa app'); return; }
+      posSet(f); sync(true); toast('Posizione inviata');
+    });
+  };
+  $('posAskAll').onclick = function () {
+    if (!st.user) { toast('Scrivi prima il tuo nome in Impostazioni'); return; }
+    var me = chkMe(), info = $('posAskInfo'), wa = $('posAskWa'), msg = 'Dove sei? Apri la app Xmas in Texa$ e tocca "Sono qui".';
+    fbReady().then(function (d) { return d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('posreq').doc(me).set({ from: st.user, ts: Date.now() }); }).catch(function () {});
+    info.hidden = false; info.textContent = (navigator.onLine === false ? 'Richiesta in coda: parte quando torna la rete. ' : 'Richiesta inviata. ') + 'Gli altri la vedono come avviso arancione appena aprono l\'app: il telefono non squilla. Per avvisarli subito scrivi su WhatsApp:';
+    wa.innerHTML = '';
+    (st.contacts || []).filter(function (c) { return c.wa && slug(c.name) !== 'flavia' && slug(String(c.name).split(/\s+/)[0]) !== me; }).forEach(function (c) {
+      var a = document.createElement('a'); a.className = 'btn ghost small'; a.target = '_blank'; a.rel = 'noopener'; a.href = callHref(c) + '?text=' + encodeURIComponent(msg); a.textContent = 'Scrivi a ' + c.name; wa.appendChild(a);
+    });
+    wa.hidden = !wa.children.length;
+    if (wa.hidden) info.textContent = info.textContent.replace(' Per avvisarli subito scrivi su WhatsApp:', ' Per avvisarli subito aggiungi i loro numeri WhatsApp in Impostazioni.');
+  };
   $('posHere').onclick = function () {
     var b = $('posHere'); b.disabled = true; b.textContent = 'Cerco la posizione…';
     getFix(12000).then(function (f) {
@@ -2926,6 +2973,7 @@ var APP_VER = 'v53';
   checkVersion(false);
   chkSeed(); chkBanner(); chkListen();
   calSeed(); calHome(); calListen();
+  posReqListen();
   fetchRate(false);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }

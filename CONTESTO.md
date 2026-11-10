@@ -9,7 +9,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 ## Come lavorare
 - Parla in italiano, risposte brevi e semplici: Matteo non è un programmatore.
 - Dopo ogni modifica: commit e push su `main` (pubblica l'app in 1–3 minuti).
-- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v53**; Mac `mac/sw.js` v11).
+- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v54**; Mac `mac/sw.js` v11).
 - Prima il telefono (`index.html`), poi il Mac (`mac/index.html`).
 - Prova nel browser prima di pubblicare; cancella i dati di prova da Firebase (viaggi `_prova_*`).
 - Il repository è pubblico: MAI scrivere nel codice indirizzi privati, numeri di telefono, PIN o la chiave privata del diario. L'indirizzo di casa di Flavi non va nel codice.
@@ -20,7 +20,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 - `index.html`: app telefono (tutto in un file). `ocr.js`: lettura importi e data dagli scontrini (test: `node test/parse.test.js`).
 - `mac/index.html`, `mac/report.js`: app Mac, legge tutto da Firebase, export PDF.
 - `firebase-config.js`, `google-config.js`, `diary-crypto.js`, `diario-config.js` (chiave pubblica diario), `diario-chiavi.html`.
-- Firebase progetto `xmas-texas`, codice viaggio `texas2026`; raccolte sotto `trips/{codice}`: items, photos, album, albumFull, diary, diaryPhotos, checklist, calendar, positions.
+- Firebase progetto `xmas-texas`, codice viaggio `texas2026`; raccolte sotto `trips/{codice}`: items, photos, album, albumFull, diary, diaryPhotos, checklist, calendar, positions, posreq.
 - Dati locali: localStorage `texascash.v1`, foto in IndexedDB `texascash` / `photos`.
 - Documenti: archivio a parte, mai in sync né nel backup: IndexedDB `texascash-docs` / `files` e localStorage `texascash.docs.v1` (scheda Flavia e dati del PIN). PDF mostrati con `vendor/pdf.min.js` (pdf.js 3.11 legacy, caricato solo quando serve).
 
@@ -36,6 +36,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 - v51: "Calendario" si chiama "Programma di viaggio", "Registro" si chiama "Registro spese e ricariche". Mappa del Programma: prima tutto il viaggio, poi toccando una data solo quel giorno; tasto per trovare tutti i luoghi mancanti. Icone della home spostabili (tieni premuto, trascina, "Fine"; ordine in `st.homeOrder`).
 - v52, riordino: una sola Mappa (`renderMap`, `openMap`) con filtri Programma / Spese / Foto / Diario e fila dei giorni; il Programma ha il tasto "Vedi il viaggio sulla mappa" che la apre solo con le tappe. Dal Diario tolte le schede Calendario e Mappa: resta la scrittura con la fila dei giorni del viaggio. Sul telefono la mappa mostra solo i propri punti (foto da `st.album`).
 - v53: "Chiama" (contatti in `st.contacts`, solo sul telefono, modificabili in Impostazioni; WhatsApp con `wa.me` o chiamata normale `tel:`; Flavia presa dalla scheda in Documenti; tasto 911). "Dove sono i miei" (`positions/{nome}` su Firebase: ultima posizione di ognuno, aggiornata con "Sono qui" e quando si salva spesa, foto o diario; tutti e tre vedono tutti).
+- v54: nel popup delle spese sulla Mappa il tasto "Apri" porta al Registro sulla spesa giusta. In "Dove sono i miei" il tocco su un nome apre il tragitto in Mappe; "Chiedi dove sono" scrive in `posreq/{nome}` e gli altri vedono un avviso arancione in home quando aprono l'app (niente notifiche push), più un tasto per scrivere su WhatsApp.
 - App Mac: spese, mappa, foto, diari (file chiave + PIN), checklist.
 
 ## Da fare (in ordine)
