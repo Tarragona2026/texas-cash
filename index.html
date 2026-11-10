@@ -91,6 +91,8 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .apend { position: absolute; right: 4px; top: 4px; font-size: .62rem; font-weight: 700; background: var(--warn); color: #fff; padding: 1px 6px; border-radius: 999px; }
 .vmap { position: relative; width: 100%; max-width: 520px; height: 130px; border-radius: 14px; overflow: hidden; flex: none; }
 .vcap { color: #fff; font-size: .9rem; text-align: center; }
+.diax { position: absolute; right: 4px; top: 4px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 1rem; line-height: 1; }
+.diatext { min-height: 180px; }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -143,6 +145,7 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .app .ic.indigo { background: linear-gradient(180deg, #7c7aff, #5e5ce6); }
 .app .ic.green { background: linear-gradient(180deg, #4cd964, #248a3d); }
 .app .ic.pink { background: linear-gradient(180deg, #ff6b9d, #d6246e); }
+.app .ic.amber { background: linear-gradient(180deg, #ffb340, #e07b00); }
 .app .ic.teal { background: linear-gradient(180deg, #40c8e0, #0a84a8); }
 .app .ic.grey { background: linear-gradient(180deg, #8e8e93, #636366); }
 .app:active { transform: scale(.92); }
@@ -256,6 +259,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <script src="vendor/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="google-config.js"></script>
+<script src="diary-crypto.js"></script>
+<script src="diario-config.js"></script>
 </head>
 <body>
 <div class="bgwrap" aria-hidden="true"><div class="bgimg" id="bgimg"></div></div>
@@ -275,6 +280,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
       <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
       <button class="app" id="goLog" type="button"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span>Registro <span id="cnt"></span></span></button>
+      <button class="app" id="goDia" type="button"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M10 8h6M10 12h6M10 16h4"/></svg></span>Diario</button>
       <button class="app" id="goAlbum" type="button"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.500" cy="10" r="1.600"/><path d="M21 16l-5-5-8 8"/></svg></span>Foto</button>
       <button class="app" id="goTr" type="button"><span class="ic teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h9M8.500 3v2M6 5c.5 3 2.500 5.500 5 7M11 5c-.5 3-3 6-6.500 8"/><path d="M12 20l4.500-10L21 20M13.600 16.500h5.800"/></svg></span>Traduttore</button>
       <button class="app" id="goMap" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span>Mappa</button>
@@ -378,6 +384,29 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <div class="hint" id="mapInfo"></div>
   </section>
 
+  <!-- DIARIO -->
+  <section id="v-dia" class="wrap" aria-label="Diario" hidden>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
+    <section class="card">
+      <div class="label" id="diaDate"></div>
+      <textarea class="trarea diatext" id="diaText" placeholder="Cosa hai fatto? Cosa hai visto? Scrivi quello che vuoi: lo leggi solo tu." autocomplete="off" autocapitalize="sentences"></textarea>
+      <div class="agrid" id="diaPhotos"></div>
+      <div class="btnrow">
+        <button class="btn" id="diaCam" type="button">Scatta foto</button>
+        <button class="btn ghost" id="diaLib" type="button">Dal rullino</button>
+      </div>
+      <input type="file" id="diaCamFile" accept="image/*" capture="environment" hidden>
+      <input type="file" id="diaLibFile" accept="image/*" multiple hidden>
+      <div class="hint" id="diaStatus"></div>
+      <button class="btn ghost small" id="diaDel" type="button">Elimina questa voce</button>
+    </section>
+    <section class="card">
+      <div class="label">I tuoi giorni</div>
+      <div class="chips" id="diaDays"></div>
+      <div class="hint">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
+    </section>
+  </section>
+
   <!-- ALBUM FOTO -->
   <section id="v-album" class="wrap" aria-label="Album foto" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Foto</h2><span></span></div>
@@ -388,6 +417,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       </div>
       <input type="file" id="alCamFile" accept="image/*" capture="environment" hidden>
       <input type="file" id="alLibFile" accept="image/*" multiple hidden>
+      <label class="toggle"><input type="checkbox" id="alDia" checked> Metti le foto anche nel mio diario di oggi</label>
       <div class="hint" id="alHint">Le foto vanno nell'album comune: le vedete tutti e tre.</div>
       <button class="btn ghost small" id="alSaveRoll" type="button" hidden>Salva l'ultima foto anche nel rullino</button>
     </section>
@@ -479,11 +509,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v36';
+var APP_VER = 'v37';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
-  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album'];
+  var VIEWS = ['home', 'scan', 'calc', 'log', 'settings', 'topup', 'map', 'tr', 'album', 'dia'];
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
@@ -577,6 +607,7 @@ var APP_VER = 'v36';
     if (v === 'tr') renderTr();
     if (v !== 'album' && albUnsub) { albUnsub(); albUnsub = null; }
     if (v === 'album') openAlbum();
+    if (v === 'dia') openDiary();
     if (v === 'calc') { storeCalc = ''; suggestStores('', 'storeCalc', 'desc'); }
     if (v === 'calc' || v === 'scan') getFix(8000);
   }
@@ -584,6 +615,7 @@ var APP_VER = 'v36';
   window.addEventListener('hashchange', function () { show(hashView()); });
   document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : 'home'); }; });
   $('goCalc').onclick = function () { go('calc'); };
+  $('goDia').onclick = function () { go('dia'); };
   $('goAlbum').onclick = function () { go('album'); };
   $('goTr').onclick = function () { go('tr'); };
   $('goMap').onclick = function () { go('map'); };
@@ -1254,6 +1286,114 @@ var APP_VER = 'v36';
   $('trIn').addEventListener('focus', function () { trLastTxt = $('trIn').value; });
   $('trIn').addEventListener('blur', function () { var v = $('trIn').value.trim(); if (v && v !== trLastTxt.trim()) setTimeout(function () { doTranslate(false); }, 200); });
 
+  /* ---------- diario privato (cifrato) ---------- */
+  var diaDay = '', diaUrls = [], diaTimer = null;
+  function dayKey(ts) { var d = new Date(ts || Date.now()); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function dayLabel(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function slug(x) { return String(x || 'utente').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'utente'; }
+  function diaryActive() { return !!(window.DIARY_PUBKEY && window.DiaryCrypto && window.crypto && window.crypto.subtle); }
+  function diaryDoc(day) { var e = st.diary[day]; return { day: day, text: e.text || '', photos: e.photos || [], loc: e.loc || null, ts: e.ts, upd: e.upd || e.ts }; }
+  function diaryPending() {
+    if (!diaryActive() || !st.diary) return 0;
+    var n = 0, pushed = st.diaPushed || {}, pp = st.diaPhotosPushed || {};
+    Object.keys(st.diary).forEach(function (d) {
+      if (!pushed[d] || pushed[d].h !== hash(JSON.stringify(diaryDoc(d)))) n++;
+      (st.diary[d].photos || []).forEach(function (id) { if (!pp[id]) n++; });
+    });
+    Object.keys(pushed).forEach(function (d) { if (!st.diary[d]) n++; });
+    return n;
+  }
+  function diarySync(tr, jobs) {
+    if (!diaryActive()) return;
+    st.diary = st.diary || {}; st.diaPushed = st.diaPushed || {}; st.diaPhotosPushed = st.diaPhotosPushed || {};
+    var me = slug(st.user);
+    Object.keys(st.diary).forEach(function (d) {
+      var doc = diaryDoc(d), h = hash(JSON.stringify(doc));
+      (doc.photos || []).forEach(function (id) {
+        if (st.diaPhotosPushed[id]) return;
+        jobs.push(getPhoto('dia_' + id).then(function (b) {
+          if (!b) { st.diaPhotosPushed[id] = 1; return; }
+          return DiaryCrypto.encryptBlob(window.DIARY_PUBKEY, b).then(function (pack) { return tr.collection('diaryPhotos').doc(me + '_' + id).set({ user: st.user || '', pack: pack }); }).then(function () { st.diaPhotosPushed[id] = 1; });
+        }));
+      });
+      if (!st.diaPushed[d] || st.diaPushed[d].h !== h) {
+        jobs.push(DiaryCrypto.encryptJson(window.DIARY_PUBKEY, doc).then(function (pack) { return tr.collection('diary').doc(me + '_' + d).set({ user: st.user || '', day: d, pack: pack, upd: doc.upd }); })
+          .then(function () { st.diaPushed[d] = { h: h, ph: doc.photos.slice() }; }));
+      }
+    });
+    Object.keys(st.diaPushed).forEach(function (d) {
+      if (st.diary[d]) return;
+      var ph = st.diaPushed[d].ph || [];
+      jobs.push(tr.collection('diary').doc(me + '_' + d).delete().then(function () { return Promise.all(ph.map(function (id) { return tr.collection('diaryPhotos').doc(me + '_' + id).delete(); })); }).then(function () { delete st.diaPushed[d]; }));
+    });
+  }
+  function diaGet(create) {
+    st.diary = st.diary || {};
+    if (!st.diary[diaDay] && create) st.diary[diaDay] = { text: '', photos: [], loc: null, ts: Date.now(), upd: Date.now() };
+    return st.diary[diaDay] || null;
+  }
+  function diaTouchLoc(e) { if (!e.loc) getFix(6000).then(function (f) { if (f && !e.loc) { e.loc = { la: f.la, lo: f.lo, ac: f.ac }; e.upd = Date.now(); persist(); diaStatus(); } }); }
+  function diaStatus() {
+    var el = $('diaStatus'); if (!el) return; var e = st.diary && st.diary[diaDay];
+    if (!e) { el.textContent = diaryActive() ? 'Scrivi qualcosa o aggiungi una foto: si salva da solo.' : 'Scrivi qualcosa o aggiungi una foto. Per ora resta solo su questo telefono.'; return; }
+    var base = e.loc ? 'Con posizione' : 'Senza posizione';
+    if (!diaryActive()) el.textContent = base + ' · salvato su questo telefono (manca ancora la chiave per inviarlo cifrato).';
+    else { var n = diaryPending(); el.textContent = base + ' · ' + (n ? 'in coda per l\'invio cifrato' : 'inviato cifrato'); }
+  }
+  function openDiary() { if (!diaDay) diaDay = dayKey(); renderDiary(); }
+  function renderDiary() {
+    $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : '');
+    var e = diaGet(false); if (document.activeElement !== $('diaText')) $('diaText').value = e ? e.text || '' : '';
+    var grid = $('diaPhotos'); grid.innerHTML = ''; diaUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaUrls = [];
+    (e && e.photos || []).forEach(function (id) {
+      getPhoto('dia_' + id).then(function (b) {
+        if (!b) return; var u = URL.createObjectURL(b); diaUrls.push(u);
+        var t = document.createElement('div'); t.className = 'atile'; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; t.appendChild(im);
+        var x = document.createElement('button'); x.type = 'button'; x.className = 'diax'; x.setAttribute('aria-label', 'Togli la foto'); x.textContent = '×';
+        x.onclick = function () { if (!confirm('Togliere questa foto dal diario?')) return; var en = diaGet(false); if (!en) return; en.photos = en.photos.filter(function (p) { return p !== id; }); en.upd = Date.now(); delPhoto('dia_' + id); persist(); renderDiary(); };
+        t.appendChild(x); grid.appendChild(t);
+      });
+    });
+    var days = Object.keys(st.diary || {}).sort().reverse(), box = $('diaDays'); box.innerHTML = '';
+    var all = days.slice(); if (all.indexOf(dayKey()) < 0) all.unshift(dayKey());
+    all.forEach(function (d) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 12px';
+      var p = d.split('-'); b.textContent = Number(p[2]) + '/' + Number(p[1]) + (st.diary && st.diary[d] ? '' : ' (oggi)'); b.setAttribute('aria-pressed', String(d === diaDay));
+      b.onclick = function () { diaDay = d; renderDiary(); }; box.appendChild(b);
+    });
+    $('diaDel').hidden = !e; diaStatus();
+  }
+  $('diaText').addEventListener('input', function () {
+    clearTimeout(diaTimer);
+    diaTimer = setTimeout(function () {
+      var txt = $('diaText').value, e = diaGet(!!txt.trim()); if (!e) return;
+      if (e.text === txt) return; e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); $('diaDel').hidden = false; diaStatus();
+    }, 700);
+  });
+  $('diaText').addEventListener('blur', function () { clearTimeout(diaTimer); var txt = $('diaText').value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } renderDiary(); });
+  function diaAddFiles(files) {
+    if (!files || !files.length) return; var list = [].slice.call(files), e = diaGet(true);
+    $('diaStatus').textContent = 'Preparo le foto…';
+    list.reduce(function (p, f) {
+      return p.then(function () { return resizeJpeg(f, 1100, 0.75).then(function (b) { var id = newId(); return putPhoto('dia_' + id, b).then(function () { e.photos.push(id); e.upd = Date.now(); }); }); });
+    }, Promise.resolve()).then(function () { diaTouchLoc(e); persist(); renderDiary(); }, function () { $('diaStatus').textContent = 'Non riesco a leggere questa foto.'; });
+  }
+  function diaryAttach(blob, fix) {                 // dall'album: la foto va anche nel diario di oggi
+    var save = diaDay; diaDay = dayKey(); var e = diaGet(true), id = newId();
+    return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (!e.loc && fix) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; diaDay = save || diaDay; });
+  }
+  $('diaCam').onclick = function () { $('diaCamFile').value = ''; $('diaCamFile').click(); };
+  $('diaLib').onclick = function () { $('diaLibFile').value = ''; $('diaLibFile').click(); };
+  $('diaCamFile').addEventListener('change', function () { diaAddFiles($('diaCamFile').files); });
+  $('diaLibFile').addEventListener('change', function () { diaAddFiles($('diaLibFile').files); });
+  $('diaDel').onclick = function () {
+    var e = diaGet(false); if (!e) return;
+    if (!confirm('Eliminare la voce del ' + dayLabel(diaDay) + ' con tutte le sue foto?')) return;
+    (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[diaDay]; persist(); renderDiary();
+  };
+  $('alDia').checked = st.albDia !== false;
+  $('alDia').onchange = function () { st.albDia = $('alDia').checked; persist(); };
+
   /* ---------- album foto condiviso ---------- */
   var albUnsub = null, albRemote = [], albLast = null, albUrls = [];
   function resizeJpeg(file, max, q) {
@@ -1291,7 +1431,8 @@ var APP_VER = 'v36';
           return Promise.all([resizeJpeg(f, 1280, 0.78), resizeJpeg(f, 360, 0.7)]).then(function (bs) {
             return Promise.all([putPhoto('alb_' + id, bs[0]), putPhoto('albt_' + id, bs[1])]).then(function () {
               st.album = st.album || []; var a = { id: id, ts: ts, user: st.user, up: false }; if (fix) a.loc = { la: fix.la, lo: fix.lo, ac: fix.ac };
-              st.album.push(a); albLast = { id: id, blob: bs[0] }; persist();
+              st.album.push(a); albLast = { id: id, blob: bs[0] };
+              return (st.albDia !== false ? diaryAttach(bs[0], fix) : Promise.resolve()).then(function () { persist(); });
             });
           });
         });
@@ -1533,9 +1674,11 @@ var APP_VER = 'v36';
     });
     Object.keys(pushed).forEach(function (id) { if (!items[id]) n++; });
     (st.album || []).forEach(function (a) { if (!a.up) n++; });
+    n += diaryPending();
     return n;
   }
   function syncInfo() {
+    try { if (!$('v-dia').hidden) diaStatus(); } catch (e) {}
     var el = $('syncInfo'); if (!el) return;
     var n = pendingCount();
     el.textContent = syncing ? 'Sincronizzazione in corso…' : syncErr ? syncErr + (n ? ' · ' + n + ' da inviare' : '')
@@ -1569,6 +1712,7 @@ var APP_VER = 'v36';
           .then(function () { delete st.pushed[id]; delete st.photosPushed[id]; }));
       });
       (st.album || []).filter(function (a) { return !a.up; }).forEach(function (a) { jobs.push(albumUpload(tr, a)); });
+      diarySync(tr, jobs);
       var to = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 60000); });
       return Promise.race([Promise.all(jobs), to]);
     }).then(function () { st.lastSync = Date.now(); syncErr = ''; }, function (e) {
