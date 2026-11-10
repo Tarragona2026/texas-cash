@@ -109,6 +109,7 @@ body.inner .bgwrap::after { background: var(--scrim-inner); }
 .pop .ph img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
 .pop button { border: 0; border-radius: 10px; background: #007aff; color: #fff; font-weight: 600; padding: 6px 12px; }
 .diatext { min-height: 180px; }
+.updbar { position: fixed; left: 12px; right: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 40; max-width: 496px; margin: 0 auto; box-shadow: var(--glass-shadow); }
 .bgprev { height: 120px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-line); }
 
 .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -534,15 +535,17 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <input id="bkImport" type="file" accept="application/json,.json" hidden>
       <div class="hint" id="bkInfo"></div>
       <div class="hint" id="verInfo"></div>
+      <button class="btn ghost small" id="updNow" type="button">Aggiorna l'app adesso</button>
     </section>
   </section>
 
 </div>
+<button class="btn updbar" id="updBar" type="button" hidden>Nuova versione disponibile: tocca per aggiornare</button>
 <div id="viewerHost"></div>
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v38';
+var APP_VER = 'v39';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1838,12 +1841,33 @@ var APP_VER = 'v38';
   window.addEventListener('online', function () { sync(); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden) sync(); });
 
+  /* ---------- aggiornamento dell'app ---------- */
+  function hardReload() {
+    var jobs = [];
+    try { if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })); } catch (e) {}
+    try { if (window.caches) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); })); } catch (e) {}
+    Promise.all(jobs).catch(function () {}).then(function () { location.reload(); });
+  }
+  function checkVersion(manual) {
+    return fetch('index.html?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var m = t.match(/APP_VER = '([^']+)'/);
+      if (m && m[1] !== APP_VER) { $('updBar').hidden = false; $('updBar').textContent = 'Nuova versione ' + m[1] + ' disponibile: tocca per aggiornare'; return true; }
+      if (manual) toast('Hai già l\'ultima versione (' + APP_VER + ')');
+      return false;
+    }).catch(function () { if (manual) toast('Non riesco a controllare: serve la rete'); return false; });
+  }
+  $('updBar').onclick = hardReload;
+  $('updNow').onclick = function () { checkVersion(true).then(function (newer) { if (newer) hardReload(); }); };
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) checkVersion(false); });
+  window.addEventListener('online', function () { checkVersion(false); });
+
   /* ---------- avvio ---------- */
   $('cat').innerHTML = $('catScan').innerHTML = CATS.map(function (c) { return '<option>' + c + '</option>'; }).join('');
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   show('home');
   loadBg();
   sync();
+  checkVersion(false);
   fetchRate(false);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
