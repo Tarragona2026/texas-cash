@@ -1,0 +1,9 @@
+{
+  "appId": "com.tarragona2026.xmastexas",
+  "appName": "XmasTexas",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#14213d"
+  }
+}
