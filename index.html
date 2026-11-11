@@ -781,6 +781,8 @@ var APP_VER = 'v55';
   function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} schedSync(); }
 
   var $ = function (id) { return document.getElementById(id); };
+  /* dentro l'app iOS (Capacitor) alcune funzioni usano i plugin nativi; nella PWA questi restano null e non cambia niente */
+  function natPlugin(n) { try { var C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins[n] || null; } catch (e) { return null; } }
   function num(v) {
     var s = String(v).replace(/[\s$]/g, '');
     if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/\./g, '');
@@ -2255,6 +2257,13 @@ var APP_VER = 'v55';
   var lastFix = null;
   function freshFix() { return lastFix && Date.now() - lastFix.ts < 5 * 60 * 1000 ? { la: lastFix.la, lo: lastFix.lo, ac: lastFix.ac } : null; }
   function getFix(maxWait) {
+    var G = natPlugin('Geolocation');
+    if (G) return new Promise(function (res) {            // app iOS: posizione nativa, senza il secondo avviso "localhost vuole usare la posizione"
+      var done = false, end = function () { if (!done) { done = true; clearTimeout(to); res(freshFix()); } }, to = setTimeout(end, maxWait + 500);
+      G.getCurrentPosition({ enableHighAccuracy: true, timeout: maxWait, maximumAge: 120000 }).then(function (p) {
+        lastFix = { la: Math.round(p.coords.latitude * 1e5) / 1e5, lo: Math.round(p.coords.longitude * 1e5) / 1e5, ac: Math.round(p.coords.accuracy || 0), ts: Date.now() };
+      }, function () {}).then(end);
+    });
     return new Promise(function (res) {
       if (!navigator.geolocation) { res(null); return; }
       var done = false, to = setTimeout(function () { if (!done) { done = true; res(freshFix()); } }, maxWait + 500);
