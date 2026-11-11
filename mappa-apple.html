@@ -37,8 +37,10 @@ html, body, #m { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hid
       return a;
     });
     if (anns.length) map.addAnnotations(anns);
+    var fx = !!msg.fixed, sp = msg.span > 0 ? msg.span : 0.02;      // fixed: mappa ferma (anteprima di una foto), senza tasti
+    map.isScrollEnabled = !fx; map.isZoomEnabled = !fx; map.isRotationEnabled = false; map.showsZoomControl = !fx;
     if (msg.fit === false) return;
-    if (anns.length === 1) map.setRegionAnimated(new mapkit.CoordinateRegion(anns[0].coordinate, new mapkit.CoordinateSpan(0.02, 0.02)), false);
+    if (anns.length === 1) map.setRegionAnimated(new mapkit.CoordinateRegion(anns[0].coordinate, new mapkit.CoordinateSpan(sp, sp)), false);
     else if (anns.length) map.showItems(anns, { animate: false, padding: new mapkit.Padding(50, 40, 50, 40), minimumSpan: new mapkit.CoordinateSpan(0.01, 0.01) });
   }
   mapkit.addEventListener('error', function (e) { send({ src: 'amap', t: 'err', why: (e && e.status) || 'mapkit' }); });
