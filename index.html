@@ -1401,6 +1401,12 @@ var APP_VER = 'v55';
   /* Google Places (New): piu' preciso di OpenStreetMap; se non risponde si usa OpenStreetMap */
   var GP = 'https://places.googleapis.com/v1/places:';
   function gpCall(method, body) {
+    var H = natPlugin('CapacitorHttp'), ik = window.GOOGLE_IOS_KEY;
+    if (H && ik) {                                       // dentro l'app iOS: chiamata nativa con la chiave riservata all'app (quella del sito qui viene rifiutata)
+      return Promise.race([new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 10000); }), H.request({ url: GP + method, method: 'POST', connectTimeout: 9000, readTimeout: 9000, data: body,
+        headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': ik, 'X-Ios-Bundle-Identifier': window.GOOGLE_IOS_BUNDLE || '', 'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress' } })])
+        .then(function (r) { if (!r || r.status < 200 || r.status > 299) throw new Error('http' + (r && r.status)); return typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || {}); });
+    }
     var k = window.GOOGLE_PLACES_KEY; if (!k) return Promise.reject(new Error('nokey'));
     return fetchJson(GP + method, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': k, 'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress' }, body: JSON.stringify(body) }, 9000);
   }
