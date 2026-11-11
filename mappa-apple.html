@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex">
+<title>Mappa</title>
+<!-- Solo la mappa Apple (MapKit JS), vuota. La usa l'app iOS dentro un riquadro: i punti arrivano dall'app con postMessage e non passano da nessun server.
+     Il token vale solo su questo sito (tarragona2026.github.io): non e' un segreto. -->
+<style>
+html, body, #m { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e9eef2; }
+.dot { width: 24px; height: 24px; border-radius: 50%; border: 3px solid #fff; color: #fff; font: 700 13px/24px -apple-system, system-ui, sans-serif; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.35); cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="m"></div>
+<script src="https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js" crossorigin></script>
+<script>
+(function () {
+  var TOKEN = 'eyJraWQiOiI5WlFRRDVONEEzIiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiIzOVhCVTUzMkNUIiwiaWF0IjoxNzk0NDAwODQ1LCJvcmlnaW4iOiJ0YXJyYWdvbmEyMDI2LmdpdGh1Yi5pbyIsInNjb3BlIjoibWFwa2l0X2pzIn0.oBuD-qWNoRADx34HWO2xn6dwUwV7jlENOb_houcD4RSbcmuXs9L_BcRcDdoT-zHo3mCfu5ewScHcV0PfMh3-Fg';
+  var map = null, anns = [], ready = false, queued = null;
+  function send(o) { try { parent.postMessage(o, '*'); } catch (e) {} }   // verso l'app vanno solo "pronta", "errore" e l'id del punto toccato
+  if (!window.mapkit) { send({ src: 'amap', t: 'err', why: 'script' }); return; }
+  function dot(color, text) { return function () { var d = document.createElement('div'); d.className = 'dot'; d.style.background = color; d.textContent = text || ''; return d; }; }
+  function draw(msg) {
+    if (!ready) { queued = msg; return; }
+    if (anns.length) map.removeAnnotations(anns);
+    anns = (msg.pts || []).map(function (p) {
+      var a = new mapkit.Annotation(new mapkit.Coordinate(p.la, p.lo), dot(p.color || '#d70015', p.text), { calloutEnabled: false, size: { width: 30, height: 30 }, data: { id: p.id } });
+      a.addEventListener('select', function () { send({ src: 'amap', t: 'tap', id: p.id }); setTimeout(function () { map.selectedAnnotation = null; }, 0); });
+      return a;
+    });
+    if (anns.length) map.addAnnotations(anns);
+    if (msg.fit === false) return;
+    if (anns.length === 1) map.setRegionAnimated(new mapkit.CoordinateRegion(anns[0].coordinate, new mapkit.CoordinateSpan(0.02, 0.02)), false);
+    else if (anns.length) map.showItems(anns, { animate: false, padding: new mapkit.Padding(50, 40, 50, 40), minimumSpan: new mapkit.CoordinateSpan(0.01, 0.01) });
+  }
+  mapkit.addEventListener('error', function (e) { send({ src: 'amap', t: 'err', why: (e && e.status) || 'mapkit' }); });
+  mapkit.addEventListener('configuration-change', function (e) {
+    if (e.status !== 'Initialized' || ready) return;
+    ready = true; send({ src: 'amap', t: 'ready' });
+    if (queued) { var q = queued; queued = null; draw(q); }
+  });
+  try {
+    mapkit.init({ authorizationCallback: function (done) { done(TOKEN); }, language: 'it' });
+    map = new mapkit.Map('m', { showsMapTypeControl: false, showsZoomControl: true, showsCompass: mapkit.FeatureVisibility.Hidden, showsPointsOfInterest: true,
+      region: new mapkit.CoordinateRegion(new mapkit.Coordinate(29.76, -95.37), new mapkit.CoordinateSpan(1.2, 1.2)) });
+  } catch (e) { send({ src: 'amap', t: 'err', why: 'init' }); return; }
+  window.addEventListener('message', function (ev) { var d = ev.data; if (d && d.src === 'app' && d.t === 'set') draw(d); });
+  send({ src: 'amap', t: 'loaded' });
+})();
+</script>
+</body>
+</html>
