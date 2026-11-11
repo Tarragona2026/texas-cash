@@ -21,13 +21,19 @@ html, body, #m { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hid
   var map = null, anns = [], ready = false, queued = null;
   function send(o) { try { parent.postMessage(o, '*'); } catch (e) {} }   // verso l'app vanno solo "pronta", "errore" e l'id del punto toccato
   if (!window.mapkit) { send({ src: 'amap', t: 'err', why: 'script' }); return; }
-  function dot(color, text) { return function () { var d = document.createElement('div'); d.className = 'dot'; d.style.background = color; d.textContent = text || ''; return d; }; }
+  var lastTap = 0;
+  function tap(id) { var n = Date.now(); if (n - lastTap < 400) return; lastTap = n; send({ src: 'amap', t: 'tap', id: id }); }   // un solo avviso anche se arrivano piu' eventi per lo stesso tocco
+  function dot(color, text, id) { return function () {
+    var d = document.createElement('div'); d.className = 'dot'; d.style.background = color; d.textContent = text || '';
+    d.addEventListener('click', function () { tap(id); }); d.addEventListener('touchend', function () { tap(id); });
+    return d;
+  }; }
   function draw(msg) {
     if (!ready) { queued = msg; return; }
     if (anns.length) map.removeAnnotations(anns);
     anns = (msg.pts || []).map(function (p) {
-      var a = new mapkit.Annotation(new mapkit.Coordinate(p.la, p.lo), dot(p.color || '#d70015', p.text), { calloutEnabled: false, size: { width: 30, height: 30 }, data: { id: p.id } });
-      a.addEventListener('select', function () { send({ src: 'amap', t: 'tap', id: p.id }); setTimeout(function () { map.selectedAnnotation = null; }, 0); });
+      var a = new mapkit.Annotation(new mapkit.Coordinate(p.la, p.lo), dot(p.color || '#d70015', p.text, p.id), { calloutEnabled: false, size: { width: 30, height: 30 }, data: { id: p.id } });
+      a.addEventListener('select', function () { tap(p.id); setTimeout(function () { map.selectedAnnotation = null; }, 0); });
       return a;
     });
     if (anns.length) map.addAnnotations(anns);
