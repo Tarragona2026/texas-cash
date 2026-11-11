@@ -2214,10 +2214,11 @@ var APP_VER = 'v55';
         var md = document.createElement('div'); md.className = 'vmap'; box.appendChild(md);
         var link = document.createElement('a'); link.className = 'vmaplink'; link.target = '_blank'; link.rel = 'noopener'; link.setAttribute('aria-label', 'Apri in Mappe');
         link.href = 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + encodeURIComponent('Foto di ' + (x.user || '')); md.appendChild(link);
-        if (!window.L) { md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; link.textContent = 'La mappa non si è caricata: tocca per aprire Mappe'; }
+        if (!window.L && !amWanted()) { md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; link.textContent = 'La mappa non si è caricata: tocca per aprire Mappe'; }
         else {
           var build = function () {
             if (my !== gen) return;
+            if (amBox(md, [{ id: 'p0', la: x.loc.la, lo: x.loc.lo, color: '#d6246e' }], { fixed: true, span: 0.012, before: link }, build)) return;
             try {
               if (mini) { mini.remove(); mini = null; }
               mini = L.map(md, { zoomControl: false, attributionControl: true, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false }).setView([x.loc.la, x.loc.lo], 15);
@@ -2307,26 +2308,56 @@ var APP_VER = 'v55';
   function mapRow(sc, title, sub) { var it = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div'); it.className = 'it'; t.textContent = title; d.textContent = sub; it.appendChild(t); it.appendChild(d); sc.appendChild(it); return it; }
   /* Mappa Apple dentro l'app iOS: una pagina del sito (l'unico indirizzo da cui Apple accetta il token) mostrata in un riquadro.
      Se non si carica entro pochi secondi si torna a OpenStreetMap. Nella PWA non si usa mai. */
-  var AM_URL = 'https://tarragona2026.github.io/texas-cash/mappa-apple.html?v=2', AM_ORIGIN = 'https://tarragona2026.github.io';
+  var AM_URL = 'https://tarragona2026.github.io/texas-cash/mappa-apple.html?v=3', AM_ORIGIN = 'https://tarragona2026.github.io';
   var am = { frame: null, ready: false, failed: false, timer: null, last: null, tap: {} };
   function amWanted() { try { return !am.failed && !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) && navigator.onLine !== false; } catch (e) { return false; } }
   function amFail() {
     if (am.failed) return; am.failed = true; clearTimeout(am.timer);
     if (am.frame && am.frame.parentNode) am.frame.parentNode.removeChild(am.frame); am.frame = null; amPop(null);
+    var bx = amBoxes; amBoxes = [];
+    bx.forEach(function (o) { clearTimeout(o.timer); if (o.frame.parentNode) o.frame.parentNode.removeChild(o.frame); o.box._am = null; amPop(null, o.box); });
+    bx.forEach(function (o) { try { if (o.onFail && document.body.contains(o.box)) o.onFail(); } catch (e) {} });
     if (hashView() === 'map') renderMap();
   }
+  /* mappe piccole (foto, Dove sono i miei): stesso riquadro Apple dentro `box`; restituisce false se va usato OpenStreetMap */
+  var amBoxes = [];
+  function amBox(box, pts, opts, onFail) {
+    if (!amWanted()) return false;
+    opts = opts || {};
+    var o = box._am;
+    if (!o) {
+      amBoxes = amBoxes.filter(function (z) { return document.body.contains(z.box); });
+      o = box._am = { box: box, frame: document.createElement('iframe'), ready: false, last: null, tap: null, onFail: onFail, timer: null };
+      o.frame.title = 'Mappa'; o.frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0'; o.frame.onerror = amFail; o.frame.src = AM_URL;
+      if (opts.before) box.insertBefore(o.frame, opts.before); else box.appendChild(o.frame);
+      o.timer = setTimeout(function () { if (!o.ready) amFail(); }, 9000); amBoxes.push(o);
+    }
+    o.onFail = onFail; o.tap = opts.tap || null; amPop(null, box);
+    o.last = { src: 'app', t: 'set', pts: pts, fixed: !!opts.fixed, span: opts.span || 0 };
+    if (o.ready) o.frame.contentWindow.postMessage(o.last, AM_ORIGIN);
+    return true;
+  }
   function amPost() { if (am.frame && am.ready && am.last) am.frame.contentWindow.postMessage(am.last, AM_ORIGIN); }
-  function amPop(node) {
-    var old = document.getElementById('amPop'); if (old) old.parentNode.removeChild(old);
+  function amPop(node, box) {
+    box = box || $('mapbox');
+    var old = box.querySelector('.ampop'); if (old) old.parentNode.removeChild(old);
     if (!node) return;
-    var w = document.createElement('div'), x = document.createElement('button'); w.id = 'amPop';
+    var w = document.createElement('div'), x = document.createElement('button'); w.className = 'ampop';
     w.style.cssText = 'position:absolute;left:10px;right:10px;bottom:10px;z-index:5;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.3)';
     x.type = 'button'; x.textContent = 'Chiudi'; x.style.cssText = 'float:right;margin:0 0 6px 10px;background:#e5e5ea;color:#1c1c1e';
-    node.style.maxWidth = 'none'; node.insertBefore(x, node.firstChild); x.onclick = function () { amPop(null); };
-    w.appendChild(node); $('mapbox').appendChild(w);
+    node.style.maxWidth = 'none'; node.insertBefore(x, node.firstChild); x.onclick = function () { amPop(null, box); };
+    w.appendChild(node); box.appendChild(w);
   }
   window.addEventListener('message', function (ev) {
-    var d = ev.data; if (ev.origin !== AM_ORIGIN || !d || d.src !== 'amap' || !am.frame || ev.source !== am.frame.contentWindow) return;
+    var d = ev.data; if (ev.origin !== AM_ORIGIN || !d || d.src !== 'amap') return;
+    var o = amBoxes.filter(function (z) { return z.frame.contentWindow === ev.source; })[0];
+    if (o) {
+      if (d.t === 'ready') { o.ready = true; clearTimeout(o.timer); if (o.last) o.frame.contentWindow.postMessage(o.last, AM_ORIGIN); }
+      else if (d.t === 'err') amFail();
+      else if (d.t === 'tap' && o.tap) o.tap(d.id);
+      return;
+    }
+    if (!am.frame || ev.source !== am.frame.contentWindow) return;
     if (d.t === 'ready') { am.ready = true; clearTimeout(am.timer); amPost(); }
     else if (d.t === 'err') amFail();
     else if (d.t === 'tap' && am.tap[d.id]) am.tap[d.id]();
@@ -2940,6 +2971,9 @@ var APP_VER = 'v55';
       : (!src.length ? 'Gli altri non hanno ancora mandato la posizione. ' : '') + 'La posizione si aggiorna con "Sono qui" e quando si salva una spesa, una foto o il diario. Non è un tracciato continuo: vedi l\'ultimo punto e a che ora. Tocca un nome e Mappe ti porta da lui.'
         + (navigator.onLine === false ? ' Senza rete vedi le ultime posizioni ricevute.' : '');
     var mb = $('posMap');
+    if (list.length && !posMap && amBox(mb, list.map(function (p, i) { return { id: 'u' + i, la: p.la, lo: p.lo, color: p.col, text: p.name.charAt(0).toUpperCase() }; }),
+      { span: 0.03, tap: function (id) { var p = list[Number(id.slice(1))]; if (!p) return; var n = document.createElement('div'), b = document.createElement('b'); n.className = 'pop'; b.textContent = p.name + ' · ' + posAgo(p.ts); n.appendChild(b); amPop(n, mb); } },
+      function () { if (hashView() === 'pos') renderPos(); })) { mb.hidden = false; return; }
     if (!window.L || !list.length) { mb.hidden = true; return; }
     mb.hidden = false;
     if (!posMap) { posMap = L.map(mb).setView([29.76, -95.37], 9); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(posMap); posLayer = L.layerGroup().addTo(posMap); }
