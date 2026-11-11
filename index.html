@@ -2078,6 +2078,11 @@ var APP_VER = 'v55';
   }
   function groupMarker(layer, g, color, build, sheet) {
     var n = g.items.length, ll = [g.la, g.lo], m;
+    if (layer && layer.apple) {                          // mappa Apple (app iOS): il punto lo disegna la pagina nel riquadro, il tocco torna qui
+      var id = 'p' + layer.pts.length; layer.pts.push({ id: id, la: g.la, lo: g.lo, color: color, text: n > 1 ? String(n) : '' });
+      layer.tap[id] = function () { if (sheet) sheet(g); else amPop(build(g)); };
+      return null;
+    }
     if (n === 1) m = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
     else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn" style="background:' + color + '">' + n + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
     m.on('click', function () { if (sheet) { sheet(g); return; } m.bindPopup(build(g), { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup(); });
@@ -2300,6 +2305,32 @@ var APP_VER = 'v55';
   }
   function mapPop() { var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc); return pop; }
   function mapRow(sc, title, sub) { var it = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div'); it.className = 'it'; t.textContent = title; d.textContent = sub; it.appendChild(t); it.appendChild(d); sc.appendChild(it); return it; }
+  /* Mappa Apple dentro l'app iOS: una pagina del sito (l'unico indirizzo da cui Apple accetta il token) mostrata in un riquadro.
+     Se non si carica entro pochi secondi si torna a OpenStreetMap. Nella PWA non si usa mai. */
+  var AM_URL = 'https://tarragona2026.github.io/texas-cash/mappa-apple.html?v=2', AM_ORIGIN = 'https://tarragona2026.github.io';
+  var am = { frame: null, ready: false, failed: false, timer: null, last: null, tap: {} };
+  function amWanted() { try { return !am.failed && !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) && navigator.onLine !== false; } catch (e) { return false; } }
+  function amFail() {
+    if (am.failed) return; am.failed = true; clearTimeout(am.timer);
+    if (am.frame && am.frame.parentNode) am.frame.parentNode.removeChild(am.frame); am.frame = null; amPop(null);
+    if (hashView() === 'map') renderMap();
+  }
+  function amPost() { if (am.frame && am.ready && am.last) am.frame.contentWindow.postMessage(am.last, AM_ORIGIN); }
+  function amPop(node) {
+    var old = document.getElementById('amPop'); if (old) old.parentNode.removeChild(old);
+    if (!node) return;
+    var w = document.createElement('div'), x = document.createElement('button'); w.id = 'amPop';
+    w.style.cssText = 'position:absolute;left:10px;right:10px;bottom:10px;z-index:5;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.3)';
+    x.type = 'button'; x.textContent = 'Chiudi'; x.style.cssText = 'float:right;margin:0 0 6px 10px;background:#e5e5ea;color:#1c1c1e';
+    node.style.maxWidth = 'none'; node.insertBefore(x, node.firstChild); x.onclick = function () { amPop(null); };
+    w.appendChild(node); $('mapbox').appendChild(w);
+  }
+  window.addEventListener('message', function (ev) {
+    var d = ev.data; if (ev.origin !== AM_ORIGIN || !d || d.src !== 'amap' || !am.frame || ev.source !== am.frame.contentWindow) return;
+    if (d.t === 'ready') { am.ready = true; clearTimeout(am.timer); amPost(); }
+    else if (d.t === 'err') amFail();
+    else if (d.t === 'tap' && am.tap[d.id]) am.tap[d.id]();
+  });
   function renderMap() {
     var info = $('mapInfo'), box = $('mapbox'), data = mapData(), kinds = $('mapKinds'), daysBox = $('mapDays'), dd = {};
     /* filtri: cosa mostrare */
@@ -2317,21 +2348,29 @@ var APP_VER = 'v55';
     var cur = null; Object.keys(dd).sort().forEach(function (d) { var p = d.split('-'), b = dayChip(Number(p[2]) + '/' + Number(p[1]), d); if (d === mapDay) cur = b; });
     if (cur) daysBox.scrollLeft = Math.max(0, cur.offsetLeft - daysBox.clientWidth / 2 + cur.offsetWidth / 2);
 
-    if (!window.L) { box.hidden = true; $('calFindAll').hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    var apple = amWanted() && !map, aLayer = null;
+    if (!apple && !window.L) { box.hidden = true; $('calFindAll').hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
     box.hidden = false;
-    if (!map) {
+    if (apple) {
+      if (!am.frame) {
+        am.frame = document.createElement('iframe'); am.frame.title = 'Mappa'; am.frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0';
+        am.frame.onerror = amFail; am.frame.src = AM_URL; box.appendChild(am.frame);
+        am.timer = setTimeout(function () { if (!am.ready) amFail(); }, 9000);
+      }
+      amPop(null); aLayer = { apple: true, pts: [], tap: {} };
+    } else if (!map) {
       map = L.map(box, { zoomControl: true, attributionControl: true }).setView([29.76, -95.37], 9);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
       mapLayer = L.layerGroup().addTo(map);
     }
-    mapLayer.clearLayers(); mapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); mapUrls = [];
+    if (!apple) mapLayer.clearLayers(); mapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); mapUrls = [];
     var bounds = [], parts = [];
     function pick(kind) { return mapSel[kind] ? data[kind].filter(function (p) { return !mapDay || p.day === mapDay; }) : []; }
     function locOf(p) { return { la: p.loc.la, lo: p.loc.lo }; }
     function draw(kind, radius, color, build, sheet) {
       var list = pick(kind); if (!mapSel[kind]) return;
       var K = MAP_KINDS.filter(function (z) { return z[0] === kind; })[0]; parts.push(K[1] + ' ' + list.length);
-      clusterByPlace(list, locOf, radius).forEach(function (g) { bounds.push([g.la, g.lo]); groupMarker(mapLayer, g, typeof color === 'function' ? color(g) : color, build, sheet); });
+      clusterByPlace(list, locOf, radius).forEach(function (g) { bounds.push([g.la, g.lo]); groupMarker(apple ? aLayer : mapLayer, g, typeof color === 'function' ? color(g) : color, build, sheet); });
     }
     draw('prog', 80, '#1a7fc4', function (g) {
       var pop = mapPop();
@@ -2354,6 +2393,7 @@ var APP_VER = 'v55';
     info.textContent = (mapDay ? calDayLabel(mapDay) : 'Tutto il viaggio') + ' · ' + (parts.length ? parts.join(' · ') : 'scegli in alto cosa vedere') + '.'
       + (parts.length && !bounds.length ? ' Nessun punto da mostrare.' : '') + (bounds.length ? ' Tocca un punto per i dettagli.' : '')
       + (missing ? ' ' + missing + (missing === 1 ? ' luogo del programma non è ancora sulla mappa.' : ' luoghi del programma non sono ancora sulla mappa.') : '');
+    if (apple) { am.tap = aLayer.tap; am.last = { src: 'app', t: 'set', pts: aLayer.pts }; amPost(); return; }
     setTimeout(function () {
       map.invalidateSize();
       if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
