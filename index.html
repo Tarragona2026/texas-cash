@@ -726,6 +726,13 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="btn" id="exportCsv" type="button">Invia registro</button>
       <div class="hint" id="exportInfo"></div>
     </section>
+    <section class="card" id="ntCard" hidden>
+      <div class="label">Notifiche</div>
+      <button class="btn" id="ntToggle" type="button">Attiva le notifiche</button>
+      <div class="hint" id="ntInfo"></div>
+      <button class="btn ghost" id="ntTest" type="button" hidden>Manda un avviso di prova</button>
+      <div class="hint">Ogni sera alle 20 il programma del giorno dopo. Prima della partenza, un promemoria se nella tua checklist manca ancora qualcosa. Gli avvisi li prepara il telefono: non serve la rete.</div>
+    </section>
     <section class="card" id="ctCard">
       <div class="label">Contatti per la chiamata rapida</div>
       <div class="doclist" id="ctList"></div>
@@ -778,7 +785,7 @@ var APP_VER = 'v55';
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
-  function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} schedSync(); }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} schedSync(); try { ntSoon(); } catch (e) {} }
 
   var $ = function (id) { return document.getElementById(id); };
   /* dentro l'app iOS (Capacitor) alcune funzioni usano i plugin nativi; nella PWA questi restano null e non cambia niente */
@@ -1247,7 +1254,7 @@ var APP_VER = 'v55';
     var l = topupTotal() - spentTotal();
     $('sLeft').textContent = 'Rimasto ' + (l < 0 ? '-' : '') + usd(Math.abs(l)); $('sSpent').textContent = 'Ricaricato ' + usd(topupTotal()) + ' · speso ' + usd(spentTotal());
     setRateInfo(); backupInfo(); exportInfo();
-    $('sTrip').value = st.trip || ''; syncInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
+    $('sTrip').value = st.trip || ''; syncInfo(); ntInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
   }
   $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
   $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
@@ -2460,6 +2467,62 @@ var APP_VER = 'v55';
       .catch(function () { toast('Non riesco a leggere questa immagine'); });
   });
   $('bgReset').onclick = function () { delPhoto('bg').then(function () { loadBg(); toast('Bandiera USA ripristinata'); }); };
+
+  /* ---------- notifiche locali (solo app iOS): programma di domani e promemoria checklist ----------
+     Le prepara il telefono in anticipo e le ricalcola a ogni apertura e a ogni modifica. Niente server, niente rete. */
+  var NT_HOUR = 20, NT_CHK = [[2026, 12, 12], [2026, 12, 17], [2026, 12, 20], [2026, 12, 21]], NT_CHK_HOUR = 18, ntTimer = null, ntBusy = false, ntAgain = false;
+  function ntSoon() { if (!st.notifOn || !natPlugin('LocalNotifications')) return; clearTimeout(ntTimer); ntTimer = setTimeout(ntPlan, 2500); }
+  function ntList() {
+    var out = [], now = Date.now();
+    CAL_DAYS.forEach(function (day, i) {                 // la sera prima di ogni giorno del viaggio
+      var items = calItems(day); if (!items.length) return;
+      var p = day.split('-'), eve = new Date(+p[0], +p[1] - 1, +p[2] - 1, NT_HOUR, 0, 0);
+      if (eve.getTime() <= now) return;
+      var body = items.slice(0, 4).map(function (x) { return (x.time ? x.time + ' ' : '') + x.title; }).join(' · ') + (items.length > 4 ? ' · e altre ' + (items.length - 4) : '');
+      out.push({ id: 1000 + i, title: 'Domani · ' + calDayLabel(day), body: body, schedule: { on: { year: eve.getFullYear(), month: eve.getMonth() + 1, day: eve.getDate(), hour: NT_HOUR, minute: 0, second: 0 }, allowWhileIdle: true } });
+    });
+    if (st.user) {
+      var m = chkMine(), left = m.tot - m.done;
+      if (left > 0) NT_CHK.forEach(function (d, i) {
+        var when = new Date(d[0], d[1] - 1, d[2], NT_CHK_HOUR, 0, 0); if (when.getTime() <= now) return;
+        var days = Math.round((CHK_DEPART - new Date(d[0], d[1] - 1, d[2]).getTime()) / 86400000);
+        out.push({ id: 2000 + i, title: 'Checklist di viaggio', body: (left === 1 ? 'Ti manca ancora 1 voce' : 'Ti mancano ancora ' + left + ' voci') + (days === 1 ? ': si parte domani.' : ': mancano ' + days + ' giorni alla partenza.'),
+          schedule: { on: { year: d[0], month: d[1], day: d[2], hour: NT_CHK_HOUR, minute: 0, second: 0 }, allowWhileIdle: true } });
+      });
+    }
+    return out;
+  }
+  function ntIds() { var a = []; CAL_DAYS.forEach(function (d, i) { a.push({ id: 1000 + i }); }); NT_CHK.forEach(function (d, i) { a.push({ id: 2000 + i }); }); return a; }
+  function ntPlan() {
+    var N = natPlugin('LocalNotifications'); if (!N) return Promise.resolve(0);
+    if (ntBusy) { ntAgain = true; return Promise.resolve(0); }
+    ntBusy = true;
+    var list = st.notifOn ? ntList() : [];
+    return N.cancel({ notifications: ntIds() }).catch(function () {}).then(function () { return list.length ? N.schedule({ notifications: list }) : null; })
+      .then(function () { st.notifN = list.length; }, function () { st.notifN = -1; })
+      .then(function () { ntBusy = false; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} ntInfo(); if (ntAgain) { ntAgain = false; ntSoon(); } return list.length; });
+  }
+  function ntInfo() {
+    var N = natPlugin('LocalNotifications'), card = $('ntCard'); if (!card) return;
+    card.hidden = !N; if (!N) return;
+    $('ntToggle').textContent = st.notifOn ? 'Spegni le notifiche' : 'Attiva le notifiche'; $('ntToggle').className = st.notifOn ? 'btn ghost' : 'btn';
+    $('ntTest').hidden = !st.notifOn;
+    $('ntInfo').textContent = !st.notifOn ? 'Spente.' : st.notifN < 0 ? 'Non riesco a programmare gli avvisi: riprova.' : st.notifN ? 'Attive · ' + st.notifN + (st.notifN === 1 ? ' avviso programmato.' : ' avvisi programmati.') : 'Attive · nessun avviso da programmare per ora.';
+  }
+  $('ntToggle').onclick = function () {
+    var N = natPlugin('LocalNotifications'); if (!N) return;
+    if (st.notifOn) { st.notifOn = false; ntPlan(); toast('Notifiche spente'); return; }
+    N.requestPermissions().then(function (r) {
+      if (!r || r.display !== 'granted') { toast('Permesso negato: attivalo in Impostazioni di iPhone → Notifiche'); $('ntInfo').textContent = 'L\'iPhone non permette le notifiche a questa app. Aprile da Impostazioni di iPhone → Notifiche → Xmas Texa$.'; return; }
+      st.notifOn = true; ntPlan().then(function (n) { toast(n ? 'Notifiche attive' : 'Notifiche attive: per ora niente da avvisare'); });
+    }, function () { toast('Non riesco a chiedere il permesso'); });
+  };
+  $('ntTest').onclick = function () {
+    var N = natPlugin('LocalNotifications'); if (!N) return;
+    N.schedule({ notifications: [{ id: 2999, title: 'Xmas in Texa$', body: 'Avviso di prova: le notifiche funzionano.', schedule: { at: new Date(Date.now() + 6000), allowWhileIdle: true } }] })
+      .then(function () { toast('Arriva tra qualche secondo: puoi anche chiudere l\'app'); }, function () { toast('Non riesco a mandare l\'avviso di prova'); });
+  };
+  setTimeout(function () { try { ntInfo(); if (st.notifOn) ntPlan(); } catch (e) {} }, 1500);
 
   /* ---------- sincronizzazione Firebase (il telefono carica, il Mac scarica) ---------- */
   var OLD_TRIP = 'texas2026', fbp = null, syncing = false, syncAgain = false, syncTimer = null, syncErr = '';
