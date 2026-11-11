@@ -456,8 +456,10 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
   }
   function cloudConnect() {
     if (!window.firebase || !window.FIREBASE_CONFIG) { setCloudStatus('Firebase non disponibile (serve la rete).'); return; }
-    var code = ($('tripCode').value || '').trim() || 'texas2026'; st.trip = code; persist();
+    var code = ($('tripCode').value || '').trim().toLowerCase().replace(/\s+/g, ' '); if (code === 'texas2026') code = '';   // il vecchio codice era pubblico: non vale più
+    $('tripCode').value = code; st.trip = code; persist();
     cloud.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); cloud.unsubs = [];
+    if (code.length < 8 || code.indexOf('/') >= 0) { setCloudStatus('Scrivi il codice viaggio segreto (lo stesso dei telefoni) e premi il tasto per collegarti.'); return; }
     setCloudStatus('Mi collego…');
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     firebase.auth().signInAnonymously().then(function () {
@@ -692,7 +694,7 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
   }
   [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.onclick = function () { showView(b.dataset.v); }; });
   window.fetchReceiptGlobal = fetchReceipt; window.lightboxGlobal = lightbox;
-  $('tripCode').value = st.trip || 'texas2026';
+  $('tripCode').value = st.trip === 'texas2026' ? '' : (st.trip || '');
   $('cloudGo').onclick = cloudConnect;
   render();
   cloudConnect();

@@ -374,6 +374,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     </section>
     <button class="btn chkbar" id="chkBar" type="button" hidden></button>
     <button class="btn chkbar posask" id="posAsk" type="button" hidden></button>
+    <button class="btn chkbar posask" id="tripAsk" type="button" hidden>Manca il codice viaggio · tocca per scriverlo</button>
     <nav class="apps" aria-label="Sezioni">
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
       <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
@@ -734,6 +735,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     <section class="card">
       <div class="label">Sincronizzazione</div>
       <div class="field"><label class="label" for="sTrip">Codice viaggio</label><input id="sTrip" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+      <div class="hint">È il vostro codice segreto: almeno 8 caratteri, uguale sui tre telefoni e sul Mac (maiuscole e minuscole non contano). Non dirlo a nessuno: chi lo conosce può leggere i dati del viaggio.</div>
       <div class="hint">Spese, ricariche e foto degli scontrini partono da sole verso il database comune. Senza rete restano in coda e partono quando torna il segnale.</div>
       <button class="btn ghost" id="syncNow" type="button">Sincronizza ora</button>
       <div class="hint" id="syncInfo"></div>
@@ -768,7 +770,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v54';
+var APP_VER = 'v55';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -857,7 +859,7 @@ var APP_VER = 'v54';
     VIEWS.forEach(function (x) { $('v-' + x).hidden = x !== v; });
     document.body.classList.toggle('inner', v !== 'home');
     window.scrollTo(0, 0);
-    if (v === 'home') { renderHome(); chkBanner(); calHome(); posAskBanner(); }
+    if (v === 'home') { renderHome(); chkBanner(); calHome(); posAskBanner(); tripBanner(); }
     if (v === 'calc') renderCalc();
     if (v === 'log') renderLog();
     if (v === 'settings') { fillSettings(); renderContacts(); }
@@ -1243,7 +1245,7 @@ var APP_VER = 'v54';
     var l = topupTotal() - spentTotal();
     $('sLeft').textContent = 'Rimasto ' + (l < 0 ? '-' : '') + usd(Math.abs(l)); $('sSpent').textContent = 'Ricaricato ' + usd(topupTotal()) + ' · speso ' + usd(spentTotal());
     setRateInfo(); backupInfo(); exportInfo();
-    $('sTrip').value = st.trip || DEFAULT_TRIP; syncInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
+    $('sTrip').value = st.trip || ''; syncInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
   }
   $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
   $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
@@ -1699,7 +1701,7 @@ var APP_VER = 'v54';
   function calListen() {
     if (calUnsub) return;
     fbReady().then(function (d) {
-      calUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('calendar').onSnapshot(function (snap) {
+      calUnsub = d.collection('trips').doc(st.trip).collection('calendar').onSnapshot(function (snap) {
         var c = calState(), changed = false;
         snap.docs.forEach(function (doc) { var v = doc.data(), l = c.items[doc.id]; if (!l || (v.upd || 0) > (l.upd || 0)) { c.items[doc.id] = v; if (c.dirty[doc.id]) delete c.dirty[doc.id]; changed = true; } });
         if (changed) { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} if (!$('v-cal').hidden) renderTripCal(); calHome(); }
@@ -1831,7 +1833,7 @@ var APP_VER = 'v54';
   function chkListen() {
     if (chkUnsub) return;
     fbReady().then(function (d) {
-      chkUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('checklist').onSnapshot(function (snap) {
+      chkUnsub = d.collection('trips').doc(st.trip).collection('checklist').onSnapshot(function (snap) {
         var c = chkState(), changed = false, vis = chkVisible();
         snap.docs.forEach(function (doc) {
           var v = doc.data(), l = c.items[doc.id];
@@ -2126,7 +2128,7 @@ var APP_VER = 'v54';
     renderAlbum();
     if (albUnsub) { albUnsub(); albUnsub = null; }
     fbReady().then(function (d) {
-      albUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('album').orderBy('ts', 'desc').limit(200).onSnapshot(function (snap) {
+      albUnsub = d.collection('trips').doc(st.trip).collection('album').orderBy('ts', 'desc').limit(200).onSnapshot(function (snap) {
         albRemote = snap.docs.map(function (x) { var v = x.data(); return { id: x.id, user: v.user, ts: v.ts, loc: v.loc, thumb: v.thumb }; });
         renderAlbum();
       }, function () { $('alCount').textContent = 'Non riesco a leggere l\'album ora.'; });
@@ -2223,7 +2225,7 @@ var APP_VER = 'v54';
         st.album = (st.album || []).filter(function (a) { return a.id !== x.id; }); delPhoto('alb_' + x.id); delPhoto('albt_' + x.id); persist();
         albRemote = albRemote.filter(function (r) { return r.id !== x.id; }); renderAlbum();
         list.splice(n, 1);
-        fbReady().then(function (d) { var tr = d.collection('trips').doc(st.trip || DEFAULT_TRIP); return Promise.all([tr.collection('album').doc(x.id).delete(), tr.collection('albumFull').doc(x.id).delete()]); }).catch(function () { toast('Cancellata qui, ma non online: riprova con la rete'); });
+        fbReady().then(function (d) { var tr = d.collection('trips').doc(st.trip); return Promise.all([tr.collection('album').doc(x.id).delete(), tr.collection('albumFull').doc(x.id).delete()]); }).catch(function () { toast('Cancellata qui, ma non online: riprova con la rete'); });
         if (!list.length) closeV(); else showAt(Math.min(n, list.length - 1));
       });
       box.appendChild(row);
@@ -2233,7 +2235,7 @@ var APP_VER = 'v54';
       }
       getPhoto('alb_' + x.id).then(function (b) {
         if (b) return b;
-        return fbReady().then(function (d) { return d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('albumFull').doc(x.id).get(); }).then(function (doc) { return doc.exists ? dataToBlob(doc.data().data) : null; });
+        return fbReady().then(function (d) { return d.collection('trips').doc(st.trip).collection('albumFull').doc(x.id).get(); }).then(function (doc) { return doc.exists ? dataToBlob(doc.data().data) : null; });
       }).then(function (b) { if (b && my === gen) { full = b; im.src = URL.createObjectURL(b); } }).catch(function () { if (my === gen) cap.textContent += ' · (foto grande non disponibile)'; });
     }
     showAt(idx);
@@ -2374,8 +2376,10 @@ var APP_VER = 'v54';
   $('bgReset').onclick = function () { delPhoto('bg').then(function () { loadBg(); toast('Bandiera USA ripristinata'); }); };
 
   /* ---------- sincronizzazione Firebase (il telefono carica, il Mac scarica) ---------- */
-  var DEFAULT_TRIP = 'texas2026', fbp = null, syncing = false, syncAgain = false, syncTimer = null, syncErr = '';
+  var OLD_TRIP = 'texas2026', fbp = null, syncing = false, syncAgain = false, syncTimer = null, syncErr = '';
+  if (st.trip === OLD_TRIP) st.trip = '';
   function fbReady() {
+    if (!st.trip) return Promise.reject(new Error('trip'));       // senza codice viaggio segreto non ci si collega
     if (fbp) return fbp;
     fbp = new Promise(function (res, rej) {
       try {
@@ -2428,11 +2432,12 @@ var APP_VER = 'v54';
   }
   function sync(manual) {
     if (syncing) { syncAgain = true; return; }
+    if (!st.trip) { syncErr = 'Manca il codice viaggio: scrivilo qui sopra'; syncInfo(); return; }
     if (!pendingCount() && !manual) { syncInfo(); return; }
     if (navigator.onLine === false) { syncErr = 'Nessuna rete'; syncInfo(); return; }
     syncing = true; syncErr = ''; syncInfo();
     fbReady().then(function (d) {
-      var tr = d.collection('trips').doc(st.trip || DEFAULT_TRIP), items = syncItems(), jobs = [];
+      var tr = d.collection('trips').doc(st.trip), items = syncItems(), jobs = [];
       st.pushed = st.pushed || {}; st.photosPushed = st.photosPushed || {};
       Object.keys(items).forEach(function (id) {
         var it = items[id], doc = itemDoc(it), sg = hash(JSON.stringify(doc));
@@ -2462,10 +2467,25 @@ var APP_VER = 'v54';
     });
   }
   $('syncNow').onclick = function () { sync(true); };
+  $('tripAsk').onclick = function () { go('settings'); setTimeout(function () { $('sTrip').scrollIntoView({ block: 'center' }); $('sTrip').focus(); }, 80); };
+  function tripClean(v) { return String(v || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+  function tripBanner() { $('tripAsk').hidden = !!st.trip; }
+  function tripSet(v) {                                  // codice nuovo: questo telefono rimanda tutti i suoi dati sotto il nuovo codice
+    st.trip = v; st.pushed = {}; st.photosPushed = {}; st.diaPushed = {}; st.diaPhotosPushed = {}; st.lastSync = 0;
+    (st.album || []).forEach(function (a) { a.up = false; });
+    var c = chkState(); Object.keys(c.items).forEach(function (id) { if (c.items[id].upd) c.dirty[id] = 1; });
+    var k = calState(); Object.keys(k.items).forEach(function (id) { if (k.items[id].upd) k.dirty[id] = 1; });
+    if (st.pos) st.pos.sent = false; st.posSeen = []; posList = null; posReq = null;
+    if (calUnsub) { calUnsub(); calUnsub = null; } if (chkUnsub) { chkUnsub(); chkUnsub = null; } if (posReqUnsub) { posReqUnsub(); posReqUnsub = null; }
+    if (albUnsub) { albUnsub(); albUnsub = null; } if (posUnsub) { posUnsub(); posUnsub = null; } albRemote = [];
+    persist(); tripBanner(); posAskBanner(); calListen(); chkListen(); posReqListen(); sync(true);
+  }
   $('sTrip').addEventListener('change', function () {
-    var v = $('sTrip').value.trim() || DEFAULT_TRIP;
-    if (v !== (st.trip || DEFAULT_TRIP)) { st.trip = v; st.pushed = {}; st.photosPushed = {}; persist(); toast('Codice viaggio cambiato'); }
-    $('sTrip').value = v;
+    var v = tripClean($('sTrip').value);
+    if (v === (st.trip || '')) { $('sTrip').value = v; return; }
+    if (v.length < 8 || v === OLD_TRIP || v.indexOf('/') >= 0 || v.indexOf('__') === 0) { $('sTrip').value = st.trip || ''; toast(v === OLD_TRIP ? 'Quel codice era pubblico: scegline uno nuovo' : 'Il codice deve avere almeno 8 caratteri (senza /)'); return; }
+    if (st.trip && !confirm('Cambiare il codice viaggio?\n\nQuesto telefono rimanda tutti i suoi dati sotto il nuovo codice. Gli altri telefoni e il Mac devono usare lo stesso.')) { $('sTrip').value = st.trip; return; }
+    $('sTrip').value = v; tripSet(v); toast('Codice viaggio salvato');
   });
   window.addEventListener('online', function () { sync(); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden) sync(); });
@@ -2838,7 +2858,7 @@ var APP_VER = 'v54';
     if (posUnsub) return;
     fbReady().then(function (d) {
       if (hashView() !== 'pos' || posUnsub) return;
-      posUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('positions').onSnapshot(function (snap) {
+      posUnsub = d.collection('trips').doc(st.trip).collection('positions').onSnapshot(function (snap) {
         posList = snap.docs.map(function (doc) { var v = doc.data(); v.key = doc.id; return v; }).filter(function (v) { return typeof v.la === 'number' && typeof v.lo === 'number'; });
         st.posSeen = posList; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
         if (hashView() === 'pos') renderPos();
@@ -2882,7 +2902,7 @@ var APP_VER = 'v54';
     if (posReqUnsub) return;
     fbReady().then(function (d) {
       if (posReqUnsub) return;
-      posReqUnsub = d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('posreq').onSnapshot(function (snap) {
+      posReqUnsub = d.collection('trips').doc(st.trip).collection('posreq').onSnapshot(function (snap) {
         var me = st.user ? chkMe() : '', best = null;
         snap.docs.forEach(function (doc) { var v = doc.data(); if (doc.id !== me && v && v.ts && (!best || v.ts > best.ts)) best = { from: v.from || doc.id, ts: v.ts }; });
         posReq = best; posAskBanner();
@@ -2904,7 +2924,7 @@ var APP_VER = 'v54';
   $('posAskAll').onclick = function () {
     if (!st.user) { toast('Scrivi prima il tuo nome in Impostazioni'); return; }
     var me = chkMe(), info = $('posAskInfo'), wa = $('posAskWa'), msg = 'Dove sei? Apri la app Xmas in Texa$ e tocca "Sono qui".';
-    fbReady().then(function (d) { return d.collection('trips').doc(st.trip || DEFAULT_TRIP).collection('posreq').doc(me).set({ from: st.user, ts: Date.now() }); }).catch(function () {});
+    fbReady().then(function (d) { return d.collection('trips').doc(st.trip).collection('posreq').doc(me).set({ from: st.user, ts: Date.now() }); }).catch(function () {});
     info.hidden = false; info.textContent = (navigator.onLine === false ? 'Richiesta in coda: parte quando torna la rete. ' : 'Richiesta inviata. ') + 'Gli altri la vedono come avviso arancione appena aprono l\'app: il telefono non squilla. Per avvisarli subito scrivi su WhatsApp:';
     wa.innerHTML = '';
     (st.contacts || []).filter(function (c) { return c.wa && slug(c.name) !== 'flavia' && slug(String(c.name).split(/\s+/)[0]) !== me; }).forEach(function (c) {

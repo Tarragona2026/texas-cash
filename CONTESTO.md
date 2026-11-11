@@ -9,7 +9,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 ## Come lavorare
 - Parla in italiano, risposte brevi e semplici: Matteo non è un programmatore.
 - Dopo ogni modifica: commit e push su `main` (pubblica l'app in 1–3 minuti).
-- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v54**; Mac `mac/sw.js` v11).
+- A ogni rilascio: alza `APP_VER` in `index.html` e `CACHE` in `sw.js` (ora **v55**; Mac `mac/sw.js` v12).
 - Prima il telefono (`index.html`), poi il Mac (`mac/index.html`).
 - Prova nel browser prima di pubblicare; cancella i dati di prova da Firebase (viaggi `_prova_*`).
 - Il repository è pubblico: MAI scrivere nel codice indirizzi privati, numeri di telefono, PIN o la chiave privata del diario. L'indirizzo di casa di Flavi non va nel codice.
@@ -20,7 +20,7 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 - `index.html`: app telefono (tutto in un file). `ocr.js`: lettura importi e data dagli scontrini (test: `node test/parse.test.js`).
 - `mac/index.html`, `mac/report.js`: app Mac, legge tutto da Firebase, export PDF.
 - `firebase-config.js`, `google-config.js`, `diary-crypto.js`, `diario-config.js` (chiave pubblica diario), `diario-chiavi.html`.
-- Firebase progetto `xmas-texas`, codice viaggio `texas2026`; raccolte sotto `trips/{codice}`: items, photos, album, albumFull, diary, diaryPhotos, checklist, calendar, positions, posreq.
+- Firebase progetto `xmas-texas`. Codice viaggio SEGRETO (dalla v55): lo sceglie Matteo e lo scrive a mano in Impostazioni sui tre telefoni e sul Mac; non è nel codice e non va mai chiesto né scritto qui. Il vecchio `texas2026` è rifiutato. Senza codice niente sync (avviso in home). Al cambio codice `tripSet` rimanda tutti i dati del telefono; raccolte sotto `trips/{codice}`: items, photos, album, albumFull, diary, diaryPhotos, checklist, calendar, positions, posreq.
 - Dati locali: localStorage `texascash.v1`, foto in IndexedDB `texascash` / `photos`.
 - Documenti: archivio a parte, mai in sync né nel backup: IndexedDB `texascash-docs` / `files` e localStorage `texascash.docs.v1` (scheda Flavia e dati del PIN). PDF mostrati con `vendor/pdf.min.js` (pdf.js 3.11 legacy, caricato solo quando serve).
 
@@ -48,11 +48,12 @@ Le specifiche complete sono in `SPECIFICHE.md`.
 Matteo ha detto sì a entrambe (Cloudflare + codice segreto). L'app è ancora v54: niente di questo è collegato all'app.
 - FATTO: `cloudflare/worker.js` + `wrangler.toml` (servizio che cifra e firma le notifiche, senza memoria), test `node test/push.test.mjs`, `push-config.js` (chiave pubblica, `url` vuoto). Chiave privata in `privato/vapid-jwk.json` (cartella esclusa da git: MAI pubblicarla né stamparla).
 - DA FARE nell'app: caricare `push-config.js` (anche in `sw.js`), tasto "Attiva notifiche" in Impostazioni (iscrizione salvata in `trips/{codice}/push/{nome}_{dispositivo}`), gestione `push` e `notificationclick` in `sw.js`, invio dal tasto "Chiedi dove sono" (POST al servizio con le iscrizioni degli altri; cancellare quelle che rispondono 404/410).
-- DA FARE codice segreto: togliere `DEFAULT_TRIP`/`texas2026` da telefono e Mac (senza codice niente sync, avviso in home), codice di almeno 8 caratteri scelto da Matteo; al cambio codice rimandare tutto (pushed, album `up`, diario, checklist e programma `dirty`, posizione) e riavviare gli ascolti. Poi, con l'ok di Matteo, cancellare i dati vecchi sotto `texas2026`.
+- FATTO (v55) codice segreto su telefono e Mac. DA FARE, solo con l'ok di Matteo e dopo che i tre telefoni hanno il codice nuovo: cancellare i dati vecchi sotto `texas2026`.
+- DECISO l'11 nov 2026: app iOS con Capacitor + TestFlight (piano in `../Xmas in Texa$ — Piano tecnico app iOS con Capacitor e TestFlight.md`; Fase A e B fatte e presentate). Matteo ha l'account Apple Developer e TestFlight. Manca Xcode sul Mac (l'11 nov non era in /Applications). Prossimo passo: branch `ios` con Capacitor, senza toccare la PWA su `main`. Le notifiche ("Chiedi dove sono", avviso quando Leo fa una spesa) si faranno nell'app iOS: il servizio Cloudflare va adattato ad Apple (APNs).
 - DA FARE con Matteo: crea l'account Cloudflare gratuito; poi `npx wrangler login` (approva lui nel browser), `npx wrangler deploy` in `cloudflare/`, `npx wrangler secret put VAPID_JWK < privato/vapid-jwk.json`, e mettere l'indirizzo del servizio in `push-config.js`.
 
 ## Da confermare con Matteo
-- Sicurezza: il codice viaggio `texas2026` è scritto nel codice pubblico, quindi chi lo legge può vedere su Firebase spese, foto e ora anche le posizioni. Proposto a Matteo (10 nov 2026) di passare a un codice segreto scritto a mano sui tre telefoni e sul Mac: in attesa di risposta.
+- Codice segreto: Matteo deve scriverlo sui tre telefoni e sul Mac (v55).
 - Chiama e Dove sono i miei: provati solo nel browser del Mac con numeri e posizioni finti.
 - Home in gruppi (Soldi, Viaggio, Ricordi, Utili): proposta, Matteo non l'ha chiesta. Non farla senza il suo via.
 - Icone spostabili: provate solo nel browser del Mac, da provare su iPhone.
