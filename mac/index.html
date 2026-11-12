@@ -239,6 +239,17 @@ body { padding: 0; }
   .cloudbox { margin-top: 0; }
   .content { padding: 18px 16px 32px; }
 }
+
+/* checklist modificabile dal Mac */
+.ci { align-items: center; }
+.ci .bx { background: transparent; padding: 0; cursor: pointer; margin-top: 0; }
+.ci.done .bx { background: var(--good); }
+.ci .t { flex: 1; cursor: pointer; }
+.ci .cx { border: 0; background: none; color: var(--ink-soft); width: 24px; height: 24px; border-radius: 50%; opacity: 0; padding: 0; line-height: 1; }
+.ci:hover .cx, .ci .cx:focus-visible { opacity: 1; }
+.ci .cx:hover { background: var(--field); color: var(--bad); }
+.cadd { display: flex; gap: 6px; margin: 4px 0 8px; }
+.cadd input { flex: 1; min-width: 0; min-height: 30px; border: 0; border-radius: 10px; background: var(--field); padding: 0 10px; color: var(--ink); }
 </style>
 </head>
 <body>
@@ -673,6 +684,12 @@ body { padding: 0; }
   }
   function chkList(items, list, who) { return Object.keys(items).map(function (k) { return items[k]; }).filter(function (x) { return x.list === list && !x.del && (x.owner || '') === who; }).sort(function (a, b) { return a.order - b.order; }); }
   function chkCount(items, who) { var d = 0, t = 0; CHK_LISTS.forEach(function (L) { if (!L[2]) return; var it = chkList(items, L[0], who); t += it.length; d += it.filter(function (x) { return x.done; }).length; }); return { d: d, t: t }; }
+  /* salva una voce della checklist: la scrive nel database comune e i telefoni la ricevono da soli */
+  function chkSaveItem(x) {
+    if (!cloud.db || !st.trip) { toast('Collegati prima con il codice viaggio'); return; }
+    x.upd = Date.now(); x.by = 'Mac'; cloud.chk[x.id] = x; renderChkView();
+    cloud.db.collection('trips').doc(st.trip).collection('checklist').doc(x.id).set(x).catch(function () { toast('Non riesco a salvare: controlla la rete'); });
+  }
   function renderChkView() {
     var v = $('chkView'); v.innerHTML = ''; var items = chkAll(), whos = chkWhos();
     var panel = el('div', 'panel glass'); panel.appendChild(el('div', 'label', 'Avanzamento'));
@@ -682,17 +699,33 @@ body { padding: 0; }
       panel.appendChild(el('div', 'ovr', '<b>' + esc(chkName(w)) + '</b><div class="bar"><i style="width:' + pct + '%"></i></div><span class="num">' + c.d + '/' + c.t + ' · ' + pct + '%</span>'));
     });
     panel.appendChild(el('div', 'ovr', '<b>Tutti</b><div class="bar"><i style="width:' + (tot.t ? Math.round(tot.d / tot.t * 100) : 0) + '%"></i></div><span class="num">' + tot.d + '/' + tot.t + '</span>'));
-    panel.appendChild(el('div', 'sub2', 'Sola lettura: le liste si spuntano dai telefoni.'));
+    panel.appendChild(el('div', 'sub2', 'Spunta, aggiungi o togli voci anche da qui: i telefoni si aggiornano da soli.'));
     v.appendChild(panel);
     var grid = el('div', 'chkgrid'); grid.style.marginTop = '16px';
-    function line(col, x, shared) { var r = el('div', 'ci' + (x.done ? ' done' : ''), '<span class="bx">' + (x.done ? '✓' : '') + '</span><span class="t">' + esc(x.text) + (shared && x.done && x.by ? '<small>fatto da ' + esc(x.by) + '</small>' : '') + '</span>'); col.appendChild(r); }
+    function line(col, x, shared) {
+      var r = el('div', 'ci' + (x.done ? ' done' : '')), bx = el('button', 'bx', x.done ? '✓' : ''), t = el('span', 't', esc(x.text) + (shared && x.done && x.by ? '<small>fatto da ' + esc(x.by) + '</small>' : '')), rm = el('button', 'cx', '✕');
+      bx.type = 'button'; rm.type = 'button'; bx.setAttribute('aria-label', (x.done ? 'Fatto: ' : 'Da fare: ') + x.text); rm.setAttribute('aria-label', 'Elimina la voce'); rm.title = 'Elimina la voce';
+      bx.onclick = t.onclick = function () { x.done = !x.done; chkSaveItem(x); };
+      rm.onclick = function () { if (!confirm('Eliminare "' + x.text + '"?' + (shared ? ' Sparisce per tutti.' : ''))) return; x.del = true; chkSaveItem(x); };
+      r.appendChild(bx); r.appendChild(t); r.appendChild(rm); col.appendChild(r);
+    }
+    function addRow(col, list, who, items) {
+      var row = el('div', 'cadd'), inp = document.createElement('input'), go = el('button', 'btn ghost small', 'Aggiungi'); inp.type = 'text'; inp.placeholder = 'Aggiungi una voce'; inp.autocomplete = 'off'; go.type = 'button'; inp.setAttribute('aria-label', 'Nuova voce');
+      function add() {
+        var v = inp.value.trim(); if (!v) return;
+        var all = Object.keys(items).map(function (k) { return items[k]; }).filter(function (x) { return x.list === list && (x.owner || '') === who; }), mx = all.reduce(function (m, x) { return Math.max(m, x.order || 0); }, 0);
+        chkSaveItem({ id: 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), list: list, text: v, done: false, order: mx + 10, owner: who, upd: 0 });
+      }
+      go.onclick = add; inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') add(); });
+      row.appendChild(inp); row.appendChild(go); col.appendChild(row);
+    }
     whos.forEach(function (w) {
       var col = el('section', 'chkcol glass'), c = chkCount(items, w); col.appendChild(el('h3', '', '<span>' + esc(chkName(w)) + '</span><span class="sub2 num">' + c.d + '/' + c.t + '</span>'));
-      CHK_LISTS.forEach(function (L) { if (!L[2]) return; var it = chkList(items, L[0], w), d = it.filter(function (x) { return x.done; }).length; col.appendChild(el('h4', '', '<span>' + esc(L[1]) + '</span><span class="num">' + d + '/' + it.length + '</span>')); it.forEach(function (x) { line(col, x, false); }); });
+      CHK_LISTS.forEach(function (L) { if (!L[2]) return; var it = chkList(items, L[0], w), d = it.filter(function (x) { return x.done; }).length; col.appendChild(el('h4', '', '<span>' + esc(L[1]) + '</span><span class="num">' + d + '/' + it.length + '</span>')); it.forEach(function (x) { line(col, x, false); }); addRow(col, L[0], w, items); });
       grid.appendChild(col);
     });
     var sh = el('section', 'chkcol glass'), ar = chkList(items, 'arrivo', ''), ad = ar.filter(function (x) { return x.done; }).length;
-    sh.appendChild(el('h3', '', '<span>Arrivo in Texas</span><span class="sub2 num">' + ad + '/' + ar.length + '</span>')); sh.appendChild(el('div', 'sub2', 'Lista di tutti')); ar.forEach(function (x) { line(sh, x, true); }); grid.appendChild(sh);
+    sh.appendChild(el('h3', '', '<span>Arrivo in Texas</span><span class="sub2 num">' + ad + '/' + ar.length + '</span>')); sh.appendChild(el('div', 'sub2', 'Lista di tutti')); ar.forEach(function (x) { line(sh, x, true); }); addRow(sh, 'arrivo', '', items); grid.appendChild(sh);
     v.appendChild(grid);
   }
 
