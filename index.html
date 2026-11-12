@@ -2245,7 +2245,7 @@ var APP_VER = 'v60';
   function dayLabel(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
   function slug(x) { return String(x || 'utente').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'utente'; }
   function diaryActive() { return !!(window.DIARY_PUBKEY && window.DiaryCrypto && window.crypto && window.crypto.subtle); }
-  function diaryDoc(day) { var e = st.diary[day]; return { day: day, text: e.text || '', photos: e.photos || [], loc: e.loc || null, ts: e.ts, upd: e.upd || e.ts }; }
+  function diaryDoc(day) { var e = st.diary[day]; return { day: day, text: e.text || '', photos: e.photos || [], loc: e.loc || null, pl: e.pl || {}, ts: e.ts, upd: e.upd || e.ts }; }
   function diaryPending() {
     if (!diaryActive() || !st.diary) return 0;
     var n = 0, pushed = st.diaPushed || {}, pp = st.diaPhotosPushed || {};
