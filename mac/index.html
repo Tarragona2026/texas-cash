@@ -250,6 +250,35 @@ body { padding: 0; }
 .ci .cx:hover { background: var(--field); color: var(--bad); }
 .cadd { display: flex; gap: 6px; margin: 4px 0 8px; }
 .cadd input { flex: 1; min-width: 0; min-height: 30px; border: 0; border-radius: 10px; background: var(--field); padding: 0 10px; color: var(--ink); }
+
+/* ===== Diario a quaderno: foto e mappa appese con i chiodini, cornice polaroid ===== */
+.djmapin { position: relative; aspect-ratio: 1; overflow: hidden; background: #e8e4d8; }
+.djrow { grid-template-columns: 1.7fr 1fr; gap: 18px; align-items: end; padding: 16px 6px 8px; max-width: none; }
+.djrow.one { grid-template-columns: 1fr; }
+.djrow.one .djph, .djrow.one .djpost { width: 74%; justify-self: center; }
+.djph { position: relative; display: flex; aspect-ratio: 1 / 1.1; padding: 9px 9px 34px; background: #fffef9; border-radius: 2px; overflow: visible; box-shadow: 0 6px 14px rgba(60,40,10,.28), 0 1px 2px rgba(60,40,10,.3); transform: rotate(-2.2deg); }
+.djrow.one .djph { aspect-ratio: 1 / 1.1; }
+.djph img { flex: 1; width: 100%; height: 100%; min-height: 0; object-fit: cover; display: block; border-radius: 0; max-width: none; max-height: none; background: #ddd; }
+.djmap { position: relative; aspect-ratio: auto; padding: 6px 6px 20px; background: #fffef9; border-radius: 2px; overflow: visible; box-shadow: 0 5px 12px rgba(60,40,10,.28), 0 1px 2px rgba(60,40,10,.3); transform: rotate(2.6deg); }
+.djrow.one .djmap { aspect-ratio: auto; }
+.djpost { overflow: visible; transform: rotate(-1.6deg); box-shadow: 0 6px 12px rgba(60,40,10,.28), 0 1px 2px rgba(60,40,10,.3); }
+.djph::after, .djmap::after, .djpost::after { content: ""; position: absolute; top: -7px; left: 50%; width: 17px; height: 17px; margin-left: -8px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ff9e94, #d9302a 58%, #8c1713); box-shadow: 0 3px 4px rgba(0,0,0,.4), inset 0 -1px 2px rgba(0,0,0,.3); z-index: 3; }
+.djmap::after { background: radial-gradient(circle at 34% 30%, #9ec5ff, #2f6fd6 58%, #173f8c); }
+.djpost::after { background: radial-gradient(circle at 34% 30%, #a8e6a0, #2fa83a 58%, #17661f); }
+.dje:nth-child(even) .djph { transform: rotate(1.8deg); }
+.dje:nth-child(even) .djmap { transform: rotate(-2.2deg); }
+.djpin { z-index: 2; }
+
+.content.nb { background-color: #fbf6e4; background-image: radial-gradient(circle at 24px 30px, #e6dfc9 0 6px, rgba(0,0,0,.22) 6.5px 7.5px, transparent 8px), linear-gradient(90deg, transparent 0 66px, rgba(214,69,65,.5) 66px 68px, transparent 68px), repeating-linear-gradient(0deg, transparent 0 31px, rgba(80,120,200,.26) 31px 32px); background-size: 48px 120px, 100% 100%, 100% 100%; background-repeat: repeat-y, no-repeat, repeat; background-position: 0 0, 0 0, 0 18px; padding-left: 92px; }
+@media (prefers-color-scheme: dark) { .content.nb { background-color: #2b2822; background-image: radial-gradient(circle at 24px 30px, #1a1814 0 6px, rgba(255,255,255,.18) 6.5px 7.5px, transparent 8px), linear-gradient(90deg, transparent 0 66px, rgba(255,120,110,.4) 66px 68px, transparent 68px), repeating-linear-gradient(0deg, transparent 0 31px, rgba(150,180,255,.16) 31px 32px); } }
+.content.nb .chead h1 { font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; }
+.content.nb .panel, .content.nb .dcard { background: transparent; box-shadow: none; }
+.content.nb .dcard { padding: 10px 6px 16px; border-radius: 0; }
+.content.nb .dcard h3 { font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; font-size: 1.5rem; text-transform: none; }
+.content.nb .dcard .tx, .content.nb .dcard .row { font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; font-size: 1.2rem; }
+.content.nb .dcard .tx { line-height: 1.4; }
+.djrow { max-width: 460px; }
+.djrow.one { max-width: 300px; }
 </style>
 </head>
 <body>
@@ -859,10 +888,10 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
   /* mappa piccola (riquadri OpenStreetMap con il punto al centro), uguale a quella dell'elenco del Diario sul telefono */
   function miniMap(lat, lon) {
     var z = 16, n = Math.pow(2, z), px = (lon + 180) / 360 * n, la = lat * Math.PI / 180, py = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
-    var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0, box = el('div', 'djmap'), g = el('div', 'djtiles');
+    var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0, box = el('div', 'djmap'), inn = el('div', 'djmapin'), g = el('div', 'djtiles'); box.appendChild(inn);
     g.style.marginLeft = -(256 + fx * 256) + 'px'; g.style.marginTop = -(256 + fy * 256) + 'px';
     for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) { var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = 'https://tile.openstreetmap.org/' + z + '/' + (x0 + i) + '/' + (y0 + j) + '.png'; g.appendChild(im); }
-    box.appendChild(g); box.appendChild(el('span', 'djpin')); return box;
+    inn.appendChild(g); inn.appendChild(el('span', 'djpin')); return box;
   }
 
   var albSel = null;
@@ -912,8 +941,9 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
     var panel = el('div', 'panel glass'), f = el('div', 'filters'); panel.appendChild(f); whoChips(f, renderDiaryView);
     var lock = el('button', 'btn ghost small', 'Richiudi i diari'); lock.type = 'button'; lock.onclick = function () { cloud.priv = null; decryptDiaries(); renderDiaryView(); }; f.appendChild(lock);
     v.appendChild(panel);
-    var list = cloud.diary.filter(function (d) { return !d.locked && flt.who[d.user] !== false; }).sort(function (a, b) { return (b.day || '').localeCompare(a.day || '') || (a.user || '').localeCompare(b.user || ''); });
+    var list = cloud.diary.filter(function (d) { return !d.locked && flt.who[d.user] !== false; }).sort(function (a, b) { return (b.day || '').localeCompare(a.day || '') || (a.user || '').localeCompare(b.user || '') || (b.ts || 0) - (a.ts || 0); });
     if (!list.length) panel.appendChild(el('div', 'sub2', 'Nessuna voce di diario da mostrare.'));
+    var expShown = {};
     list.forEach(function (d) {
       var c = el('div', 'dcard glass');
       if (d.broken) { c.appendChild(el('h3', '', esc(d.user) + ' · ' + esc(d.day))); c.appendChild(el('div', 'sub2', 'Non riesco ad aprire questa voce con la tua chiave.')); v.appendChild(c); return; }
@@ -932,7 +962,7 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
       } else if ((d.text || '').trim()) {                       // senza foto: il testo e' su un Post-it accanto alla mappa
         var row2 = el('div', 'djrow' + (d.loc ? '' : ' one')); row2.appendChild(el('div', 'djpost', '<span>' + esc(d.text.trim()) + '</span>')); if (d.loc) row2.appendChild(miniMap(d.loc.la, d.loc.lo)); c.appendChild(row2);
       }
-      var ex = ((st.people[d.user] || {}).expenses || []).filter(function (e) { return e.data === d.day; });
+      var ek = d.user + '|' + d.day, ex = expShown[ek] ? [] : ((st.people[d.user] || {}).expenses || []).filter(function (e) { return e.data === d.day; }); expShown[ek] = 1;      // le spese del giorno si mostrano una volta sola, sul primo foglio
       if (ex.length) {
         c.appendChild(el('div', 'label', 'Spese del giorno'));
         ex.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { c.appendChild(el('div', 'row', '<span>' + esc((e.ora ? e.ora + ' · ' : '') + (e.store || e.desc || 'senza nome') + ' · ' + e.cat) + '</span><span class="v num">' + usd(e.usd) + '</span>')); });
@@ -946,7 +976,8 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
     cloud.view = name;
     var TT = { spese: 'Spese', mappa: 'Mappa', foto: 'Foto', diario: 'Diari', checklist: 'Checklist', programma: 'Programma di viaggio', posizioni: 'Dove sono i miei' }; $('viewTitle').textContent = TT[name] || name;
     [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === name)); });
-    $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist'; $('calView').hidden = name !== 'programma'; $('posView').hidden = name !== 'posizioni';
+    document.querySelector('.content').classList.toggle('nb', name === 'diario');
+        $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist'; $('calView').hidden = name !== 'programma'; $('posView').hidden = name !== 'posizioni';
     if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView(); else if (name === 'checklist') renderChkView(); else if (name === 'programma') renderCalView(); else if (name === 'posizioni') renderPosView();
   }
   [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.onclick = function () { showView(b.dataset.v); }; });

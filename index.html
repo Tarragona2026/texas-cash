@@ -561,6 +561,41 @@ html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; overscroll-b
 .sheet, .sheetin, .calform, .calform label { min-width: 0; max-width: 100%; }
 .calform input, input[type=time], input[type=date] { display: block; width: 100%; min-width: 0; max-width: 100%; -webkit-appearance: none; appearance: none; text-align: left; }
 .calform input::-webkit-date-and-time-value { text-align: left; min-width: 0; }
+
+/* ===== Diario a quaderno: foto e mappa appese con i chiodini, cornice polaroid ===== */
+.djmapin { position: relative; aspect-ratio: 1; overflow: hidden; background: #e8e4d8; }
+.djrow { grid-template-columns: 1.7fr 1fr; gap: 18px; align-items: end; padding: 16px 6px 8px; max-width: none; }
+.djrow.one { grid-template-columns: 1fr; }
+.djrow.one .djph, .djrow.one .djpost { width: 74%; justify-self: center; }
+.djph { position: relative; display: flex; aspect-ratio: 1 / 1.1; padding: 9px 9px 34px; background: #fffef9; border-radius: 2px; overflow: visible; box-shadow: 0 6px 14px rgba(60,40,10,.28), 0 1px 2px rgba(60,40,10,.3); transform: rotate(-2.2deg); }
+.djrow.one .djph { aspect-ratio: 1 / 1.1; }
+.djph img { flex: 1; width: 100%; height: 100%; min-height: 0; object-fit: cover; display: block; border-radius: 0; max-width: none; max-height: none; background: #ddd; }
+.djmap { position: relative; aspect-ratio: auto; padding: 6px 6px 20px; background: #fffef9; border-radius: 2px; overflow: visible; box-shadow: 0 5px 12px rgba(60,40,10,.28), 0 1px 2px rgba(60,40,10,.3); transform: rotate(2.6deg); }
+.djrow.one .djmap { aspect-ratio: auto; }
+.djpost { overflow: visible; transform: rotate(-1.6deg); box-shadow: 0 6px 12px rgba(60,40,10,.28), 0 1px 2px rgba(60,40,10,.3); }
+.djph::after, .djmap::after, .djpost::after { content: ""; position: absolute; top: -7px; left: 50%; width: 17px; height: 17px; margin-left: -8px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ff9e94, #d9302a 58%, #8c1713); box-shadow: 0 3px 4px rgba(0,0,0,.4), inset 0 -1px 2px rgba(0,0,0,.3); z-index: 3; }
+.djmap::after { background: radial-gradient(circle at 34% 30%, #9ec5ff, #2f6fd6 58%, #173f8c); }
+.djpost::after { background: radial-gradient(circle at 34% 30%, #a8e6a0, #2fa83a 58%, #17661f); }
+.dje:nth-child(even) .djph { transform: rotate(1.8deg); }
+.dje:nth-child(even) .djmap { transform: rotate(-2.2deg); }
+.djpin { z-index: 2; }
+
+body.nb .bgimg, body.nb .bgwrap::after { display: none; }
+body.nb .bgwrap { background-color: #fbf6e4; background-image: radial-gradient(circle at 16px 26px, #e6dfc9 0 5px, rgba(0,0,0,.22) 5.5px 6.5px, transparent 7px), linear-gradient(90deg, transparent 0 41px, rgba(214,69,65,.5) 41px 43px, transparent 43px), repeating-linear-gradient(0deg, transparent 0 31px, rgba(80,120,200,.28) 31px 32px); background-size: 40px 110px, 100% 100%, 100% 100%; background-repeat: repeat-y, no-repeat, repeat; background-position: 0 0, 0 0, 0 18px; }
+body.nb { padding-left: 52px; }
+@media (prefers-color-scheme: dark) { body.nb .bgwrap { background-color: #2b2822; background-image: radial-gradient(circle at 16px 26px, #1a1814 0 5px, rgba(255,255,255,.18) 5.5px 6.5px, transparent 7px), linear-gradient(90deg, transparent 0 41px, rgba(255,120,110,.4) 41px 43px, transparent 43px), repeating-linear-gradient(0deg, transparent 0 31px, rgba(150,180,255,.17) 31px 32px); } }
+body.nb .djhead { background: color-mix(in srgb, #fbf6e4 78%, transparent); margin-left: -52px; padding-left: 52px; }
+@media (prefers-color-scheme: dark) { body.nb .djhead { background: color-mix(in srgb, #2b2822 78%, transparent); } }
+body.nb .dje { background: transparent; box-shadow: none; border-radius: 0; padding: 0 0 4px; overflow: visible; }
+body.nb .djmonth { font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; font-size: 1.9rem; font-weight: 700; margin: 12px 2px 0; }
+body.nb .djtitle, body.nb .djtext, body.nb .djdate { font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; }
+body.nb .djtitle { font-size: 1.35rem; } body.nb .djtext { font-size: 1.2rem; line-height: 1.35; } body.nb .djdate { font-size: .95rem; text-transform: none; letter-spacing: 0; }
+body.nb .djbody { padding: 8px 6px 4px; }
+body.nb .djfoot { border-top: 1px dashed rgba(110,100,80,.45); }
+body.nb .dianote { font-family: "Bradley Hand", "Noteworthy", cursive; font-size: 1rem; }
+body.nb .diatitle .diadate { font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; }
+body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linear-gradient(transparent 0 31px, rgba(80,120,200,.32) 31px 32px); background-attachment: local; line-height: 32px; padding: 0 12px; border-radius: 6px; font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; font-size: 1.2rem; color: #2a2418; box-shadow: 0 2px 8px rgba(60,40,10,.18); }
+@media (prefers-color-scheme: dark) { body.nb .diatext2 { background-color: #35312a; background-image: repeating-linear-gradient(transparent 0 31px, rgba(150,180,255,.2) 31px 32px); color: #f1ead9; } }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -791,7 +826,7 @@ html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; overscroll-b
         <div id="diaExpList"></div>
         <div class="line total"><span class="k">Totale del giorno</span><span class="v num" id="diaExpTot"></span></div>
       </section>
-      <button class="dellink" id="diaDel" type="button">Elimina questa voce</button>
+      <button class="dellink" id="diaDel" type="button">Elimina questo foglio</button>
     </div>
   </section>
 
@@ -1133,6 +1168,7 @@ var APP_VER = 'v61';
     if (v === 'tr') renderTr();
     if (v !== 'album' && albUnsub) { albUnsub(); albUnsub = null; }
     if (v === 'album') openAlbum();
+    document.body.classList.toggle('nb', v === 'dia');
     if (v !== 'map') mapFocus = null;
     if (v !== 'dia') diaUnlocked = false;
     if (v === 'dia') openDiary();
@@ -2248,10 +2284,10 @@ var APP_VER = 'v61';
   /* ---------- diario privato (cifrato) ---------- */
   var diaDay = '', diaUrls = [], diaTimer = null;
   function dayKey(ts) { var d = new Date(ts || Date.now()); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
-  function dayLabel(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function dayLabel(k) { k = String(k).slice(0, 10); var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
   function slug(x) { return String(x || 'utente').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'utente'; }
   function diaryActive() { return !!(window.DIARY_PUBKEY && window.DiaryCrypto && window.crypto && window.crypto.subtle); }
-  function diaryDoc(day) { var e = st.diary[day]; return { day: day, text: e.text || '', photos: e.photos || [], loc: e.loc || null, pl: e.pl || {}, ts: e.ts, upd: e.upd || e.ts }; }
+  function diaryDoc(day) { var e = st.diary[day]; return { day: e.day || String(day).slice(0, 10), text: e.text || '', photos: e.photos || [], loc: e.loc || null, pl: e.pl || {}, ts: e.ts, upd: e.upd || e.ts }; }
   function diaryPending() {
     if (!diaryActive() || !st.diary) return 0;
     var n = 0, pushed = st.diaPushed || {}, pp = st.diaPhotosPushed || {};
@@ -2288,7 +2324,7 @@ var APP_VER = 'v61';
   }
   function diaGet(create) {
     st.diary = st.diary || {};
-    if (!st.diary[diaDay] && create) st.diary[diaDay] = { text: '', photos: [], loc: null, ts: Date.now(), upd: Date.now() };
+    if (!st.diary[diaDay] && create) st.diary[diaDay] = { day: String(diaDay).slice(0, 10), text: '', photos: [], loc: null, ts: Date.now(), upd: Date.now() };
     return st.diary[diaDay] || null;
   }
   function diaPhotoLoc(e, id) { return (e.pl && e.pl[id]) || e.loc || null; }
@@ -2329,6 +2365,9 @@ var APP_VER = 'v61';
     else if (diaNeedLock()) diaLockShow();
   });
   function openDiary() { if (!diaDay) diaDay = dayKey(); diaMode = diaJump ? 'edit' : 'list'; diaJump = false; if (diaNeedLock()) { diaLockShow(); return; } $('diaLockV').hidden = true; renderDiary(); }
+  /* ogni volta che si scrive e' un FOGLIO NUOVO del quaderno: la prima voce del giorno ha la chiave 2026-12-23, le altre 2026-12-23_2, _3... */
+  function newDiaKey(day) { if (!st.diary || !st.diary[day]) return day; var n = 2; while (st.diary[day + '_' + n]) n++; return day + '_' + n; }
+  function latestKeyOfDay(day) { var ks = Object.keys(st.diary || {}).filter(function (k) { return String(k).slice(0, 10) === day; }).sort(); return ks.length ? ks[ks.length - 1] : day; }
   function diaOpenDay(k) { diaDay = k; diaMode = 'edit'; renderDiary(); window.scrollTo(0, 0); }
   function diaFlush() { clearTimeout(diaTimer); var t = $('diaText'); if (!t || diaMode !== 'edit') return; var txt = t.value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } }
   function diaFit() { var t = $('diaText'); t.style.height = 'auto'; t.style.height = Math.max(160, t.scrollHeight + 4) + 'px'; }
@@ -2343,14 +2382,14 @@ var APP_VER = 'v61';
   function djTile(lat, lon) {                      // piccola mappa: 3x3 riquadri di OpenStreetMap con il punto al centro (nessun servizio a pagamento)
     var z = 16, n = Math.pow(2, z), px = (lon + 180) / 360 * n, la = lat * Math.PI / 180, py = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
     var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0;
-    var box = document.createElement('div'); box.className = 'djmap';
+    var box = document.createElement('div'); box.className = 'djmap'; var inn = document.createElement('div'); inn.className = 'djmapin'; box.appendChild(inn);
     var g = document.createElement('div'); g.className = 'djtiles'; g.style.marginLeft = -(256 + fx * 256) + 'px'; g.style.marginTop = -(256 + fy * 256) + 'px';
     for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) { var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; im.src = 'https://tile.openstreetmap.org/' + z + '/' + (x0 + i) + '/' + (y0 + j) + '.png'; g.appendChild(im); }
-    var pin = document.createElement('span'); pin.className = 'djpin'; box.appendChild(g); box.appendChild(pin);
+    var pin = document.createElement('span'); pin.className = 'djpin'; inn.appendChild(g); inn.appendChild(pin);
     return box;
   }
   function djDate(k, e) {
-    var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]), t = e.ts ? new Date(e.ts) : null;
+    k = String(e.day || k).slice(0, 10); var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]), t = e.ts ? new Date(e.ts) : null;
     var s = d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); s = s.charAt(0).toUpperCase() + s.slice(1);
     if (t && dayKey(e.ts) === k) s += ', ' + pad(t.getHours()) + ':' + pad(t.getMinutes());
     return s;
@@ -2428,7 +2467,7 @@ var APP_VER = 'v61';
     djSheet([['Tutte le voci' + (diaFilter === 'all' ? ' ✓' : ''), function () { diaFilter = 'all'; renderDiaList(); }], ['Solo con foto' + (diaFilter === 'photo' ? ' ✓' : ''), function () { diaFilter = 'photo'; renderDiaList(); }], ['Solo con posizione' + (diaFilter === 'loc' ? ' ✓' : ''), function () { diaFilter = 'loc'; renderDiaList(); }]]);
   };
   function renderDiaEdit() {
-    $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : ''); $('diaPick').value = diaDay;
+    $('diaDate').textContent = dayLabel(diaDay) + (String(diaDay).slice(0, 10) === dayKey() ? ' · oggi' : ''); $('diaPick').value = String(diaDay).slice(0, 10); $('diaPick').disabled = !!(st.diary && st.diary[diaDay]);
     var e = diaGet(false); if (document.activeElement !== $('diaText')) $('diaText').value = e ? e.text || '' : '';
     diaFit();
     var grid = $('diaPhotos'); grid.innerHTML = ''; grid.hidden = !(e && (e.photos || []).length);
@@ -2448,9 +2487,9 @@ var APP_VER = 'v61';
     var ex = dayExpenses(diaDay); $('diaExp').hidden = !ex.length;
     if (ex.length) { fillExpenses($('diaExpList'), ex); $('diaExpTot').textContent = sumLabel(ex); }
   }
-  $('diaNew').onclick = function () { diaOpenDay(dayKey()); };
+  $('diaNew').onclick = function () { diaOpenDay(newDiaKey(dayKey())); };
   $('diaBack').onclick = function () { diaFlush(); try { $('diaText').blur(); } catch (x) {} diaMode = 'list'; renderDiary(); window.scrollTo(0, 0); sync(); };
-  $('diaPick').addEventListener('change', function () { var v = $('diaPick').value; if (!v) return; diaFlush(); diaDay = v; renderDiary(); });
+  $('diaPick').addEventListener('change', function () { var v = $('diaPick').value; if (!v || (st.diary && st.diary[diaDay])) return; diaFlush(); diaDay = newDiaKey(v); renderDiary(); });
   $('diaText').addEventListener('input', function () {
     clearTimeout(diaTimer);
     diaTimer = setTimeout(function () {
@@ -2468,7 +2507,7 @@ var APP_VER = 'v61';
     }, Promise.resolve()).then(function () { diaTouchLoc(e); persist(); renderDiary(); }, function () { $('diaStatus').textContent = 'Non riesco a leggere questa foto.'; });
   }
   function diaryAttach(blob, fix) {                 // dall'album: la foto va anche nel diario di oggi
-    var save = diaDay; diaDay = dayKey(); var e = diaGet(true), id = newId();
+    var save = diaDay; diaDay = latestKeyOfDay(dayKey()); var e = diaGet(true), id = newId();
     return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (fix) { (e.pl = e.pl || {})[id] = { la: fix.la, lo: fix.lo }; if (!e.loc) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; } diaDay = save || diaDay; });
   }
   $('diaCam').onclick = function () { diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
@@ -2482,11 +2521,11 @@ var APP_VER = 'v61';
     if (e.text !== txt) { e.text = txt; e.upd = Date.now(); }
     diaTouchLoc(e); persist(); try { $('diaText').blur(); } catch (x) {}
     toast('Diario salvato · ' + dayLabel(diaDay)); diaMode = 'list'; renderDiary(); window.scrollTo(0, 0); sync(true);
-    if (diaDay === dayKey()) getFix(6000).then(posSet);
+    if (String(diaDay).slice(0, 10) === dayKey()) getFix(6000).then(posSet);
   };
   $('diaDel').onclick = function () {
     var e = diaGet(false); if (!e) return;
-    if (!confirm('Eliminare la voce del ' + dayLabel(diaDay) + ' con tutte le sue foto?')) return;
+    if (!confirm('Eliminare questo foglio del ' + dayLabel(diaDay) + ' con tutte le sue foto?')) return;
     (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[diaDay]; persist(); diaMode = 'list'; renderDiary();
   };
   $('alDia').checked = st.albDia !== false;
@@ -2494,7 +2533,7 @@ var APP_VER = 'v61';
 
   /* ---------- diario: giorni, spese del giorno e riquadro del giorno (aperto dalla Mappa) ---------- */
   function hasEntry(k) { var e = st.diary && st.diary[k]; return !!(e && ((e.text || '').trim() || (e.photos || []).length)); }
-  function dayExpenses(k) { return (st.expenses || []).filter(function (e) { return dayKey(e.ts) === k; }).sort(function (a, b) { return a.ts - b.ts; }); }
+  function dayExpenses(k) { k = String(k).slice(0, 10); return (st.expenses || []).filter(function (e) { return dayKey(e.ts) === k; }).sort(function (a, b) { return a.ts - b.ts; }); }
   function dayHas(k) { return hasEntry(k) || dayExpenses(k).length > 0; }
   function expLine(e) {
     var t = new Date(e.ts); var where = e.store || e.desc || 'senza nome';
@@ -2795,7 +2834,7 @@ var APP_VER = 'v61';
       prog: Object.keys(c.items).map(function (k) { return c.items[k]; }).filter(function (x) { return !x.del && x.loc; }).sort(function (a, b) { return a.day.localeCompare(b.day) || a.order - b.order; }).map(function (x) { return { day: x.day, loc: x.loc, x: x }; }),
       exp: st.expenses.filter(function (e) { return e.loc; }).map(function (e) { return { day: dayKey(e.ts), loc: e.loc, x: e }; }),
       pho: (st.album || []).filter(function (a) { return a.loc; }).map(function (a) { return { day: dayKey(a.ts), loc: a.loc, x: a }; }),
-      dia: Object.keys(st.diary || {}).filter(hasEntry).map(function (k) { return { day: k, loc: dayLoc(k), x: k }; }).filter(function (p) { return p.loc; })
+      dia: Object.keys(st.diary || {}).filter(hasEntry).map(function (k) { return { day: String(k).slice(0, 10), loc: dayLoc(k), x: k }; }).filter(function (p) { return p.loc; })
     };
   }
   function mapPop() { var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc); return pop; }

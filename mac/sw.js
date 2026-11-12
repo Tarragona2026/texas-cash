@@ -1,4 +1,4 @@
-const CACHE = 'texas-cash-mac-v17';
+const CACHE = 'texas-cash-mac-v18';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', '../img/houston.jpg', './report.js', '../vendor/firebase-app-compat.js', '../vendor/firebase-auth-compat.js', '../vendor/firebase-firestore-compat.js', '../firebase-config.js', '../diary-crypto.js', '../vendor/leaflet.js', '../vendor/leaflet.css', './vendor/jspdf.umd.min.js', './vendor/jspdf.plugin.autotable.min.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
