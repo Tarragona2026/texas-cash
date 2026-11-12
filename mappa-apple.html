@@ -9,6 +9,8 @@
      Il token vale solo su questo sito (tarragona2026.github.io): non e' un segreto. -->
 <style>
 html, body, #m { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e9eef2; }
+.dot.shake { animation: tremble .5s infinite; box-shadow: 0 0 0 5px rgba(255,255,255,.55), 0 2px 8px rgba(0,0,0,.35); }
+@keyframes tremble { 0%, 100% { transform: translate(0, 0) rotate(0); } 15% { transform: translate(-3px, 1px) rotate(-10deg); } 30% { transform: translate(3px, -1px) rotate(9deg); } 45% { transform: translate(-3px, -1px) rotate(-8deg); } 60% { transform: translate(3px, 1px) rotate(8deg); } 80% { transform: translate(-2px, 0) rotate(-4deg); } }
 .dot { width: 24px; height: 24px; border-radius: 50%; border: 3px solid #fff; color: #fff; font: 700 13px/24px -apple-system, system-ui, sans-serif; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.35); cursor: pointer; }
 </style>
 </head>
@@ -23,8 +25,8 @@ html, body, #m { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hid
   if (!window.mapkit) { send({ src: 'amap', t: 'err', why: 'script' }); return; }
   var lastTap = 0;
   function tap(id) { var n = Date.now(); if (n - lastTap < 400) return; lastTap = n; send({ src: 'amap', t: 'tap', id: id }); }   // un solo avviso anche se arrivano piu' eventi per lo stesso tocco
-  function dot(color, text, id) { return function () {
-    var d = document.createElement('div'); d.className = 'dot'; d.style.background = color; d.textContent = text || '';
+  function dot(color, text, id, shake) { return function () {
+    var d = document.createElement('div'); d.className = 'dot' + (shake ? ' shake' : ''); d.style.background = color; d.textContent = text || '';
     d.addEventListener('click', function () { tap(id); }); d.addEventListener('touchend', function () { tap(id); });
     return d;
   }; }
@@ -32,7 +34,7 @@ html, body, #m { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hid
     if (!ready) { queued = msg; return; }
     if (anns.length) map.removeAnnotations(anns);
     anns = (msg.pts || []).map(function (p) {
-      var a = new mapkit.Annotation(new mapkit.Coordinate(p.la, p.lo), dot(p.color || '#d70015', p.text, p.id), { calloutEnabled: false, size: { width: 30, height: 30 }, data: { id: p.id } });
+      var a = new mapkit.Annotation(new mapkit.Coordinate(p.la, p.lo), dot(p.color || '#d70015', p.text, p.id, p.shake), { calloutEnabled: false, size: { width: 30, height: 30 }, data: { id: p.id } });
       a.addEventListener('select', function () { tap(p.id); setTimeout(function () { map.selectedAnnotation = null; }, 0); });
       return a;
     });
@@ -40,6 +42,7 @@ html, body, #m { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hid
     var fx = !!msg.fixed, sp = msg.span > 0 ? msg.span : 0.02;      // fixed: mappa ferma (anteprima di una foto), senza tasti
     map.isScrollEnabled = !fx; map.isZoomEnabled = !fx; map.isRotationEnabled = false; map.showsZoomControl = !fx;
     if (msg.fit === false) return;
+    if (msg.center) { map.setRegionAnimated(new mapkit.CoordinateRegion(new mapkit.Coordinate(msg.center.la, msg.center.lo), new mapkit.CoordinateSpan(sp, sp)), false); return; }      // centra su un punto (spesa scelta dal Registro)
     if (anns.length === 1) map.setRegionAnimated(new mapkit.CoordinateRegion(anns[0].coordinate, new mapkit.CoordinateSpan(sp, sp)), false);
     else if (anns.length) map.showItems(anns, { animate: false, padding: new mapkit.Padding(50, 40, 50, 40), minimumSpan: new mapkit.CoordinateSpan(0.01, 0.01) });
   }
