@@ -89,7 +89,8 @@ async function apnsOne(env, jwt, token, payload) {
         headers: { authorization: 'bearer ' + jwt, 'apns-topic': env.APNS_TOPIC, 'apns-push-type': 'alert', 'apns-priority': '10', 'apns-expiration': String(Math.floor(Date.now() / 1000) + 6 * 3600), 'content-type': 'application/json' } });
       let reason = ''; if (r.status !== 200) { try { reason = ((await r.json()) || {}).reason || ''; } catch (e) {} }
       last = { status: r.status, reason };
-      if (!(r.status === 400 && reason === 'BadDeviceToken')) break;      // codice dell'altro ambiente: si prova il secondo indirizzo
+      last.host = host.includes('sandbox') ? 'sandbox' : 'production';
+      if (!((r.status === 400 && reason === 'BadDeviceToken') || reason === 'BadEnvironmentKeyInToken')) break;      // codice o chiave dell'altro ambiente: si prova il secondo indirizzo
     }
     return last;
   } catch (e) { return { status: 0, error: String((e && e.message) || e).slice(0, 80) }; }
