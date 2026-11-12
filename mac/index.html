@@ -229,13 +229,15 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
       var u = (r[ix('utente')] || '').trim() || 'Senza nome';
       var o = { tipo: (ix('tipo') >= 0 ? r[ix('tipo')] : 'spesa') || 'spesa', data: r[ix('data')], ora: r[ix('ora')] || '', desc: r[ix('descrizione')] || '', cat: r[ix('categoria')] || 'Altro',
         usd: num(r[ix('totale_usd')]), eur: num(r[ix('totale_eur')]), sub: r[ix('subtotale_usd')], tax: r[ix('tasse_usd')], tip: r[ix('mancia_usd')], src: r[ix('origine')] || '' };
-      if (!o.data || !o.usd) return;
+      if (ix('valuta') >= 0 && /^EUR/i.test((r[ix('valuta')] || '').trim())) { o.cur = 'EUR'; o.usd = 0; }      // spesa in Italia: in euro, fuori plafond
+      if (!o.data || (!o.usd && !(o.cur === 'EUR' && o.eur))) return;
       (byUser[u] = byUser[u] || []).push(o);
     });
     var n = 0;
     Object.keys(byUser).forEach(function (u) {
       var p = st.people[u] || (st.people[u] = { expenses: [], topups: [] });
-      p.expenses = byUser[u].filter(function (x) { return x.tipo !== 'ricarica'; });      /* le spese sono quelle del telefono */
+      p.expenses = byUser[u].filter(function (x) { return x.tipo !== 'ricarica' && x.cur !== 'EUR'; });      /* le spese sono quelle del telefono */
+      p.italy = byUser[u].filter(function (x) { return x.tipo !== 'ricarica' && x.cur === 'EUR'; });
       var have = {}; p.topups.forEach(function (t) { have[tkey(u, t)] = 1; });
       byUser[u].filter(function (x) { return x.tipo === 'ricarica'; }).forEach(function (t) {
         var k = tkey(u, t); if (!have[k] && st.deleted.indexOf(k) < 0) { p.topups.push(t); have[k] = 1; }
@@ -244,11 +246,11 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
     });
     return Object.keys(byUser);
   }
-  function ekey(u, e) { return [u, e.data, e.ora, e.usd.toFixed(2), e.desc].join('|'); }
+  function ekey(u, e) { return [u, e.data, e.ora, (e.cur === 'EUR' ? e.eur : e.usd).toFixed(2), e.desc].join('|'); }
   /* commento a una spesa: resta salvato anche se reimporti il file del telefono */
   function expItem(u, e) {
     var k = ekey(u, e), box = el('div', 'exp'), cm = el('div', 'cm');
-    box.appendChild(el('div', 'erow', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.store || e.desc || e.cat)) + (e.loc ? ' 📍' : '') + '</span><span class="num">' + usd(e.usd) + '</span>'));
+    box.appendChild(el('div', 'erow', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.store || e.desc || e.cat)) + (e.loc ? ' 📍' : '') + '</span><span class="num">' + (e.cur === 'EUR' ? eur(e.eur) : usd(e.usd)) + '</span>'));
     if (e.photo && e.id && window.fetchReceiptGlobal) {
       var rb = el('button', 'cbtn', 'Vedi scontrino'); rb.type = 'button';
       rb.onclick = function () { rb.textContent = 'Carico…'; window.fetchReceiptGlobal(e.id).then(function (url) { rb.textContent = 'Vedi scontrino'; if (url) window.lightboxGlobal([{ src: url, cap: u + ' · ' + dayLabel(e.data) + ' ' + e.ora + ' · ' + usd(e.usd), link: e.loc ? 'https://maps.apple.com/?ll=' + e.loc.la + ',' + e.loc.lo : '', name: 'scontrino.jpg' }], 0); else toast('Scontrino non disponibile'); }, function () { rb.textContent = 'Vedi scontrino'; toast('Scontrino non disponibile'); }); };
@@ -337,6 +339,20 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
       det.appendChild(it); box.appendChild(det);
     });
     col.appendChild(box);
+    /* spese fatte in Italia prima della partenza: in euro, fuori dal plafond */
+    var it = p.italy || [];
+    if (it.length) {
+      var ib = el('div', 'sect'); ib.appendChild(el('div', 'label', 'Spese in Italia (fuori plafond)'));
+      ib.appendChild(el('div', 'sub2 num', 'Totale ' + eur(sum(it, 'eur')) + ' · ' + it.length + (it.length === 1 ? ' spesa' : ' spese')));
+      var id = days(it), ik = Object.keys(id).sort().reverse();
+      ik.forEach(function (k) {
+        var items = id[k], det = el('details');
+        det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + eur(sum(items, 'eur')) + '</span>'));
+        var bx = el('div', 'items'); items.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { bx.appendChild(expItem(name, e)); });
+        det.appendChild(bx); ib.appendChild(det);
+      });
+      col.appendChild(ib);
+    }
     /* ricariche: si eliminano solo da qui */
     var tb = el('div', 'sect'); tb.appendChild(el('div', 'label', 'Ricariche'));
     if (!p.topups.length) tb.appendChild(el('div', 'sub2', 'Nessuna ricarica'));
@@ -375,6 +391,14 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
       det.appendChild(it); box.appendChild(det);
     });
     col.appendChild(box);
+    var itAll = []; names.forEach(function (n) { (st.people[n].italy || []).forEach(function (e) { itAll.push({ who: n, eur: e.eur }); }); });
+    if (itAll.length) {
+      var ib = el('div', 'sect'); ib.appendChild(el('div', 'label', 'Spese in Italia (fuori plafond)'));
+      var per = {}; itAll.forEach(function (x) { per[x.who] = (per[x.who] || 0) + x.eur; });
+      Object.keys(per).forEach(function (w) { ib.appendChild(el('div', 'erow', '<span>' + esc(w) + '</span><span class="num">' + eur(per[w]) + '</span>')); });
+      ib.appendChild(el('div', 'erow', '<span>Totale in euro</span><span class="num">' + eur(sum(itAll, 'eur')) + '</span>'));
+      col.appendChild(ib);
+    }
     return col;
   }
 
@@ -442,14 +466,15 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
     docs.forEach(function (d) { var v = d.data(); if (v.kind !== 'ricarica' && v.usd > 0 && v.eur > 0) rates.push(v.eur / v.usd); });
     var rate = rates.length ? rates[rates.length - 1] : 0.86;
     docs.forEach(function (d) {
-      var v = d.data(), u = (v.user || '').trim() || 'Senza nome', p = by[u] || (by[u] = { expenses: [], topups: [] });
+      var v = d.data(), u = (v.user || '').trim() || 'Senza nome', p = by[u] || (by[u] = { expenses: [], topups: [], italy: [] });
       var data = dkey(v.ts), ora = hhmm(v.ts);
       if (v.kind === 'ricarica') p.topups.push({ tipo: 'ricarica', data: data, ora: ora, desc: v.note || 'Ricarica plafond', usd: v.usd, eur: v.usd * rate, id: v.id });
+      else if (v.cur === 'EUR') p.italy.push({ tipo: 'spesa', data: data, ora: ora, desc: v.desc || '', cat: v.cat || 'Altro', usd: 0, eur: v.eur, cur: 'EUR', src: v.src || '', id: v.id, photo: !!v.photo, loc: v.loc || null, store: v.store || '', ts: v.ts });
       else p.expenses.push({ tipo: 'spesa', data: data, ora: ora, desc: v.desc || '', cat: v.cat || 'Altro', usd: v.usd, eur: v.eur != null ? v.eur : v.usd * rate, sub: v.sub, tax: v.tax, tip: v.tip, src: v.src || '', id: v.id, photo: !!v.photo, loc: v.loc || null, store: v.store || '', ts: v.ts });
     });
     Object.keys(by).forEach(function (u) {
       var p = st.people[u] || (st.people[u] = { expenses: [], topups: [] });
-      p.expenses = by[u].expenses;
+      p.expenses = by[u].expenses; p.italy = by[u].italy;
       p.topups = by[u].topups.filter(function (t) { return st.deleted.indexOf(tkey(u, t)) < 0; });
     });
     persist(); render(); if (cloud.view !== 'spese') showView(cloud.view);

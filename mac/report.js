@@ -4,7 +4,7 @@
   function usd(n) { return (n < 0 ? '-' : '') + '$' + f(Math.abs(n)); }
   function eur(n) { return (n < 0 ? '-' : '') + '€' + f(Math.abs(n)); }
   function sum(a, k) { return a.reduce(function (s, x) { return s + x[k]; }, 0); }
-  function ekey(u, e) { return [u, e.data, e.ora, e.usd.toFixed(2), e.desc].join('|'); }
+  function ekey(u, e) { return [u, e.data, e.ora, (e.cur === 'EUR' ? e.eur : e.usd).toFixed(2), e.desc].join('|'); }
   function dayLabel(d) { return new Date(d + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }); }
 
   var INK = [28, 28, 30], SOFT = [99, 99, 102], RED = [192, 57, 31], BLUE = [0, 122, 255];
@@ -69,6 +69,16 @@
       table(['Giorno'].concat(names, ['Totale', 'Progressivo']), drow, { columnStyles: ds });
     }
 
+    /* spese in Italia (euro, fuori plafond) */
+    var allIt = []; names.forEach(function (n) { allIt = allIt.concat(people[n].italy || []); });
+    if (allIt.length) {
+      need(90); title('Spese in Italia (fuori plafond)', 15);
+      var irows = names.filter(function (n) { return (people[n].italy || []).length; }).map(function (n) { return [n, eur(sum(people[n].italy, 'eur'))]; });
+      irows.push(['Totale', eur(sum(allIt, 'eur'))]);
+      table(['Persona', 'Speso in euro'], irows, { columnStyles: { 1: { halign: 'right' } },
+        didParseCell: function (d) { if (d.row.index === irows.length - 1 && d.section === 'body') { d.cell.styles.fontStyle = 'bold'; d.cell.styles.fillColor = [232, 240, 255]; } } });
+    }
+
     /* una sezione per persona */
     names.forEach(function (n) {
       var p = people[n]; doc.addPage(); y = M + 10;
@@ -83,6 +93,12 @@
         table(['Giorno', 'Ora', 'Descrizione', 'Categoria', 'Dollari', 'Euro', 'Commento'], ex.map(function (e) {
           return [dayLabel(e.data), e.ora || '', e.desc || e.cat, e.cat, usd(e.usd), eur(e.eur), comments[ekey(n, e)] || ''];
         }), { columnStyles: { 0: { cellWidth: 58 }, 1: { cellWidth: 32 }, 4: { halign: 'right', cellWidth: 52 }, 5: { halign: 'right', cellWidth: 50 }, 6: { cellWidth: 100 } }, styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 3.5, lineColor: [215, 215, 220], lineWidth: .4, textColor: INK, overflow: 'linebreak' } });
+      }
+      if ((p.italy || []).length) {
+        need(70); title('Spese in Italia (fuori plafond)', 13);
+        table(['Giorno', 'Ora', 'Descrizione', 'Categoria', 'Euro', 'Commento'], p.italy.slice().sort(function (a, b) { return (a.data + a.ora).localeCompare(b.data + b.ora); }).map(function (e) {
+          return [dayLabel(e.data), e.ora || '', e.desc || e.cat, e.cat, eur(e.eur), comments[ekey(n, e)] || ''];
+        }), { columnStyles: { 4: { halign: 'right', cellWidth: 52 } } });
       }
       need(70); title('Ricariche', 13);
       if (!p.topups.length) note('Nessuna ricarica.');
