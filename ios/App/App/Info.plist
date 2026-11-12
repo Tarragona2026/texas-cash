@@ -31,7 +31,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Serve per segnare dove hai fatto una spesa, una foto o una pagina di diario, e per il tasto Sono qui.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Serve solo se registri un video o detti un testo.</string>
+	<string>Serve per ascoltare la tua voce nel Traduttore e se registri un video.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Serve per trasformare in testo quello che dici nel Traduttore, così lo puoi tradurre.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Serve per salvare nel rullino le foto scattate con l'app.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

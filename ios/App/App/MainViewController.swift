@@ -7,5 +7,6 @@ class MainViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(TexasOcrPlugin())
         bridge?.registerPluginInstance(TexasPhotosPlugin())
         bridge?.registerPluginInstance(TexasTranslatePlugin())
+        bridge?.registerPluginInstance(TexasSpeechPlugin())
     }
 }

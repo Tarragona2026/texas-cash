@@ -766,8 +766,8 @@ body.hasbg .bgwrap::after { display: block; }
       <button class="btn" id="trGo" type="button">Traduci</button>
       <label class="toggle"><input type="checkbox" id="trAuto"> Leggi la traduzione ad alta voce da sola</label>
       <div class="hint" id="trHint"></div>
-      <button class="trmic" id="trKb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21"/></svg><span>Parla (dettatura tastiera)</span></button>
-      <div class="hint">Si apre la tastiera: tocca il microfono in basso a destra, parla, poi chiudi la tastiera. La traduzione parte da sola.</div>
+      <button class="trmic" id="trKb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21"/></svg><span id="trKbTxt">Parla</span></button>
+      <div class="hint" id="trKbHint">Si apre la tastiera: tocca il microfono in basso a destra, parla, poi chiudi la tastiera. La traduzione parte da sola.</div>
     </section>
     <section class="card" id="trOutCard" hidden>
       <div class="label">Traduzione</div>
@@ -1902,7 +1902,7 @@ var APP_VER = 'v58';
   }
   function renderTr() {
     var L = trLang(); $('trFrom').textContent = L.fromN; $('trTo').textContent = L.toN;
-    $('trIn').placeholder = 'Parla con la tastiera o scrivi qui';
+    $('trIn').placeholder = natPlugin('TexasSpeech') ? 'Tocca Parla oppure scrivi qui' : 'Parla con la tastiera o scrivi qui'; if (!trListening) trListenUi(false);
     $('phrCats').innerHTML = '';
     Object.keys(PHRASES).forEach(function (c) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c; b.setAttribute('aria-pressed', String(c === trCat));
@@ -1923,7 +1923,29 @@ var APP_VER = 'v58';
   $('trCopy').onclick = function () { try { navigator.clipboard.writeText($('trOut').textContent).then(function () { toast('Copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
   $('trAuto').checked = !!st.trAuto;
   $('trAuto').onchange = function () { unlockSpeech(); st.trAuto = $('trAuto').checked; persist(); if (st.trAuto) toast('Con il volume del telefono alzato e la suoneria attiva'); };
-  $('trKb').onclick = function () { unlockSpeech(); $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = ''; $('trIn').focus(); };
+  /* app iOS: "Parla" avvia subito la dettatura (riconoscimento vocale di Apple); nella PWA resta il giro dalla tastiera */
+  var trListening = false, trSpeechInit = false, trSpeechTimer = null;
+  function trListenUi(on) {
+    trListening = on; var hasN = !!natPlugin('TexasSpeech');
+    $('trKbTxt').textContent = on ? 'Sto ascoltando… tocca per fermare' : (hasN ? 'Parla' : 'Parla (dettatura tastiera)');
+    $('trKbHint').textContent = hasN ? (on ? 'Parla in ' + trLang().fromN.toLowerCase() + '. Quando hai finito tocca di nuovo: la traduzione parte da sola.' : 'Tocca Parla e di\u2019 la frase: si traduce da sola.') : 'Si apre la tastiera: tocca il microfono in basso a destra, parla, poi chiudi la tastiera. La traduzione parte da sola.';
+    $('trKb').style.background = on ? 'var(--ink)' : '';
+  }
+  function trSpeechEnd() {
+    clearTimeout(trSpeechTimer); if (!trListening) return; trListenUi(false);
+    if ($('trIn').value.trim()) doTranslate(st.trAuto); else $('trHint').textContent = 'Non ho sentito niente: riprova.';
+  }
+  $('trKb').onclick = function () {
+    unlockSpeech();
+    var S = natPlugin('TexasSpeech');
+    if (!S) { $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = ''; $('trIn').focus(); return; }
+    if (!trSpeechInit) { trSpeechInit = true; S.addListener('partial', function (e) { if (trListening && e && e.text != null) $('trIn').value = e.text; }); S.addListener('end', trSpeechEnd); }
+    if (trListening) { S.stop(); trSpeechTimer = setTimeout(trSpeechEnd, 3000); return; }
+    $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = '';
+    S.start({ lang: trLang().fromV }).then(function () { trListenUi(true); }, function (err) {
+      $('trHint').textContent = 'Non riesco ad ascoltare (' + ((err && err.message) || 'permesso negato') + '). Controlla in Impostazioni di iOS, oppure scrivi qui sotto.'; $('trIn').focus();
+    });
+  };
   var trLastTxt = '';
   $('trIn').addEventListener('focus', function () { trLastTxt = $('trIn').value; });
   $('trIn').addEventListener('blur', function () { var v = $('trIn').value.trim(); if (v && v !== trLastTxt.trim()) setTimeout(function () { doTranslate(false); }, 200); });
