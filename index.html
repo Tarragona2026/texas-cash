@@ -2523,6 +2523,19 @@ var APP_VER = 'v55';
     var N = natPlugin('LocalNotifications'); if (!N) return;
     N.schedule({ notifications: [{ id: 2999, title: 'Xmas in Texa$', body: 'Avviso di prova: le notifiche funzionano.', schedule: { at: new Date(Date.now() + 6000), allowWhileIdle: true } }] })
       .then(function () { toast('Arriva tra qualche secondo: puoi anche chiudere l\'app'); }, function () { toast('Non riesco a mandare l\'avviso di prova'); });
+    /* seconda prova, da fuori: il servizio su Cloudflare chiede ad Apple di avvisare questo stesso telefono (la strada degli avvisi sugli acquisti) */
+    var H = natPlugin('CapacitorHttp'), url = (window.PUSH_CONFIG || {}).apns, out = $('ntBuy');
+    if (!H || !url) return;
+    if (!st.pushTok) { out.textContent = 'Avvisi sugli acquisti: questo telefono non ha ancora ricevuto il suo codice da Apple. Chiudi e riapri l\'app, poi riprova.'; return; }
+    out.textContent = 'Avvisi sugli acquisti: prova in corso…';
+    setTimeout(function () {
+      H.request({ url: url, method: 'POST', connectTimeout: 12000, readTimeout: 12000, headers: { 'Content-Type': 'application/json' },
+        data: { tokens: [st.pushTok], msg: { title: 'Xmas in Texa$', body: 'Seconda prova: gli avvisi sugli acquisti funzionano.', kind: 'prova' } } }).then(function (r) {
+        var d = r && r.data ? (typeof r.data === 'string' ? JSON.parse(r.data) : r.data) : {}, x = (d.results || [])[0] || {};
+        out.textContent = x.status === 200 ? 'Avvisi sugli acquisti: Apple ha accettato la prova (' + (x.host || '') + '). Deve arrivare un secondo avviso.'
+          : 'Avvisi sugli acquisti: la prova non è riuscita (' + (x.reason || x.error || d.error || ('errore ' + (r && r.status))) + ').';
+      }, function () { out.textContent = 'Avvisi sugli acquisti: non riesco a raggiungere il servizio. Serve la rete.'; });
+    }, 9000);
   };
   /* ---------- notifica degli acquisti (solo app iOS) ----------
      Ogni telefono con le notifiche attive salva il suo codice Apple in trips/{codice}/push/{nome}. Quando qualcuno salva una spesa,
