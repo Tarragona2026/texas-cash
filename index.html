@@ -164,11 +164,19 @@ h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; mar
 /* vetro */
 .glass, .card, .item, .empty {
   background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--glass-shadow), var(--glass-hi);
-  -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7);
 }
+/* lo sfocato dello sfondo pesa: solo sui pochi elementi "glass" (non su ogni scheda e riga, che rallentava lo scorrimento) */
+.glass { -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass, .card, .item, .empty { background: var(--glass-strong); }
 }
+html { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+button, a, .item, .atile, .app { touch-action: manipulation; }
+.item { content-visibility: auto; contain-intrinsic-size: auto 72px; }
+/* le schermate entrano con una dissolvenza e un piccolo scivolamento, come in iOS */
+@keyframes vin { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+section.wrap:not([hidden]) { animation: vin .22s ease-out; }
+@media (prefers-reduced-motion: reduce) { section.wrap:not([hidden]) { animation: none; } }
 .card { border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); font-weight: 700; }
 .hint { font-size: .85rem; color: var(--ink-soft); }
@@ -781,7 +789,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v55';
+var APP_VER = 'v56';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -2191,7 +2199,7 @@ var APP_VER = 'v55';
       items.sort(function (a, b) { return b.ts - a.ts; });
       items.forEach(function (x, ix) {
         var b = document.createElement('button'); b.type = 'button'; b.className = 'atile'; b.setAttribute('aria-label', 'Foto di ' + (x.user || ''));
-        var im = document.createElement('img'); im.alt = ''; im.src = x.thumbUrl || x.thumb; b.appendChild(im);
+        var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.loading = 'lazy'; im.src = x.thumbUrl || x.thumb; b.appendChild(im);
         var t = document.createElement('span'); t.className = 'atag'; t.textContent = x.user || '?'; b.appendChild(t);
         if (x.pending) { var p = document.createElement('span'); p.className = 'apend'; p.textContent = 'in coda'; b.appendChild(p); }
         b.onclick = function () { viewAlbumPhoto(items.slice(), ix); }; grid.appendChild(b);
