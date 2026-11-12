@@ -145,6 +145,71 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
 .ovr { display: grid; grid-template-columns: 8rem 1fr auto; gap: 12px; align-items: center; }
 
 .lock input[type=password] { min-height: 38px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); padding: 0 12px; color: var(--ink); }
+
+/* ===== Stile iOS (12 nov 2026): strato che sovrascrive il resto, la logica non cambia ===== */
+:root { --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --ink-soft: #636366; --sep: rgba(60,60,67,.18); --field: rgba(118,118,128,.12);
+  --accent: #007aff; --accent-ink: #fff; --tint-soft: rgba(0,122,255,.12); --good: #248a3d; --warn: #b25000; --bad: #d70015;
+  --font-display: -apple-system, "SF Pro Rounded", "SF Pro Display", system-ui, sans-serif; }
+@media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1c1c1e; --ink: #fff; --ink-soft: #aeaeb2; --sep: rgba(84,84,88,.6); --field: rgba(118,118,128,.24);
+  --accent: #0a84ff; --accent-ink: #fff; --tint-soft: rgba(10,132,255,.22); --good: #30d158; --warn: #ff9f0a; --bad: #ff453a; } }
+.bgwrap, .scrim { display: none; }
+body { background: var(--bg); font-size: 15px; }
+.glass, .col, .panel, .dcard, .chkcol { background: var(--card); border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.col, .panel, .chkcol { border-radius: 16px; }
+.dcard { border-radius: 14px; }
+.col.total { box-shadow: 0 0 0 2px var(--accent); }
+.col.empty { background: transparent; border: 2px dashed var(--sep); }
+.msg { background: var(--card); border-radius: 12px; }
+/* intestazione: titolo grande, senza riquadro */
+.top { background: none; box-shadow: none; padding: 4px 4px 0; border-radius: 0; }
+h1 { font-size: 2.3rem; font-weight: 700; letter-spacing: -.02em; }
+.col h2, .sheetm h3, .dcard h3, .chkcol h3 { font-weight: 700; letter-spacing: -.01em; }
+/* tasti a pastiglia */
+.btn { min-height: 36px; border-radius: 999px; border: 0; padding: 0 16px; font-weight: 600; background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.btn:active { opacity: .7; }
+.btn.ghost { background: var(--tint-soft); color: var(--accent); }
+.btn.small { min-height: 28px; padding: 0 12px; font-size: .8rem; }
+/* schede: controllo segmentato */
+.tabs { width: fit-content; max-width: 100%; gap: 2px; background: var(--field); padding: 3px; border-radius: 10px; flex-wrap: nowrap; overflow-x: auto; }
+.tab { min-height: 30px; border: 0; border-radius: 8px; padding: 0 16px; font-weight: 500; background: transparent; color: var(--ink); }
+.tab[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.fchip, .chip { border: 0; background: var(--field); color: var(--ink); }
+.fchip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.cloudrow input[type=text], .lock input[type=password], select.sel, .cedit textarea { border: 0; background: var(--field); border-radius: 10px; }
+.row, details, .it { border-color: var(--sep); }
+.cnote { background: var(--field); }
+.cbtn { color: var(--accent); }
+.label { letter-spacing: .02em; font-weight: 600; }
+.left { font-weight: 700; }
+.bar { background: var(--field); box-shadow: none; }
+.mapbox { border: 0; border-radius: 14px; }
+.pg button { border-radius: 12px; }
+.toast { background: rgba(60,60,67,.92); color: #fff; border: 0; box-shadow: none; }
+.sheetm { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+.sect > .erow { display: flex; justify-content: space-between; gap: 8px; font-size: .9rem; padding: 3px 0; }
+
+/* programma, posizioni, album, diari con mappa e Post-it */
+.calrow { display: flex; gap: 14px; padding: 10px 2px; border-bottom: 1px solid var(--sep); align-items: flex-start; }
+.calrow:last-of-type { border-bottom: 0; }
+.calrow .tm { flex: none; width: 3.6rem; font-weight: 700; color: var(--accent); padding-top: 1px; }
+.calrow .bd { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.albums { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px 14px; }
+.albtile { border: 0; background: none; padding: 0; text-align: left; color: var(--ink); display: flex; flex-direction: column; gap: 3px; }
+.albcov { aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--field); display: grid; place-items: center; font-size: 3rem; font-weight: 700; margin-bottom: 4px; }
+.albcov img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.albname { font-weight: 600; } .albcnt { color: var(--ink-soft); font-size: .85rem; }
+.djrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 760px; }
+.djrow.one { grid-template-columns: 1fr; max-width: 420px; }
+.djph, .djmap { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--field); }
+.djph img { width: 100%; height: 100%; object-fit: cover; display: block; max-width: none; max-height: none; border-radius: 0; }
+.djtiles { position: absolute; left: 50%; top: 50%; width: 768px; height: 768px; display: grid; grid-template-columns: repeat(3, 256px); grid-template-rows: repeat(3, 256px); }
+.djtiles img { width: 256px; height: 256px; display: block; }
+.djpin { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: #5e5ce6; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.djpin::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; }
+.djpost { position: relative; aspect-ratio: 1; border-radius: 6px 6px 14px 6px; padding: 14px 12px; overflow: hidden; background: linear-gradient(160deg, #fff6a8, #ffe66d); color: #4a3b00; box-shadow: 0 3px 8px rgba(0,0,0,.18); font-family: "Bradley Hand", "Noteworthy", "Marker Felt", "Segoe Print", cursive; font-size: 1.1rem; line-height: 1.3; transform: rotate(-1.2deg); }
+.djpost span { display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.djrow.one .djpost { aspect-ratio: 16 / 9; }
 </style>
 </head>
 <body>
@@ -169,6 +234,8 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
   <button class="tab" type="button" data-v="foto" aria-pressed="false">Foto</button>
   <button class="tab" type="button" data-v="diario" aria-pressed="false">Diari</button>
   <button class="tab" type="button" data-v="checklist" aria-pressed="false">Checklist</button>
+  <button class="tab" type="button" data-v="programma" aria-pressed="false">Programma</button>
+  <button class="tab" type="button" data-v="posizioni" aria-pressed="false">Posizioni</button>
 </nav>
 <div class="msg glass" id="msg" hidden></div>
 <main class="cols" id="cols"></main>
@@ -176,6 +243,8 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
 <section class="view" id="photoView" hidden></section>
 <section class="view" id="diaryView" hidden></section>
 <section class="view" id="chkView" hidden></section>
+<section class="view" id="calView" hidden></section>
+<section class="view" id="posView" hidden></section>
 <div class="drop" id="drop" hidden>Rilascia i file CSV</div>
 <div id="toastHost"></div>
 
@@ -229,13 +298,15 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
       var u = (r[ix('utente')] || '').trim() || 'Senza nome';
       var o = { tipo: (ix('tipo') >= 0 ? r[ix('tipo')] : 'spesa') || 'spesa', data: r[ix('data')], ora: r[ix('ora')] || '', desc: r[ix('descrizione')] || '', cat: r[ix('categoria')] || 'Altro',
         usd: num(r[ix('totale_usd')]), eur: num(r[ix('totale_eur')]), sub: r[ix('subtotale_usd')], tax: r[ix('tasse_usd')], tip: r[ix('mancia_usd')], src: r[ix('origine')] || '' };
-      if (!o.data || !o.usd) return;
+      if (ix('valuta') >= 0 && /^EUR/i.test((r[ix('valuta')] || '').trim())) { o.cur = 'EUR'; o.usd = 0; }      // spesa in Italia: in euro, fuori plafond
+      if (!o.data || (!o.usd && !(o.cur === 'EUR' && o.eur))) return;
       (byUser[u] = byUser[u] || []).push(o);
     });
     var n = 0;
     Object.keys(byUser).forEach(function (u) {
       var p = st.people[u] || (st.people[u] = { expenses: [], topups: [] });
-      p.expenses = byUser[u].filter(function (x) { return x.tipo !== 'ricarica'; });      /* le spese sono quelle del telefono */
+      p.expenses = byUser[u].filter(function (x) { return x.tipo !== 'ricarica' && x.cur !== 'EUR'; });      /* le spese sono quelle del telefono */
+      p.italy = byUser[u].filter(function (x) { return x.tipo !== 'ricarica' && x.cur === 'EUR'; });
       var have = {}; p.topups.forEach(function (t) { have[tkey(u, t)] = 1; });
       byUser[u].filter(function (x) { return x.tipo === 'ricarica'; }).forEach(function (t) {
         var k = tkey(u, t); if (!have[k] && st.deleted.indexOf(k) < 0) { p.topups.push(t); have[k] = 1; }
@@ -244,11 +315,11 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
     });
     return Object.keys(byUser);
   }
-  function ekey(u, e) { return [u, e.data, e.ora, e.usd.toFixed(2), e.desc].join('|'); }
+  function ekey(u, e) { return [u, e.data, e.ora, (e.cur === 'EUR' ? e.eur : e.usd).toFixed(2), e.desc].join('|'); }
   /* commento a una spesa: resta salvato anche se reimporti il file del telefono */
   function expItem(u, e) {
     var k = ekey(u, e), box = el('div', 'exp'), cm = el('div', 'cm');
-    box.appendChild(el('div', 'erow', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.store || e.desc || e.cat)) + (e.loc ? ' 📍' : '') + '</span><span class="num">' + usd(e.usd) + '</span>'));
+    box.appendChild(el('div', 'erow', '<span>' + esc((e.ora ? e.ora + ' ' : '') + (e.store || e.desc || e.cat)) + (e.loc ? ' 📍' : '') + '</span><span class="num">' + (e.cur === 'EUR' ? eur(e.eur) : usd(e.usd)) + '</span>'));
     if (e.photo && e.id && window.fetchReceiptGlobal) {
       var rb = el('button', 'cbtn', 'Vedi scontrino'); rb.type = 'button';
       rb.onclick = function () { rb.textContent = 'Carico…'; window.fetchReceiptGlobal(e.id).then(function (url) { rb.textContent = 'Vedi scontrino'; if (url) window.lightboxGlobal([{ src: url, cap: u + ' · ' + dayLabel(e.data) + ' ' + e.ora + ' · ' + usd(e.usd), link: e.loc ? 'https://maps.apple.com/?ll=' + e.loc.la + ',' + e.loc.lo : '', name: 'scontrino.jpg' }], 0); else toast('Scontrino non disponibile'); }, function () { rb.textContent = 'Vedi scontrino'; toast('Scontrino non disponibile'); }); };
@@ -337,6 +408,20 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
       det.appendChild(it); box.appendChild(det);
     });
     col.appendChild(box);
+    /* spese fatte in Italia prima della partenza: in euro, fuori dal plafond */
+    var it = p.italy || [];
+    if (it.length) {
+      var ib = el('div', 'sect'); ib.appendChild(el('div', 'label', 'Spese in Italia (fuori plafond)'));
+      ib.appendChild(el('div', 'sub2 num', 'Totale ' + eur(sum(it, 'eur')) + ' · ' + it.length + (it.length === 1 ? ' spesa' : ' spese')));
+      var id = days(it), ik = Object.keys(id).sort().reverse();
+      ik.forEach(function (k) {
+        var items = id[k], det = el('details');
+        det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + eur(sum(items, 'eur')) + '</span>'));
+        var bx = el('div', 'items'); items.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { bx.appendChild(expItem(name, e)); });
+        det.appendChild(bx); ib.appendChild(det);
+      });
+      col.appendChild(ib);
+    }
     /* ricariche: si eliminano solo da qui */
     var tb = el('div', 'sect'); tb.appendChild(el('div', 'label', 'Ricariche'));
     if (!p.topups.length) tb.appendChild(el('div', 'sub2', 'Nessuna ricarica'));
@@ -375,6 +460,14 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
       det.appendChild(it); box.appendChild(det);
     });
     col.appendChild(box);
+    var itAll = []; names.forEach(function (n) { (st.people[n].italy || []).forEach(function (e) { itAll.push({ who: n, eur: e.eur }); }); });
+    if (itAll.length) {
+      var ib = el('div', 'sect'); ib.appendChild(el('div', 'label', 'Spese in Italia (fuori plafond)'));
+      var per = {}; itAll.forEach(function (x) { per[x.who] = (per[x.who] || 0) + x.eur; });
+      Object.keys(per).forEach(function (w) { ib.appendChild(el('div', 'erow', '<span>' + esc(w) + '</span><span class="num">' + eur(per[w]) + '</span>')); });
+      ib.appendChild(el('div', 'erow', '<span>Totale in euro</span><span class="num">' + eur(sum(itAll, 'eur')) + '</span>'));
+      col.appendChild(ib);
+    }
     return col;
   }
 
@@ -442,14 +535,15 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
     docs.forEach(function (d) { var v = d.data(); if (v.kind !== 'ricarica' && v.usd > 0 && v.eur > 0) rates.push(v.eur / v.usd); });
     var rate = rates.length ? rates[rates.length - 1] : 0.86;
     docs.forEach(function (d) {
-      var v = d.data(), u = (v.user || '').trim() || 'Senza nome', p = by[u] || (by[u] = { expenses: [], topups: [] });
+      var v = d.data(), u = (v.user || '').trim() || 'Senza nome', p = by[u] || (by[u] = { expenses: [], topups: [], italy: [] });
       var data = dkey(v.ts), ora = hhmm(v.ts);
       if (v.kind === 'ricarica') p.topups.push({ tipo: 'ricarica', data: data, ora: ora, desc: v.note || 'Ricarica plafond', usd: v.usd, eur: v.usd * rate, id: v.id });
+      else if (v.cur === 'EUR') p.italy.push({ tipo: 'spesa', data: data, ora: ora, desc: v.desc || '', cat: v.cat || 'Altro', usd: 0, eur: v.eur, cur: 'EUR', src: v.src || '', id: v.id, photo: !!v.photo, loc: v.loc || null, store: v.store || '', ts: v.ts });
       else p.expenses.push({ tipo: 'spesa', data: data, ora: ora, desc: v.desc || '', cat: v.cat || 'Altro', usd: v.usd, eur: v.eur != null ? v.eur : v.usd * rate, sub: v.sub, tax: v.tax, tip: v.tip, src: v.src || '', id: v.id, photo: !!v.photo, loc: v.loc || null, store: v.store || '', ts: v.ts });
     });
     Object.keys(by).forEach(function (u) {
       var p = st.people[u] || (st.people[u] = { expenses: [], topups: [] });
-      p.expenses = by[u].expenses;
+      p.expenses = by[u].expenses; p.italy = by[u].italy;
       p.topups = by[u].topups.filter(function (t) { return st.deleted.indexOf(tkey(u, t)) < 0; });
     });
     persist(); render(); if (cloud.view !== 'spese') showView(cloud.view);
@@ -471,13 +565,18 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
         if (cloud.view === 'foto' || cloud.view === 'mappa') showView(cloud.view);
       }, err));
       cloud.unsubs.push(tr.collection('checklist').onSnapshot(function (snap) { snap.docs.forEach(function (x) { cloud.chk[x.id] = x.data(); }); snap.docChanges().forEach(function (ch) { if (ch.type === 'removed') delete cloud.chk[ch.doc.id]; }); if (cloud.view === 'checklist') renderChkView(); }, err));
+      cloud.unsubs.push(tr.collection('calendar').onSnapshot(function (snap) { snap.docs.forEach(function (x) { cloud.cal[x.id] = x.data(); }); if (cloud.view === 'programma') renderCalView(); }, function () {}));
+      cloud.unsubs.push(tr.collection('positions').onSnapshot(function (snap) {
+        cloud.pos = snap.docs.map(function (x) { return Object.assign({ key: x.id }, x.data()); }).filter(function (v) { return typeof v.la === 'number' && typeof v.lo === 'number'; });
+        if (cloud.view === 'posizioni') renderPosView();
+      }, function () {}));
       cloud.unsubs.push(tr.collection('diary').onSnapshot(function (snap) { cloud.diaryRaw = snap.docs.map(function (x) { return Object.assign({ id: x.id }, x.data()); }); decryptDiaries(); }, err));
     }, function () { setCloudStatus('Accesso anonimo non riuscito.'); });
   }
   function decryptDiaries() {
     if (!cloud.priv) { cloud.diary = cloud.diaryRaw.map(function (r) { return { id: r.id, user: r.user, day: r.day, locked: true }; }); if (cloud.view === 'diario') showView('diario'); return Promise.resolve(); }
     return Promise.all(cloud.diaryRaw.map(function (r) {
-      return DiaryCrypto.decryptJson(cloud.priv, r.pack).then(function (e) { return { id: r.id, user: r.user, day: e.day, text: e.text, photos: e.photos || [], loc: e.loc, ts: e.ts, upd: e.upd }; }, function () { return { id: r.id, user: r.user, day: r.day, broken: true }; });
+      return DiaryCrypto.decryptJson(cloud.priv, r.pack).then(function (e) { return { id: r.id, user: r.user, day: e.day, text: e.text, photos: e.photos || [], loc: e.loc, pl: e.pl || {}, ts: e.ts, upd: e.upd }; }, function () { return { id: r.id, user: r.user, day: r.day, broken: true }; });
     })).then(function (list) { cloud.diary = list; if (cloud.view === 'diario' || cloud.view === 'mappa') showView(cloud.view); });
   }
   function fetchFullPhoto(id) {
@@ -525,7 +624,7 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
   var CHK_DEF = {"documenti": ["Passaporto (valido almeno 6 mesi dopo il rientro)", "ESTA approvata (salvata o stampata)", "Carta d'identità", "Patente italiana", "Assicurazione di viaggio (polizza)", "Biglietti aerei", "Carta di credito e bancomat", "Contanti in dollari", "Numeri di emergenza salvati"], "valigia": ["Intimo e calzini", "Magliette", "Maglioni e felpe", "Giacca", "Pantaloni e jeans", "Pigiama", "Scarpe comode", "Necessaire", "Medicine personali", "Occhiali", "Caricabatterie del telefono", "Adattatore per le prese USA", "Power bank", "Cuffie", "Regali per la famiglia"], "prima": ["Fare il check-in online", "Avvisare la banca del viaggio", "Attivare la SIM dati o l'eSIM", "Scaricare le mappe offline", "Salvare i documenti sul telefono", "Controllare le scadenze dei documenti", "Pesare la valigia", "Caricare tutti i dispositivi", "Cambiare un po' di dollari", "Controllare il meteo del Texas"], "arrivo": ["Ritirare i bagagli", "Ritirare l'auto a noleggio", "Controllare i danni dell'auto", "Scrivere ai parenti che siamo arrivati", "Impostare il navigatore", "Fare la spesa da H-E-B", "Mettere i caricabatterie in carica"]};
   var CHK_LISTS = [['documenti', 'Documenti', true], ['valigia', 'Valigia', true], ['prima', 'Prima di partire', true], ['arrivo', 'Arrivo in Texas', false]];
   var CHK_NAMES = { matteo: 'Matteo', leslie: 'Leslie', leo: 'Leo' };
-  cloud.chk = {};
+  cloud.chk = {}; cloud.cal = {}; cloud.pos = [];
   function chkWhos() { var m = { matteo: 1, leslie: 1, leo: 1 }; Object.keys(cloud.chk).forEach(function (k) { var o = cloud.chk[k].owner; if (o) m[o] = 1; }); return Object.keys(m); }
   function chkName(w) { return CHK_NAMES[w] || (w.charAt(0).toUpperCase() + w.slice(1)); }
   function chkAll() {                                      // voci di partenza + modifiche arrivate dai telefoni
@@ -631,16 +730,96 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
     var list = cloud.album.filter(function (a) { return flt.who[a.user] !== false; }), i = Math.max(0, list.findIndex(function (a) { return a.id === id; }));
     lightbox(list.map(function (a) { return { src: fetchFullPhoto(a.id), cap: (a.user || '') + ' · ' + dayLabel(dkey(a.ts)) + ' ' + hhmm(a.ts) + (a.loc ? ' · con posizione' : ''), link: a.loc ? mapsLink(a.loc) : '', name: 'xmas-texas-' + a.id + '.jpg' }; }), i);
   }
+
+  /* ---------- Programma di viaggio (itinerario di partenza + modifiche fatte dai telefoni) ---------- */
+var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)", "2800 N Terminal Rd, Houston, TX 77032"], ["", "Cena a casa di Flavi (sorella di Leslie)", ""]], "2026-12-23": [["", "Colazione leggera a casa", ""], ["", "Spesa da H-E-B", "3540 Rayford Rd, Spring, TX 77386"], ["13:30", "Pranzo di compleanno in steak house (prenotato, indirizzo da confermare)", ""], ["", "Outlet (forse Houston Premium Outlets)", "29300 Hempstead Rd, Cypress, TX 77433"], ["", "Cena messicana (ristorante da confermare)", ""]], "2026-12-24": [["", "Colazione nel vecchio ristorante di Matteo (indirizzo da confermare)", ""], ["", "Preparativi per la cena, arriva Steve", ""], ["", "Cena di Natale a casa", ""], ["", "Quasi tutto chiuso", ""]], "2026-12-25": [["", "Giornata a casa con Steve, apertura dei regali", ""], ["", "Quasi tutto chiuso", ""], ["", "Cena fuori, se troviamo un ristorante aperto", ""]], "2026-12-26": [["07:30", "Partenza da casa", ""], ["", "Colazione fuori, lungo la strada per la NASA", ""], ["11:00", "Visita guidata Space Center Houston (3 ore)", "1601 E NASA Pkwy, Houston, TX 77058"], ["", "Pranzo tardi e passeggiata al Kemah Boardwalk", "215 Kipp Ave, Kemah, TX 77565"], ["", "Visita a Galveston", "Galveston, TX"], ["", "Check-in Airbnb (indirizzo da confermare)", ""], ["", "Cena di pesce al Fisherman's Wharf", "2200 Harborside Dr, Galveston, TX 77550"]], "2026-12-27": [["", "Check-out e colazione a Galveston", ""], ["", "Passeggiata in centro, zona storica di Strand Street", "Strand Street, Galveston, TX 77550"], ["", "Pranzo alla Galleria (centro commerciale di Houston)", "5085 Westheimer Rd, Houston, TX 77056"], ["", "Academy Sports + Outdoors (Leo)", "1461 Spring Cypress Rd, Spring, TX 77373"], ["", "Cena a casa", ""]], "2026-12-28": [["08:00", "Partenza per Austin, da Steve", ""], ["", "Una sosta lungo il viaggio", ""], ["", "Pranzo in un famoso BBQ texano (da confermare)", ""], ["", "Cena da decidere (Smithville?)", "Smithville, TX"], ["", "Notte a casa di Steve", ""]], "2026-12-29": [["", "Colazione da Steve", ""], ["", "Visita e pranzo a Bastrop", "Bastrop, TX"], ["", "Ritorno a casa in auto", ""], ["", "Negozio di stivali da cowboy: Gomez Western Wear", "4623 FM 2920 Suite 200, Spring, TX 77388"], ["", "Cena in un ristorante messicano", ""]], "2026-12-30": [["", "Colazione a casa", ""], ["", "Pranzo al CorkScrew BBQ", "26608 Keith St, Spring, TX 77373"], ["", "Old Town Spring (zona storica)", "Spring Cypress Rd & Hardy St, Spring, TX 77373"], ["", "Cena da Shogun Japanese Grill & Sushi Bar", "3532 Harmony Commons Dr, Spring, TX 77386"]], "2026-12-31": [["", "Colazione fuori", ""], ["", "Preparativi per la cena di Capodanno: cucinare e apparecchiare", ""], ["20:00", "Arrivano gli amici", ""]], "2027-01-01": [["", "Quasi tutto chiuso", ""], ["", "Giornata di relax a casa", ""], ["", "Scegliere le ville da visitare", ""], ["", "Cercare una casa simile alla mia", ""]], "2027-01-02": [["", "Colazione a casa", ""], ["", "Pranzo da Woodson's Local Tap + Kitchen (hamburger)", "4127 Riley Fuzzel Rd Suite 100, Spring, TX 77386"], ["", "Costco (richiesta di Matteo)", "8185 TX-242, The Woodlands, TX 77385"], ["", "Cercare dove ascoltare musica country la sera", ""]], "2027-01-03": [["", "Colazione a casa", ""], ["", "Pranzo messicano", ""], ["17:30", "Partenza per il centro di Houston: partita NBA (Leo)", "Toyota Center, 1510 Polk St, Houston, TX 77002"]], "2027-01-04": [["", "Colazione a casa", ""], ["", "Mattina: si fanno le valigie", ""], ["", "Partenza in auto per l'aeroporto IAH", "2800 N Terminal Rd, Houston, TX 77032"]]};
+  var CAL_DAYS = Object.keys(CAL_DEF), calSel = '';
+  function calAll() {
+    var m = {};
+    CAL_DAYS.forEach(function (d) { CAL_DEF[d].forEach(function (r, i) { var id = 'c2_' + d.replace(/-/g, '') + '_' + (i < 10 ? '0' : '') + i; m[id] = { id: id, day: d, time: r[0] || '', title: r[1], place: r[2] || '', loc: null, order: (i + 1) * 10, upd: 0 }; }); });
+    Object.keys(cloud.cal).forEach(function (id) { var v = cloud.cal[id], l = m[id]; if (!l || (v.upd || 0) >= (l.upd || 0)) m[id] = v; });
+    return Object.keys(m).map(function (k) { return m[k]; }).filter(function (x) { return !x.del; });
+  }
+  function calLink(x) { var q = encodeURIComponent(x.place || x.title); return x.loc ? 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + q : 'https://maps.apple.com/?q=' + encodeURIComponent((x.place || x.title) + ' Texas'); }
+  function longDay(k) { var q = k.split('-'); return new Date(+q[0], +q[1] - 1, +q[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function renderCalView() {
+    var v = $('calView'); v.innerHTML = '';
+    var all = calAll(), dset = {}; all.forEach(function (x) { dset[x.day] = 1; }); var days = Object.keys(dset).sort();
+    if (!days.length) { v.appendChild(el('div', 'panel', 'Nessuna tappa.')); return; }
+    if (!calSel || days.indexOf(calSel) < 0) { var t = dkey(Date.now()); calSel = days.indexOf(t) >= 0 ? t : days[0]; }
+    var panel = el('div', 'panel'), f = el('div', 'filters'); panel.appendChild(f);
+    days.forEach(function (d) { var q = d.split('-'), b = el('button', 'fchip', Number(q[2]) + '/' + Number(q[1])); b.type = 'button'; b.setAttribute('aria-pressed', String(d === calSel)); b.onclick = function () { calSel = d; renderCalView(); }; f.appendChild(b); });
+    var h = el('h2', '', esc(longDay(calSel))); h.style.cssText = 'margin:4px 0 0;text-transform:capitalize'; panel.appendChild(h);
+    var items = all.filter(function (x) { return x.day === calSel; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    if (!items.length) panel.appendChild(el('div', 'sub2', 'Niente in programma questo giorno.'));
+    items.forEach(function (x) {
+      var r = el('div', 'calrow'); r.appendChild(el('div', 'tm num', esc(x.time || '·')));
+      var b = el('div', 'bd', '<b>' + esc(x.title) + '</b>' + (x.place ? '<div class="sub2">' + esc(x.place) + '</div>' : ''));
+      var a = el('a', 'cbtn', 'Apri in Mappe'); a.href = calLink(x); a.target = '_blank'; a.rel = 'noopener'; b.appendChild(a); r.appendChild(b); panel.appendChild(r);
+    });
+    panel.appendChild(el('div', 'sub2', 'Il programma si modifica dai telefoni: qui si vede con le ultime modifiche.'));
+    v.appendChild(panel);
+  }
+
+  /* ---------- Dove sono i miei ---------- */
+  var posMapObj = null;
+  function agoLabel(ts) { var m = Math.round((Date.now() - ts) / 60000); if (!isFinite(m) || m < 0) return ''; if (m < 1) return 'adesso'; if (m < 60) return m + ' min fa'; var h = Math.round(m / 60); return h < 24 ? h + (h === 1 ? ' ora fa' : ' ore fa') : dayLabel(dkey(ts)) + ' ' + hhmm(ts); }
+  function renderPosView() {
+    var v = $('posView'); v.innerHTML = '';
+    var panel = el('div', 'panel'); var list = cloud.pos.slice().sort(function (a, b) { return (a.user || a.key).localeCompare(b.user || b.key); });
+    if (!list.length) { panel.appendChild(el('div', 'sub2', 'Nessuna posizione ancora. Si aggiorna quando qualcuno tocca "Sono qui" sul telefono o salva una spesa, una foto o il diario.')); v.appendChild(panel); return; }
+    var box = el('div', 'mapbox'); box.style.height = '46vh'; box.style.minHeight = '320px'; panel.appendChild(box);
+    list.forEach(function (p) {
+      var nm = p.user || p.key, r = el('div', 'calrow');
+      r.appendChild(el('div', 'tm', '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + personColor(nm) + '"></span>'));
+      var b = el('div', 'bd', '<b>' + esc(nm) + '</b><div class="sub2">aggiornata ' + esc(agoLabel(p.ts)) + (p.ac ? ' · precisione ' + Math.round(p.ac) + ' m' : '') + '</div>');
+      var a = el('a', 'cbtn', 'Apri in Mappe'); a.href = mapsLink(p); a.target = '_blank'; a.rel = 'noopener'; b.appendChild(a); r.appendChild(b); panel.appendChild(r);
+    });
+    v.appendChild(panel);
+    if (!window.L) { box.remove(); return; }
+    if (posMapObj) { try { posMapObj.remove(); } catch (e) {} posMapObj = null; }
+    posMapObj = L.map(box).setView([29.76, -95.37], 9);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(posMapObj);
+    var bounds = [];
+    list.forEach(function (p) { var nm = p.user || p.key, ll = [p.la, p.lo]; L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mk s" style="background:' + personColor(nm) + '"><span>' + esc(nm.charAt(0).toUpperCase()) + '</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(posMapObj).bindTooltip(nm); bounds.push(ll); });
+    setTimeout(function () { posMapObj.invalidateSize(); if (bounds.length === 1) posMapObj.setView(bounds[0], 14); else posMapObj.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 }); }, 60);
+  }
+
+  /* mappa piccola (riquadri OpenStreetMap con il punto al centro), uguale a quella dell'elenco del Diario sul telefono */
+  function miniMap(lat, lon) {
+    var z = 16, n = Math.pow(2, z), px = (lon + 180) / 360 * n, la = lat * Math.PI / 180, py = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
+    var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0, box = el('div', 'djmap'), g = el('div', 'djtiles');
+    g.style.marginLeft = -(256 + fx * 256) + 'px'; g.style.marginTop = -(256 + fy * 256) + 'px';
+    for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) { var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = 'https://tile.openstreetmap.org/' + z + '/' + (x0 + i) + '/' + (y0 + j) + '.png'; g.appendChild(im); }
+    box.appendChild(g); box.appendChild(el('span', 'djpin')); return box;
+  }
+
+  var albSel = null;
   function renderPhotoView() {
     var v = $('photoView'); v.innerHTML = '';
-    var panel = el('div', 'panel glass'), f = el('div', 'filters'); panel.appendChild(f); whoChips(f, renderPhotoView);
-    var list = cloud.album.filter(function (a) { return flt.who[a.user] !== false; });
+    var panel = el('div', 'panel'), key = function (u) { return String(u || '').trim().toLowerCase(); };
+    var AL = [['matteo', 'Matteo'], ['leslie', 'Leslie'], ['leo', 'Leo']];
+    if (albSel === null) {
+      var g0 = el('div', 'albums'); panel.appendChild(el('div', 'label', 'Album'));
+      AL.concat([['*', 'Tutte le foto']]).forEach(function (A) {
+        var mine = cloud.album.filter(function (x) { return A[0] === '*' || key(x.user) === A[0]; });
+        var b = el('button', 'albtile'); b.type = 'button';
+        var cov = el('span', 'albcov'); if (mine.length) { var im = document.createElement('img'); im.alt = ''; im.src = mine[0].thumb; cov.appendChild(im); } else { cov.textContent = A[1].charAt(0); }
+        b.appendChild(cov); b.appendChild(el('span', 'albname', esc(A[1]))); b.appendChild(el('span', 'albcnt', mine.length + ' foto'));
+        b.onclick = function () { albSel = A[0]; renderPhotoView(); }; g0.appendChild(b);
+      });
+      panel.appendChild(g0); v.appendChild(panel); return;
+    }
+    var back = el('button', 'btn ghost small', '‹ Album'); back.type = 'button'; back.onclick = function () { albSel = null; renderPhotoView(); };
+    var f = el('div', 'filters'); f.appendChild(back); f.appendChild(el('b', '', albSel === '*' ? 'Tutte le foto' : esc((AL.filter(function (A) { return A[0] === albSel; })[0] || [0, albSel])[1]))); panel.appendChild(f);
+    var list = cloud.album.filter(function (a) { return albSel === '*' || key(a.user) === albSel; });
     var g = el('div', 'pg'); panel.appendChild(g);
     list.forEach(function (a) {
       var b = el('button', ''); b.type = 'button'; var im = document.createElement('img'); im.src = a.thumb; im.alt = 'Foto di ' + (a.user || ''); b.appendChild(im);
-      b.appendChild(el('span', 'tag', esc(a.user || '?'))).style.background = personColor(a.user); b.onclick = function () { openAlbumLightbox(a.id); }; g.appendChild(b);
+      if (albSel === '*') b.appendChild(el('span', 'tag', esc(a.user || '?'))).style.background = personColor(a.user);
+      b.onclick = function () { openAlbumLightbox(a.id); }; g.appendChild(b);
     });
-    panel.appendChild(el('div', 'sub2', list.length ? list.length + (list.length === 1 ? ' foto' : ' foto') + ' nell\'album. Tocca una foto per ingrandirla; frecce della tastiera per scorrere.' : 'Ancora nessuna foto nell\'album.'));
+    panel.appendChild(el('div', 'sub2', list.length ? list.length + ' foto. Clicca una foto per ingrandirla; frecce della tastiera per scorrere.' : 'Ancora nessuna foto.'));
     v.appendChild(panel);
   }
   function renderDiaryView() {
@@ -668,14 +847,20 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
       var c = el('div', 'dcard glass');
       if (d.broken) { c.appendChild(el('h3', '', esc(d.user) + ' · ' + esc(d.day))); c.appendChild(el('div', 'sub2', 'Non riesco ad aprire questa voce con la tua chiave.')); v.appendChild(c); return; }
       c.appendChild(el('h3', '', '<span style="color:' + personColor(d.user) + '">' + esc(d.user || '') + '</span> · ' + esc(dayLabel(d.day))));
-      if ((d.text || '').trim()) c.appendChild(el('div', 'tx', esc(d.text.trim())));
-      var ph = el('div', 'dph'); c.appendChild(ph);
-      (d.photos || []).forEach(function (id, i) {
-        fetchDiaryPhoto(d.user, id).then(function (u) {
-          if (!u) return; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario';
-          im.onclick = function () { lightbox((d.photos || []).map(function (pid) { return { src: fetchDiaryPhoto(d.user, pid), cap: d.user + ' · ' + dayLabel(d.day), link: d.loc ? mapsLink(d.loc) : '', name: 'diario-' + pid + '.jpg' }; }), i); }; ph.appendChild(im);
+      var photos = d.photos || [];
+      if (photos.length) {
+        photos.forEach(function (id, i) {                       // ogni foto con la sua mappa accanto
+          var row = el('div', 'djrow'), ph = el('div', 'djph'), lc = (d.pl && d.pl[id]) || d.loc || null;
+          row.appendChild(ph); if (lc) row.appendChild(miniMap(lc.la, lc.lo)); else row.className = 'djrow one'; c.appendChild(row);
+          fetchDiaryPhoto(d.user, id).then(function (u) {
+            if (!u) return; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; im.style.cursor = 'pointer';
+            im.onclick = function () { lightbox(photos.map(function (pid) { return { src: fetchDiaryPhoto(d.user, pid), cap: d.user + ' · ' + dayLabel(d.day), link: d.loc ? mapsLink(d.loc) : '', name: 'diario-' + pid + '.jpg' }; }), i); }; ph.appendChild(im);
+          });
         });
-      });
+        if ((d.text || '').trim()) c.appendChild(el('div', 'tx', esc(d.text.trim())));
+      } else if ((d.text || '').trim()) {                       // senza foto: il testo e' su un Post-it accanto alla mappa
+        var row2 = el('div', 'djrow' + (d.loc ? '' : ' one')); row2.appendChild(el('div', 'djpost', '<span>' + esc(d.text.trim()) + '</span>')); if (d.loc) row2.appendChild(miniMap(d.loc.la, d.loc.lo)); c.appendChild(row2);
+      }
       var ex = ((st.people[d.user] || {}).expenses || []).filter(function (e) { return e.data === d.day; });
       if (ex.length) {
         c.appendChild(el('div', 'label', 'Spese del giorno'));
@@ -689,8 +874,8 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
   function showView(name) {
     cloud.view = name;
     [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === name)); });
-    $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist';
-    if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView(); else if (name === 'checklist') renderChkView();
+    $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist'; $('calView').hidden = name !== 'programma'; $('posView').hidden = name !== 'posizioni';
+    if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView(); else if (name === 'checklist') renderChkView(); else if (name === 'programma') renderCalView(); else if (name === 'posizioni') renderPosView();
   }
   [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.onclick = function () { showView(b.dataset.v); }; });
   window.fetchReceiptGlobal = fetchReceipt; window.lightboxGlobal = lightbox;

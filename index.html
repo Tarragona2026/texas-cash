@@ -164,11 +164,19 @@ h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; mar
 /* vetro */
 .glass, .card, .item, .empty {
   background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--glass-shadow), var(--glass-hi);
-  -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7);
 }
+/* lo sfocato dello sfondo pesa: solo sui pochi elementi "glass" (non su ogni scheda e riga, che rallentava lo scorrimento) */
+.glass { -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass, .card, .item, .empty { background: var(--glass-strong); }
 }
+html { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+button, a, .item, .atile, .app { touch-action: manipulation; }
+.item { content-visibility: auto; contain-intrinsic-size: auto 72px; }
+/* le schermate entrano con una dissolvenza e un piccolo scivolamento, come in iOS */
+@keyframes vin { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+section.wrap:not([hidden]) { animation: vin .22s ease-out; }
+@media (prefers-reduced-motion: reduce) { section.wrap:not([hidden]) { animation: none; } }
 .card { border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); font-weight: 700; }
 .hint { font-size: .85rem; color: var(--ink-soft); }
@@ -346,6 +354,207 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 .vmaplink { position: absolute; left: 0; right: 0; top: 0; bottom: 20px; z-index: 1000; display: block; color: #fff; font-size: .8rem; text-align: center; padding-top: 40px; text-decoration: none; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-line); padding: 10px 16px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: 90%; text-align: center; box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+
+/* ===== Stile iOS (12 nov 2026): strato che sovrascrive il resto, la logica non cambia ===== */
+:root { --card: #ffffff; --sep: rgba(60,60,67,.18); --tint-soft: rgba(0,122,255,.12); }
+@media (prefers-color-scheme: dark) { :root { --card: #1c1c1e; --sep: rgba(84,84,88,.6); --tint-soft: rgba(10,132,255,.2); } }
+body { font-size: 17px; }
+/* sfondo: grigio di sistema, come Impostazioni di iOS (la foto di sfondo non si vede piu') */
+.bgwrap { background: var(--bg); }
+.bgimg, .bgwrap::after { display: none; }
+/* schede e righe: blocchi bianchi arrotondati, senza bordi ne' ombre */
+.card, .item, .empty, .hero { background: var(--card); border: 0; box-shadow: none; border-radius: 14px; }
+.hero.glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card); }
+.card { padding: 14px 16px; gap: 12px; }
+.item { padding: 12px 14px; }
+.label { font-size: .78rem; letter-spacing: .02em; font-weight: 600; text-transform: uppercase; color: var(--ink-soft); }
+.line, .chkrow, .calday, .sday { border-bottom-color: var(--sep); }
+/* barra in alto: "‹ Indietro" in blu, titolo grande a sinistra */
+.topbar { grid-template-columns: 1fr auto; row-gap: 2px; padding-top: 2px; }
+.back { grid-column: 1; grid-row: 1; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; margin-left: -4px; min-height: 36px; font-size: 1.06rem; font-weight: 400; }
+.topbar h2 { grid-column: 1 / -1; grid-row: 2; text-align: left; font-size: 2.1rem; font-weight: 700; letter-spacing: -.02em; text-shadow: none; line-height: 1.12; }
+.topbar > :last-child:not(h2):not(.back) { grid-column: 2; grid-row: 1; justify-self: end; }
+/* tasti */
+.btn { min-height: 50px; border-radius: 14px; font-weight: 600; font-size: 1.04rem; transition: opacity .12s, transform .12s; }
+.btn:active { opacity: .7; transform: scale(.98); }
+.btn.ghost { background: var(--tint-soft); color: var(--accent); }
+.btn.small { min-height: 38px; border-radius: 10px; font-size: .95rem; }
+input[type=text], input[type=password], input[type=tel], select, .trarea, .calform input { border-radius: 10px; }
+/* schede a scelta (Spese/Ricariche ecc.): controllo segmentato */
+.chips { gap: 4px; background: var(--field); padding: 3px; border-radius: 10px; flex-wrap: wrap; }
+.chips .chip { background: transparent; border-radius: 8px; min-height: 34px; min-width: 0; padding: 0 8px; font-weight: 500; font-size: .92rem; }
+.chips .chip[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.chips.scroll { flex-wrap: nowrap; }
+.store-chips, #phrCats, .chips.wrapok { background: none; padding: 0; flex-wrap: wrap; }
+.store-chips .chip, #phrCats .chip { background: var(--field); border-radius: 999px; }
+.store-chips .chip[aria-pressed="true"], #phrCats .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+/* casella delle liste: cerchio */
+.chkbox { border-radius: 50%; width: 26px; height: 26px; }
+/* icone della home: forma iOS */
+.app .ic { border-radius: 19px; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+.app { text-shadow: none; font-weight: 500; font-size: .78rem; }
+/* finestre dal basso: maniglia e scivolamento */
+@keyframes sheetup { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheetfade { from { opacity: 0; } to { opacity: 1; } }
+.sheet { animation: sheetfade .2s ease-out; }
+.sheetin { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 16px 16px 0 0; animation: sheetup .3s cubic-bezier(.2,.9,.25,1); position: relative; padding-top: 22px; }
+.sheetin::before { content: ""; position: absolute; top: 7px; left: 50%; width: 38px; height: 5px; margin-left: -19px; border-radius: 3px; background: rgba(120,120,128,.4); }
+.sheethd { background: var(--bg); top: -22px; padding-top: 12px; }
+.toast { background: rgba(60,60,67,.92); color: #fff; border: 0; font-weight: 600; font-size: .92rem; }
+@media (prefers-reduced-motion: reduce) { .sheet, .sheetin { animation: none; } }
+
+/* ===== Stile iOS, secondo giro: tasti piu' piccoli, icone tinta su tinta, filtri della mappa ===== */
+.btn { min-height: 44px; border-radius: 999px; padding: 0 20px; font-size: .96rem; font-weight: 600; }
+.btn.small { min-height: 34px; padding: 0 14px; font-size: .88rem; border-radius: 999px; }
+.btnrow { gap: 8px; }
+.btnrow .btn { flex: 1 1 0; }
+.chkbar { min-height: 40px; font-size: .92rem; }
+.chkact, .calpin { border-radius: 999px; }
+.docrow, .chkperson, .phr button { border-radius: 12px; }
+/* icone della home: tinta leggera con il simbolo a colori, niente sfumature */
+.apps { gap: 20px 8px; }
+.apps .app .ic { width: 64px; height: 64px; border-radius: 18px; background: color-mix(in srgb, var(--c) 16%, var(--card)); color: var(--c); box-shadow: none; }
+.apps .app .ic svg { width: 30px; height: 30px; stroke-width: 2; }
+.app .ic.red { --c: #ff375f; } .app .ic.blue { --c: #0a84ff; } .app .ic.indigo { --c: #6e6af0; } .app .ic.sky { --c: #27a9e8; }
+.app .ic.lime { --c: #2fb457; } .app .ic.amber { --c: #f59a0c; } .app .ic.pink { --c: #ec4899; } .app .ic.teal { --c: #14a9be; }
+.app .ic.green { --c: #34c759; } .app .ic.purple { --c: #a24ee0; } .app .ic.mint { --c: #00b8a9; } .app .ic.coral { --c: #ff6a3d; } .app .ic.grey { --c: #8e8e93; }
+.app { font-size: .76rem; gap: 7px; }
+/* mappa: cosa mostrare = pastiglie colorate in una riga; giorno = striscia di date */
+#mapKinds, #mapDays { background: none; padding: 0; border-radius: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0; gap: 5px; max-width: none; }
+#mapKinds::-webkit-scrollbar, #mapDays::-webkit-scrollbar { display: none; }
+#mapKinds .chip { flex: 0 0 auto; min-height: 30px; padding: 0 8px 0 6px; border-radius: 999px; font-size: .78rem; font-weight: 600; background: var(--field); color: var(--ink-soft); box-shadow: inset 0 0 0 1.5px transparent; }
+#mapKinds .chip .kdot { border: 0; opacity: .45; margin-right: 5px; width: 8px; height: 8px; }
+#mapKinds .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--k) 16%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--k); }
+#mapKinds .chip[aria-pressed="true"] .kdot { opacity: 1; }
+#mapDays .chip { flex: 0 0 auto; min-width: 0; min-height: 30px; padding: 0 12px; border-radius: 999px; font-size: .86rem; font-weight: 500; background: transparent; color: var(--ink-soft); box-shadow: none; }
+#mapDays .chip[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; box-shadow: none; }
+
+/* ===== mappa: scritta accanto al titolo, spunta verde; icone piu' grandi; Foto a album ===== */
+.h2sub { font-size: .85rem; font-weight: 500; color: var(--ink-soft); letter-spacing: 0; margin-left: 8px; }
+#mapKinds .chip[aria-pressed="true"] .kdot { opacity: 1; background: #34c759 !important; width: 13px; height: 13px; margin-right: 4px; position: relative; }
+#mapKinds .chip[aria-pressed="true"] .kdot::after { content: ""; position: absolute; left: 3.5px; top: 1.5px; width: 3.5px; height: 6.5px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.apps .app .ic svg { width: 40px; height: 40px; }
+.albums { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 14px; }
+.albtile { border: 0; background: none; padding: 0; text-align: left; color: var(--ink); display: flex; flex-direction: column; gap: 3px; }
+.albcov { aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--field); display: grid; place-items: center; font-size: 3rem; font-weight: 700; margin-bottom: 4px; }
+.albcov img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.albname { font-weight: 600; font-size: 1rem; }
+.albcnt { color: var(--ink-soft); font-size: .85rem; }
+.albrow { margin-top: 6px; width: 100%; min-height: 48px; border: 0; border-radius: 12px; background: var(--card); color: var(--accent); font-weight: 600; font-size: .98rem; text-align: left; padding: 0 16px; }
+#alAlbums { display: flex; flex-direction: column; gap: 10px; }
+#alDetail { display: flex; flex-direction: column; gap: 10px; }
+#alDetail[hidden], #alAlbums[hidden] { display: none; }
+.alhead { display: flex; align-items: baseline; gap: 10px; }
+.alhead b { font-family: var(--font-display); font-size: 1.3rem; }
+.alhead .hint { margin-left: auto; }
+.alback { border: 0; background: none; color: var(--accent); font-size: 1.04rem; padding: 0; }
+.agrid.solo { gap: 2px; }
+.agrid.solo .atile { border-radius: 0; }
+.agrid.solo .atag { display: none; }
+
+/* ===== Diario in stile Apple ===== */
+.fab { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 0; background: var(--accent); color: #fff; font-size: 2rem; font-weight: 300; line-height: 1; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0,122,255,.4); z-index: 8; padding: 0 0 3px; }
+.fab:active { transform: scale(.94); }
+section.wrap { width: 100%; }
+#diaListV, #diaEditV, #diaList { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+#diaListV[hidden], #diaEditV[hidden] { display: none; }
+.dianote { padding: 6px 4px 80px; }
+.djmonth { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; margin: 8px 2px -4px; }
+.dje { border: 0; padding: 0; text-align: left; color: var(--ink); background: var(--card); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
+.djcover { position: relative; aspect-ratio: 16 / 10; background: var(--field); }
+.djcover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.djbadge { position: absolute; right: 10px; top: 10px; font-size: .72rem; font-weight: 600; color: #fff; background: rgba(0,0,0,.5); padding: 3px 9px; border-radius: 999px; }
+.djbody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px; }
+.djdate { font-size: .74rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-soft); }
+.djtext { font-size: 1rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.djmeta { font-size: .78rem; color: var(--ink-soft); }
+.diahead { display: flex; align-items: center; justify-content: space-between; min-height: 36px; }
+.diahead .back { grid-column: auto; }
+.donebtn { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: 1.06rem; padding: 0 2px; }
+.diatitle { display: flex; flex-direction: column; gap: 2px; }
+.diadate { position: relative; display: inline-block; font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; line-height: 1.15; letter-spacing: -.02em; }
+#diaDate { display: inline-block; }
+#diaDate::first-letter { text-transform: uppercase; }
+.diadate input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; min-height: 0; padding: 0; background: transparent; border: 0; -webkit-appearance: none; appearance: none; }
+.dstrip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+.dstrip::-webkit-scrollbar { display: none; }
+.dstrip[hidden] { display: none; }
+.dph { position: relative; flex: 0 0 82%; max-width: 360px; aspect-ratio: 4 / 5; border-radius: 18px; overflow: hidden; scroll-snap-align: center; background: var(--field); }
+.dph:only-child { flex-basis: 100%; max-width: none; aspect-ratio: 4 / 3; }
+.dph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.diatext2 { width: 100%; min-height: 160px; border: 0; background: transparent; resize: none; font: inherit; font-size: 1.08rem; line-height: 1.5; color: var(--ink); padding: 4px 0; outline: none; }
+.diabtns .btn { flex: 0 0 auto; }
+.dellink { border: 0; background: none; color: var(--bad); font-size: .98rem; padding: 10px 0; text-align: center; }
+
+/* ===== Impostazioni a tendina, schermata Diario bloccato ===== */
+details.acc { display: block; padding: 0; }
+details.acc > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 0 16px; font-weight: 600; font-size: 1.04rem; cursor: pointer; -webkit-user-select: none; user-select: none; }
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: ""; flex: none; width: 8px; height: 8px; border: solid var(--ink-soft); border-width: 0 2px 2px 0; transform: rotate(-45deg); transition: transform .2s; margin-right: 4px; }
+details.acc[open] > summary::after { transform: rotate(45deg); }
+details.acc[open] > summary { border-bottom: 1px solid var(--sep); margin-bottom: 14px; }
+details.acc > :not(summary) { margin: 0 16px 14px; }
+details.acc[hidden] { display: none; }
+.lockbox { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 56px 16px; text-align: center; }
+.lockbox svg { width: 64px; height: 64px; color: var(--ink-soft); }
+.lockbox b { font-family: var(--font-display); font-size: 1.4rem; }
+.lockbox .btn { margin-top: 10px; min-width: 220px; }
+#diaLockV { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+#diaLockV[hidden] { display: none; }
+
+#v-calc.eur .noteur { display: none; }
+
+body.hasbg .bgimg { display: block; }
+body.hasbg .bgwrap::after { display: block; }
+.bgprev { background-color: var(--field); }
+
+/* ===== Diario: elenco come l'app Diario di Apple ===== */
+.fab { background: var(--indigo); box-shadow: 0 6px 18px rgba(94,92,230,.45); }
+.djhead { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 12px; margin: calc(-12px - env(safe-area-inset-top, 0px)) -16px 4px; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 10px; background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.djcirc, .djpill { background: var(--card); border: 1px solid var(--sep); box-shadow: 0 1px 4px rgba(0,0,0,.08); color: var(--ink); }
+.djcirc { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; padding: 0; }
+.djcirc svg { width: 22px; height: 22px; }
+.djtt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.djtt b { font-size: 1.04rem; font-weight: 700; }
+.djtt span { font-size: .95rem; color: var(--ink-soft); }
+.djpill { flex: none; display: flex; align-items: center; border-radius: 999px; height: 46px; padding: 0 6px; }
+.djpill button { border: 0; background: none; color: var(--ink); width: 46px; height: 40px; display: grid; place-items: center; padding: 0; }
+.djpill svg { width: 24px; height: 24px; }
+.djsearch { margin-bottom: 4px; }
+.djmonth { font-size: 1.6rem; margin: 14px 2px -2px; }
+.dje { background: var(--card); border-radius: 22px; padding: 8px; display: flex; flex-direction: column; gap: 0; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06); cursor: pointer; }
+.djrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.djrow.one { grid-template-columns: 1fr; }
+.djph, .djmap { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--field); }
+.djrow.one .djph, .djrow.one .djmap { aspect-ratio: 16 / 10; }
+.djph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.djtiles { position: absolute; left: 50%; top: 50%; width: 768px; height: 768px; display: grid; grid-template-columns: repeat(3, 256px); grid-template-rows: repeat(3, 256px); }
+.djtiles img { width: 256px; height: 256px; display: block; }
+.djpin { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: var(--indigo); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.djpin::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; }
+.djbody { padding: 14px 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.djtitle { font-size: 1.12rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.djtext { font-size: 1.04rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.djtext.one { font-size: 1.1rem; }
+.djfoot { display: flex; align-items: center; justify-content: space-between; margin: 4px 8px 0; padding: 10px 0 6px; border-top: 1px solid var(--sep); font-size: .86rem; font-weight: 600; color: var(--ink-soft); }
+.djdots { border: 0; background: none; color: var(--ink-soft); width: 44px; height: 32px; display: grid; place-items: center; padding: 0; margin-right: -10px; }
+.djdots svg { width: 22px; height: 22px; }
+
+/* punto che trema (spesa scelta dal Registro) */
+@keyframes tremble { 0%, 100% { transform: translate(0, 0) rotate(0); } 15% { transform: translate(-3px, 1px) rotate(-10deg); } 30% { transform: translate(3px, -1px) rotate(9deg); } 45% { transform: translate(-3px, -1px) rotate(-8deg); } 60% { transform: translate(3px, 1px) rotate(8deg); } 80% { transform: translate(-2px, 0) rotate(-4deg); } }
+.mkn.shake { animation: tremble .5s 2; box-shadow: 0 0 0 5px rgba(255,255,255,.55), 0 2px 8px rgba(0,0,0,.35); }
+.item.hasloc { cursor: pointer; }
+.item.hasloc:active { opacity: .75; }
+
+/* Diario: solo dissolvenza (uno scivolamento sposterebbe il tasto + che e' fisso in basso) */
+@keyframes vfade { from { opacity: 0; } to { opacity: 1; } }
+#v-dia:not([hidden]) { animation: vfade .2s ease-out; }
+
+/* Diario: foto con la mappa accanto, Post-it per i soli testi */
+.dstrip { display: flex; flex-direction: column; gap: 8px; overflow: visible; margin: 0; padding: 0; scroll-snap-type: none; }
+.djpost { position: relative; aspect-ratio: 1; border-radius: 6px 6px 14px 6px; padding: 14px 12px; overflow: hidden; background: linear-gradient(160deg, #fff6a8, #ffe66d); color: #4a3b00; box-shadow: 0 3px 8px rgba(0,0,0,.18); font-family: "Bradley Hand", "Noteworthy", "Marker Felt", "Segoe Print", cursive; font-size: 1.12rem; line-height: 1.3; transform: rotate(-1.2deg); }
+.djpost span { display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.djrow.one .djpost { aspect-ratio: 16 / 9; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -357,6 +566,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <script src="google-config.js"></script>
 <script src="diary-crypto.js"></script>
 <script src="diario-config.js"></script>
+<script src="push-config.js"></script>
 </head>
 <body>
 <div class="bgwrap" aria-hidden="true"><div class="bgimg" id="bgimg"></div></div>
@@ -388,7 +598,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="app" id="goDocs" type="button"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.500 7.500A2.500 2.500 0 0 1 6 5h3.600l2 2.200H18a2.500 2.500 0 0 1 2.500 2.500v7.300A2.500 2.500 0 0 1 18 19.500H6A2.500 2.500 0 0 1 3.500 17z"/><path d="M8 12.500h8M8 15.500h5"/></svg></span>Documenti</button>
       <button class="app" id="goCall" type="button"><span class="ic mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.500 4h2.600l1.400 3.800-1.900 1.300a11 11 0 0 0 5.300 5.300l1.300-1.900 3.800 1.400v2.600A2.500 2.500 0 0 1 16.500 19 13.500 13.500 0 0 1 4 6.500 2.500 2.500 0 0 1 6.500 4z"/></svg></span>Chiama</button>
       <button class="app" id="goPos" type="button"><span class="ic coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.500" cy="8" r="2.800"/><path d="M3.500 18.500c.4-3 2.300-4.700 5-4.700s4.600 1.700 5 4.700"/><path d="M17.500 20s3.500-3.100 3.500-5.700a3.500 3.500 0 0 0-7 0c0 2.600 3.500 5.700 3.500 5.700z"/><circle cx="17.500" cy="14.300" r="1"/></svg></span>Dove sono i miei</button>
-      <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
+      <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>Impostazioni</button>
     </nav>
     <button class="btn" id="appsDone" type="button" hidden>Fine</button>
     <section class="card" id="tomCard" hidden><div class="label" id="tomLabel">Domani</div><div id="tomList"></div></section>
@@ -425,6 +635,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="row2" style="grid-template-columns:1fr auto"><input id="storeQ" type="text" placeholder="Scrivi l'indirizzo per vedere le attività" autocomplete="off"><button class="chip" id="storeQBtn" type="button" style="min-height:44px;padding:0 16px">Cerca</button></div>
       <input id="descScan" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="catScan" aria-label="Categoria"></select>
+      <label class="toggle"><input type="checkbox" id="scanIt"> Spesa in Italia: in euro, fuori dal plafond</label>
       <button class="btn" id="saveScan" type="button">Salva scontrino e spesa</button>
     </section>
   </section>
@@ -432,22 +643,24 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   <!-- CALCOLA PREZZO -->
   <section id="v-calc" class="wrap" aria-label="Calcola prezzo" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Calcola prezzo</h2><span></span></div>
-    <section class="card" aria-label="Prezzo in dollari">
+    <div class="chips" id="curSeg" role="group" aria-label="Valuta"><button type="button" class="chip" data-cur="USD" aria-pressed="true">Dollari · USA</button><button type="button" class="chip" data-cur="EUR" aria-pressed="false">Euro · Italia</button></div>
+    <div class="hint" id="curHint" hidden>Spesa in Italia, prima della partenza: resta in euro e non viene tolta dal plafond in dollari.</div>
+    <section class="card" aria-label="Prezzo">
       <div class="field price">
-        <label class="label" for="price">Prezzo in dollari</label>
-        <div class="money"><span>$</span><input id="price" type="text" inputmode="decimal" value="" placeholder="0,00"></div>
+        <label class="label" for="price" id="priceLabel">Prezzo in dollari</label>
+        <div class="money"><span id="priceSym">$</span><input id="price" type="text" inputmode="decimal" value="" placeholder="0,00"></div>
       </div>
-      <div class="field">
+      <div class="field noteur">
         <span class="label" id="tiplabel">Mancia</span>
         <div class="chips" role="group" aria-labelledby="tiplabel" id="chips"></div>
         <div class="pct" id="tipcWrap" hidden><input id="tipc" type="text" inputmode="decimal" placeholder="Percentuale" aria-label="Mancia personalizzata in percentuale"><span>%</span></div>
       </div>
-      <label class="toggle"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
+      <label class="toggle noteur"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
     </section>
     <section class="card result" aria-label="Riepilogo" aria-live="polite">
-      <div class="line"><span class="k">Prezzo senza tasse</span><span class="v num" id="rNet"></span></div>
-      <div class="line"><span class="k" id="rTaxK">Tasse</span><span class="v num" id="rTax"></span></div>
-      <div class="line"><span class="k" id="rTipK">Mancia</span><span class="v num" id="rTip"></span></div>
+      <div class="line noteur"><span class="k">Prezzo senza tasse</span><span class="v num" id="rNet"></span></div>
+      <div class="line noteur"><span class="k" id="rTaxK">Tasse</span><span class="v num" id="rTax"></span></div>
+      <div class="line noteur"><span class="k" id="rTipK">Mancia</span><span class="v num" id="rTip"></span></div>
       <div class="line total"><span class="k">Totale</span><span class="v num" id="rTot"></span></div>
     </section>
     <section class="card" aria-label="Salva nel registro">
@@ -488,7 +701,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
   <!-- MAPPA -->
   <section id="v-map" class="wrap" aria-label="Mappa del viaggio" hidden>
-    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa</h2><span></span></div>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa <small class="h2sub">Scegli cosa vedere</small></h2><span></span></div>
     <section class="card" style="gap:10px">
       <div class="chips" id="mapKinds" aria-label="Cosa mostrare"></div>
       <div class="chips scroll" id="mapDays" aria-label="Giorno"></div>
@@ -533,36 +746,46 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 
   <!-- DIARIO -->
   <section id="v-dia" class="wrap" aria-label="Diario" hidden>
-    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
-    <div id="diaWrite" class="wrap">
-    <section class="card">
-      <div class="label">Giorni</div>
-      <div class="chips" id="diaDays"></div>
-      <div class="hint">La matita ✎ segna i giorni in cui hai già scritto o messo foto.</div>
-    </section>
-
-    <section class="card">
-      <div class="label" id="diaDate"></div>
-      <textarea class="trarea diatext" id="diaText" placeholder="Cosa hai fatto? Cosa hai visto? Scrivi quello che vuoi: lo leggi solo tu." autocomplete="off" autocapitalize="sentences"></textarea>
-      <div class="agrid" id="diaPhotos"></div>
-      <div class="btnrow">
-        <button class="btn" id="diaCam" type="button">Scatta foto</button>
-        <button class="btn ghost" id="diaLib" type="button">Dal rullino</button>
+    <div id="diaLockV" class="wrap" hidden>
+      <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
+      <div class="lockbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        <b>Diario bloccato</b>
+        <span class="hint">Si apre con Face ID.</span>
+        <button class="btn" id="diaUnlock" type="button">Apri con Face ID</button>
+      </div>
+    </div>
+    <div id="diaListV" class="wrap">
+      <div class="djhead">
+        <button class="djcirc" data-back type="button" aria-label="Indietro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="djtt"><b>Diario</b><span id="djCount"></span></div>
+        <div class="djpill">
+          <button id="djSearchBtn" type="button" aria-label="Cerca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.500 15.500L20 20"/></svg></button>
+          <button id="djMoreBtn" type="button" aria-label="Altro"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+        </div>
+      </div>
+      <input type="text" id="djSearch" class="djsearch" placeholder="Cerca nel diario" autocomplete="off" hidden>
+      <div id="diaList" class="wrap"></div>
+      <div class="hint dianote">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
+      <button class="fab" id="diaNew" type="button" aria-label="Nuova voce">+</button>
+    </div>
+    <div id="diaEditV" class="wrap" hidden>
+      <div class="diahead"><button class="back" id="diaBack" type="button">‹ Diario</button><button class="donebtn" id="diaSave" type="button">Fine</button></div>
+      <div class="diatitle"><label class="diadate"><span id="diaDate"></span><input type="date" id="diaPick" aria-label="Cambia giorno"></label><div class="hint" id="diaStatus"></div></div>
+      <div class="dstrip" id="diaPhotos"></div>
+      <textarea class="diatext2" id="diaText" placeholder="Cosa hai fatto? Cosa hai visto? Scrivi quello che vuoi: lo leggi solo tu." autocomplete="off" autocapitalize="sentences"></textarea>
+      <div class="btnrow diabtns">
+        <button class="btn ghost small" id="diaCam" type="button">Scatta foto</button>
+        <button class="btn ghost small" id="diaLib" type="button">Dal rullino</button>
       </div>
       <input type="file" id="diaCamFile" accept="image/*" capture="environment" hidden>
       <input type="file" id="diaLibFile" accept="image/*" multiple hidden>
-      <button class="btn" id="diaSave" type="button">Salva</button>
-      <div class="hint" id="diaStatus"></div>
-      <button class="btn ghost small" id="diaDel" type="button">Elimina questa voce</button>
-    </section>
-    <section class="card" id="diaExp" hidden>
-      <div class="label">Spese di questo giorno</div>
-      <div id="diaExpList"></div>
-      <div class="line total"><span class="k">Totale del giorno</span><span class="v num" id="diaExpTot"></span></div>
-    </section>
-    <section class="card">
-      <div class="hint">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
-    </section>
+      <section class="card" id="diaExp" hidden>
+        <div class="label">Spese di questo giorno</div>
+        <div id="diaExpList"></div>
+        <div class="line total"><span class="k">Totale del giorno</span><span class="v num" id="diaExpTot"></span></div>
+      </section>
+      <button class="dellink" id="diaDel" type="button">Elimina questa voce</button>
     </div>
   </section>
 
@@ -580,8 +803,14 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="alHint">Le foto vanno nell'album comune: le vedete tutti e tre.</div>
       <button class="btn ghost small" id="alSaveRoll" type="button" hidden>Salva l'ultima foto anche nel rullino</button>
     </section>
-    <div class="agrid" id="alGrid"></div>
-    <div class="hint" id="alCount"></div>
+    <div id="alAlbums">
+      <div class="label">Album</div>
+      <div class="albums" id="alTiles"></div>
+    </div>
+    <div id="alDetail" hidden>
+      <div class="alhead"><button class="alback" id="alBack" type="button">‹ Album</button><b id="alTitle"></b><span class="hint" id="alCount"></span></div>
+      <div class="agrid" id="alGrid"></div>
+    </div>
   </section>
 
   <!-- TRADUTTORE -->
@@ -593,8 +822,8 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <button class="btn" id="trGo" type="button">Traduci</button>
       <label class="toggle"><input type="checkbox" id="trAuto"> Leggi la traduzione ad alta voce da sola</label>
       <div class="hint" id="trHint"></div>
-      <button class="trmic" id="trKb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21"/></svg><span>Parla (dettatura tastiera)</span></button>
-      <div class="hint">Si apre la tastiera: tocca il microfono in basso a destra, parla, poi chiudi la tastiera. La traduzione parte da sola.</div>
+      <button class="trmic" id="trKb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21"/></svg><span id="trKbTxt">Parla</span></button>
+      <div class="hint" id="trKbHint">Si apre la tastiera: tocca il microfono in basso a destra, parla, poi chiudi la tastiera. La traduzione parte da sola.</div>
     </section>
     <section class="card" id="trOutCard" hidden>
       <div class="label">Traduzione</div>
@@ -629,9 +858,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
         <div class="label" id="docLockT"></div>
         <input type="password" id="docPin" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN" aria-label="PIN">
         <input type="password" id="docPin2" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Ripeti il PIN" aria-label="Ripeti il PIN">
+        <button class="btn" id="docBio" type="button" hidden>Apri con Face ID</button>
         <button class="btn" id="docUnlock" type="button">Apri</button>
         <div class="hint" id="docLockHint"></div>
         <button class="btn ghost small" id="docForgot" type="button">Ho dimenticato il PIN</button>
+        <button class="btn ghost small" id="docBioOff" type="button" hidden>Non usare più Face ID</button>
       </section>
       <section class="card" id="docOpenP" hidden>
         <button class="btn" id="docAddP" type="button">Aggiungi foto</button>
@@ -704,13 +935,14 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
   <!-- IMPOSTAZIONI -->
   <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
-    <section class="card">
-      <div class="label">Plafond</div>
+    <details class="card acc">
+      <summary>Plafond</summary>
       <div class="budget-top"><div class="budget-left num" id="sLeft"></div><div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="sSpent"></span></div></div>
       <button class="btn" id="goTopup" type="button">Ricarica plafond</button>
       <div class="hint">Le ricariche si vedono e si eliminano dalla scheda Ricariche del Registro spese e ricariche.</div>
-    </section>
-    <section class="card">
+    </details>
+    <details class="card acc">
+      <summary>Nome, tasse e cambio</summary>
       <div class="field"><label class="label" for="sUser">Nome utente</label><input id="sUser" type="text" autocomplete="off" placeholder="es. Matteo"></div>
       <div class="field"><label class="label" for="tax">Tasse</label><div class="pct"><input id="tax" type="text" inputmode="decimal"><span>%</span></div></div>
       <div class="field">
@@ -719,39 +951,58 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
         <div class="budget-sub"><span id="rateInfo">Cambio manuale</span></div>
         <button class="btn ghost small" id="rateRefresh" type="button">Aggiorna cambio</button>
       </div>
-    </section>
-    <section class="card">
-      <div class="label">Invia registro</div>
+    </details>
+    <details class="card acc">
+      <summary>Invia registro</summary>
       <div class="hint">Scarica un file CSV con spese e ricariche: nome, tipo, giorno, ora, descrizione, categoria e importi in dollari ed euro.</div>
       <button class="btn" id="exportCsv" type="button">Invia registro</button>
       <div class="hint" id="exportInfo"></div>
-    </section>
-    <section class="card" id="ctCard">
-      <div class="label">Contatti per la chiamata rapida</div>
+    </details>
+    <details class="card acc" id="ntCard" hidden>
+      <summary>Notifiche</summary>
+      <button class="btn" id="ntToggle" type="button">Attiva le notifiche</button>
+      <div class="hint" id="ntInfo"></div>
+      <button class="btn ghost" id="ntTest" type="button" hidden>Manda un avviso di prova</button>
+      <div class="hint">Ogni sera alle 20 il programma del giorno dopo. Prima della partenza, un promemoria se nella tua checklist manca ancora qualcosa. Gli avvisi li prepara il telefono: non serve la rete.</div>
+      <div class="hint" id="ntBuy">Matteo e Leslie ricevono anche un avviso quando un altro salva una spesa (qui serve la rete).</div>
+    </details>
+    <details class="card acc" id="ctCard">
+      <summary>Contatti per la chiamata rapida</summary>
       <div class="doclist" id="ctList"></div>
       <button class="btn ghost" id="ctAdd" type="button">+ Aggiungi un contatto</button>
       <div class="hint">I numeri restano solo su questo telefono: vanno scritti su ognuno dei tre. Tocca un contatto per modificarlo.</div>
-    </section>
-    <section class="card">
-      <div class="label">Sincronizzazione</div>
+    </details>
+    <details class="card acc" id="photoCard" hidden>
+      <summary>Foto</summary>
+      <label class="toggle"><input type="checkbox" id="rollChk"> Salva nel rullino le foto che scatto con l'app</label>
+      <div class="hint">Vale per le foto di Foto e Diario scattate con la fotocamera. Quelle prese dal rullino ci sono già. La prima volta iOS chiede il permesso di aggiungere foto.</div>
+    </details>
+    <details class="card acc" id="secCard" hidden>
+      <summary>Sicurezza</summary>
+      <label class="toggle"><input type="checkbox" id="diaLockChk"> Chiedi Face ID per aprire il Diario</label>
+      <div class="hint">Il Diario si richiude quando esci dalla schermata o dall'app. Se Face ID non va, l'iPhone chiede il codice di sblocco.</div>
+    </details>
+    <details class="card acc">
+      <summary>Sincronizzazione</summary>
       <div class="field"><label class="label" for="sTrip">Codice viaggio</label><input id="sTrip" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
       <div class="hint">È il vostro codice segreto: almeno 8 caratteri, uguale sui tre telefoni e sul Mac (maiuscole e minuscole non contano). Non dirlo a nessuno: chi lo conosce può leggere i dati del viaggio.</div>
       <div class="hint">Spese, ricariche e foto degli scontrini partono da sole verso il database comune. Senza rete restano in coda e partono quando torna il segnale.</div>
       <button class="btn ghost" id="syncNow" type="button">Sincronizza ora</button>
       <div class="hint" id="syncInfo"></div>
-    </section>
-    <section class="card">
-      <div class="label">Sfondo</div>
+    </details>
+    <details class="card acc">
+      <summary>Sfondo</summary>
       <div class="bgprev" id="bgPrev" aria-hidden="true"></div>
-      <div class="hint">Di base c'è la bandiera americana. Puoi scegliere una tua foto dal rullino.</div>
+      <div class="hint" id="bgHint">Di base c'è il grigio chiaro di iOS. Puoi mettere la bandiera americana o una tua foto dal rullino.</div>
       <div class="btnrow">
-        <button class="btn ghost" id="bgPick" type="button">Scegli dal rullino</button>
-        <button class="btn ghost" id="bgReset" type="button">Bandiera USA</button>
+        <button class="btn ghost small" id="bgPlain" type="button">Grigio iOS</button>
+        <button class="btn ghost small" id="bgReset" type="button">Bandiera USA</button>
+        <button class="btn ghost small" id="bgPick" type="button">Dal rullino</button>
       </div>
       <input type="file" id="bgFile" accept="image/*" hidden>
-    </section>
-    <section class="card">
-      <div class="label">Backup con foto</div>
+    </details>
+    <details class="card acc">
+      <summary>Backup con foto</summary>
       <div class="hint">Copia completa di spese e foto degli scontrini, per cambiare telefono o se iOS libera spazio.</div>
       <div class="btnrow">
         <button class="btn ghost" id="bkExport" type="button">Salva backup</button>
@@ -761,7 +1012,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="bkInfo"></div>
       <div class="hint" id="verInfo"></div>
       <button class="btn ghost small" id="updNow" type="button">Aggiorna l'app adesso</button>
-    </section>
+    </details>
   </section>
 
 </div>
@@ -770,7 +1021,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v55';
+var APP_VER = 'v60';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -778,9 +1029,11 @@ var APP_VER = 'v55';
   var KEY = 'texascash.v1';
   var st = { rate: 0.86, tax: 8.25, tip: 18, plafond: 0, user: '', expenses: [], topups: [] };
   try { var s0 = JSON.parse(localStorage.getItem(KEY)); if (s0 && typeof s0 === 'object') { for (var k0 in s0) st[k0] = s0[k0]; } } catch (e) {}
-  function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} schedSync(); }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} schedSync(); try { ntSoon(); } catch (e) {} }
 
   var $ = function (id) { return document.getElementById(id); };
+  /* dentro l'app iOS (Capacitor) alcune funzioni usano i plugin nativi; nella PWA questi restano null e non cambia niente */
+  function natPlugin(n) { try { var C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins[n] || null; } catch (e) { return null; } }
   function num(v) {
     var s = String(v).replace(/[\s$]/g, '');
     if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/\./g, '');
@@ -791,6 +1044,9 @@ var APP_VER = 'v55';
   function fx(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ','); }
   function usd(n) { return '$' + f(n); }
   function eur(n) { return '€' + f(n); }
+  /* spese in Italia: cur 'EUR', importo in e.eur, usd a 0 cosi' il plafond e i totali in dollari non cambiano */
+  function money(e) { return e.cur === 'EUR' ? eur(e.eur) : usd(e.usd); }
+  function sumLabel(list) { var u = 0, w = 0; list.forEach(function (z) { if (z.cur === 'EUR') w += z.eur; else u += z.usd; }); return (u || !w ? usd(u) : '') + (u && w ? ' + ' : '') + (w ? eur(w) : ''); }
   function r2(n) { return Math.round(n * 100) / 100; }
   function dateStr(ts) { return new Date(ts).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
 
@@ -860,7 +1116,7 @@ var APP_VER = 'v55';
     document.body.classList.toggle('inner', v !== 'home');
     window.scrollTo(0, 0);
     if (v === 'home') { renderHome(); chkBanner(); calHome(); posAskBanner(); tripBanner(); }
-    if (v === 'calc') renderCalc();
+    if (v === 'calc') { setCur(false); renderCalc(); }
     if (v === 'log') renderLog();
     if (v === 'settings') { fillSettings(); renderContacts(); }
     if (v === 'call') renderCall();
@@ -871,6 +1127,8 @@ var APP_VER = 'v55';
     if (v === 'tr') renderTr();
     if (v !== 'album' && albUnsub) { albUnsub(); albUnsub = null; }
     if (v === 'album') openAlbum();
+    if (v !== 'map') mapFocus = null;
+    if (v !== 'dia') diaUnlocked = false;
     if (v === 'dia') openDiary();
     if (v === 'chk') renderChk();
     if (v === 'cal') openCal();
@@ -882,7 +1140,7 @@ var APP_VER = 'v55';
   }
   function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
   window.addEventListener('hashchange', function () { show(hashView()); });
-  document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : (b.closest('#v-map') && mapFrom === 'cal') ? 'cal' : 'home'); }; });
+  document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : (b.closest('#v-map') && mapFrom === 'cal') ? 'cal' : (b.closest('#v-map') && mapFrom === 'log') ? 'log' : 'home'); }; });
   $('goCalc').onclick = function () { go('calc'); };
   $('goCal').onclick = function () { go('cal'); };
   $('goChk').onclick = function () { go('chk'); };
@@ -926,6 +1184,7 @@ var APP_VER = 'v55';
   function addExpense(e) {
     var fx0 = e.loc ? null : freshFix(); if (fx0) e.loc = fx0;
     st.expenses.push(e); persist();
+    try { pnExpense(e); } catch (err) {}
     if (fx0) posSet(fx0);
     else getFix(8000).then(function (f) { if (f && !e.loc) { e.loc = f; persist(); } posSet(f); });
   }
@@ -940,7 +1199,15 @@ var APP_VER = 'v55';
     return { net: net, tax: tax, tip: tip, tot: net + tax + tip, r: st.rate };
   }
   function two(v, r) { return usd(v) + '<small>' + eur(v * r) + '</small>'; }
+  var curIt = false;
+  function setCur(it) {
+    curIt = it; $('v-calc').classList.toggle('eur', it); $('curHint').hidden = !it;
+    document.querySelectorAll('#curSeg .chip').forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.cur === 'EUR') === it)); });
+    $('priceLabel').textContent = it ? 'Prezzo in euro' : 'Prezzo in dollari'; $('priceSym').textContent = it ? '€' : '$'; renderCalc();
+  }
+  $('curSeg').addEventListener('click', function (ev) { var b = ev.target.closest('.chip'); if (b) setCur(b.dataset.cur === 'EUR'); });
   function renderCalc() {
+    if (curIt) { $('rTot').innerHTML = eur(num($('price').value)); return; }
     var c = calc(), pct = String(st.tip).replace('.', ',');
     $('rNet').innerHTML = two(c.net, c.r);
     $('rTax').innerHTML = two(c.tax, c.r);
@@ -969,6 +1236,11 @@ var APP_VER = 'v55';
   if (tipCustom) $('tipc').value = st.tip ? String(st.tip).replace('.', ',') : '';
 
   $('save').onclick = function () {
+    if (curIt) {
+      var w = num($('price').value); if (!w) { toast('Inserisci un prezzo'); return; }
+      addExpense({ id: newId(), ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: 0, eur: r2(w), cur: 'EUR', sub: null, tax: null, tip: null, photo: false, src: 'calcolo', store: storeCalc || undefined });
+      $('desc').value = ''; $('price').value = ''; toast('Salvata in Italia: ' + eur(r2(w))); go('home'); return;
+    }
     var c = calc();
     if (!c.tot) { toast('Inserisci un prezzo'); return; }
     addExpense({ id: newId(), ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: r2(c.tot), eur: c.tot * st.rate, sub: r2(c.net), tax: r2(c.tax), tip: r2(c.tip), photo: false, src: 'calcolo', store: storeCalc || undefined });
@@ -1056,14 +1328,33 @@ var APP_VER = 'v55';
     $('dtScan').value = dtLocal(r.ts);
     h.textContent = 'Data letta dallo scontrino' + (r.time ? '' : ' (ora non trovata)') + (r.ambiguous ? ' · controlla giorno e mese' : '') + '.';
   }
+  /* App iOS: prima il motore di Apple (piu' veloce e preciso). Se non legge o i conti non tornano, si passa al motore di sempre,
+     che resta l'unico nella PWA. `pre` e' la lettura di Apple da unire a quelle del motore di sempre. */
+  function visionRead(run) {
+    var V = natPlugin('TexasOcr'); if (!V || !ocrFile) return Promise.resolve(null);
+    return shrinkImage(ocrFile, 2600).then(blobToData).then(function (u) { return u ? V.detectText({ base64: u }) : null; }).then(function (r) {
+      var text = r && r.lines ? linesFromBoxes(r.lines) : '';
+      return text && text.replace(/\s/g, '').length >= 12 ? text : null;
+    }).catch(function () { return null; });
+  }
   function readReceipt(run) {
     if (!ocrSource) return;
     ocrStatus('Preparo la lettura…');
+    visionRead(run).then(function (text) {
+      if (run !== ocrRun) return;
+      if (!text) { tessRead(run, null); return; }
+      var v = parseReceipt(text); setFields(v); fillDate(text); suggestStores(text, 'storeScan', 'descScan');
+      if (isConsistent(v)) { finishRead(v, run); return; }
+      tessRead(run, v);
+    });
+  }
+  function tessRead(run, pre) {
     var first = null, w0 = null;
     getWorker().then(function (w) { w0 = w; return w.recognize(ocrSource); }).then(function (res) {
       if (run !== ocrRun) return null;
-      first = parseReceipt(res.data.text); setFields(first);
+      first = parseReceipt(res.data.text); if (pre) first = mergeResults([pre, first]) || first; setFields(first);
       var full = res.data.text;
+      if (pre) return afterFirst(first, run, w0);        // data e negozio li ha gia' letti il motore di Apple
       return headerText(w0).then(function (ht) {
         if (run !== ocrRun) return null;
         fillDate(full + '\n' + (ht || ''));
@@ -1078,6 +1369,14 @@ var APP_VER = 'v55';
       if (run === ocrRun) { scanning(false); ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.'); }
     });
   }
+  function finishRead(r, run) {
+    if (!r || run !== ocrRun) return;
+    setTimeout(function () { if (run === ocrRun) scanning(false); }, Math.max(0, 1800 - (Date.now() - scanStart)));   // l'animazione dura almeno un paio di secondi
+    setFields(r);
+    var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length, notes = (r.notes || []).slice();
+    if (found && !isConsistent(r) && !notes.length) notes.push('Controlla gli importi: subtotale + tasse non fa il totale.');
+    ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (notes.length ? ' ' + notes.join(' ') : '') : 'Non ho trovato importi: scrivili a mano.');
+  }
   function afterFirst(first, run, w0) {
     return Promise.resolve().then(function () {
       if (isConsistent(first)) return first;                                    // subtotale + tasse = totale: lettura affidabile
@@ -1086,14 +1385,7 @@ var APP_VER = 'v55';
         if (run !== ocrRun) return null;
         return mergeResults([first, parseReceipt(res2.data.text)]);
       });
-    }).then(function (r) {
-      if (!r || run !== ocrRun) return;
-      setTimeout(function () { if (run === ocrRun) scanning(false); }, Math.max(0, 1800 - (Date.now() - scanStart)));   // l'animazione dura almeno un paio di secondi
-      setFields(r);
-      var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length, notes = (r.notes || []).slice();
-      if (found && !isConsistent(r) && !notes.length) notes.push('Controlla gli importi: subtotale + tasse non fa il totale.');
-      ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (notes.length ? ' ' + notes.join(' ') : '') : 'Non ho trovato importi: scrivili a mano.');
-    }).catch(function (e) {
+    }).then(function (r) { finishRead(r, run); }).catch(function (e) {
       console.error('ocr', e);
       if (run === ocrRun) { scanning(false); ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.'); }
     });
@@ -1117,13 +1409,15 @@ var APP_VER = 'v55';
     var id = newId(), hasPhoto = !!pendingPhoto;
     var sub = num($('oSub').value), tax = num($('oTax').value), tip = num($('oTip').value);
     var dts = $('dtScan').value ? new Date($('dtScan').value).getTime() : NaN, when = isNaN(dts) ? Date.now() : Math.min(dts, Date.now());
-    var e = { id: id, ts: when, desc: $('descScan').value.trim(), cat: $('catScan').value, usd: r2(tot), eur: tot * st.rate,
+    var it = $('scanIt').checked;
+    var e = { id: id, ts: when, desc: $('descScan').value.trim(), cat: $('catScan').value, usd: it ? 0 : r2(tot), eur: it ? r2(tot) : tot * st.rate,
       sub: sub ? r2(sub) : null, tax: tax ? r2(tax) : null, tip: tip ? r2(tip) : null, photo: hasPhoto, src: 'scontrino' };
+    if (it) e.cur = 'EUR';
     if (storeScan) e.store = storeScan;
     if (scanLoc) e.loc = { la: scanLoc.la, lo: scanLoc.lo, ac: scanLoc.ac, src: 'indirizzo' };
     (hasPhoto ? putPhoto(id, pendingPhoto) : Promise.resolve()).then(function () {
       addExpense(e); resetScan();
-      toast('Scontrino salvato: ' + usd(e.usd));
+      $('scanIt').checked = false; toast('Scontrino salvato: ' + money(e));
       go('home');
     });
   };
@@ -1131,7 +1425,7 @@ var APP_VER = 'v55';
   /* ---------- registro ---------- */
   var CAT_COLORS = { Cibo: '#ff9f0a', Vestiti: '#bf5af2', Regali: '#ff375f', Souvenir: '#ffd60a', Benzina: '#8e8e93', Hotel: '#0a84ff', Attrazioni: '#30d158', Altro: '#64d2ff' };
   function renderChart() {
-    var by = {}, card = $('chartCard'); st.expenses.forEach(function (e) { by[e.cat] = (by[e.cat] || 0) + e.usd; });
+    var by = {}, card = $('chartCard'); st.expenses.forEach(function (e) { if (e.cur !== 'EUR') by[e.cat] = (by[e.cat] || 0) + e.usd; });
     var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), tot = spentTotal();
     card.hidden = !keys.length || logTab !== 'spese'; if (card.hidden) return;
     var off = 0, svg = '<svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(120,130,150,.22)" stroke-width="6.5"></circle>';
@@ -1185,16 +1479,18 @@ var APP_VER = 'v55';
     $('logTotLabel').textContent = 'Totale speso';
     renderChart();
     var byCat = {};
-    st.expenses.forEach(function (e) { byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
+    st.expenses.forEach(function (e) { if (e.cur !== 'EUR') byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
     $('logTot').innerHTML = usd(spentTotal()) + ' · ' + eur(spentTotal() * st.rate);
-    $('catSum').innerHTML = Object.keys(byCat).map(function (c) { return '<span class="num">' + c + ' ' + usd(byCat[c]) + '</span>'; }).join('') || '<span>Nessuna spesa</span>';
+    var itTot = st.expenses.reduce(function (a, e) { return a + (e.cur === 'EUR' ? e.eur : 0); }, 0);
+    $('catSum').innerHTML = (Object.keys(byCat).map(function (c) { return '<span class="num">' + c + ' ' + usd(byCat[c]) + '</span>'; }).join('') || (itTot ? '' : '<span>Nessuna spesa</span>')) + (itTot ? '<span class="num">Italia (fuori plafond) ' + eur(itTot) + '</span>' : '');
     var list = $('list'); list.innerHTML = '';
     if (!st.expenses.length) {
       list.innerHTML = '<div class="empty">Nessuna spesa ancora.<br>Carica uno scontrino o calcola un prezzo e salvalo.</div>';
       return;
     }
     st.expenses.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (e) {
-      var el = document.createElement('div'); el.className = 'item';
+      var el = document.createElement('div'); el.className = 'item'; if (e.loc) el.classList.add('hasloc');
+      el.addEventListener('click', function (ev) { if (ev.target.closest('button, label, input, a')) return; openMapAt(e); });
       if (e.id === logFocus) { logFocus = ''; el.classList.add('focus'); setTimeout(function () { el.scrollIntoView({ block: 'center' }); }, 80); setTimeout(function () { el.classList.remove('focus'); }, 3500); }
       var th = document.createElement('div');
       if (e.photo) {
@@ -1206,7 +1502,7 @@ var APP_VER = 'v55';
       var body = document.createElement('div'); body.className = 'body';
       body.innerHTML = '<span class="t"></span><span class="m"></span>';
       body.firstChild.textContent = e.desc || e.cat;
-      body.lastChild.textContent = e.cat + ' · ' + dateStr(e.ts);
+      body.lastChild.textContent = e.cat + ' · ' + dateStr(e.ts) + (e.loc ? ' · 📍' : '');
       var acts = document.createElement('div'); acts.className = 'acts';
       if (!e.photo) {
         var lb = document.createElement('label'); lb.className = 'btn ghost small'; lb.style.cursor = 'pointer'; lb.textContent = 'Aggiungi foto';
@@ -1223,7 +1519,7 @@ var APP_VER = 'v55';
       };
       acts.appendChild(del); body.appendChild(acts);
       var amt = document.createElement('div'); amt.className = 'amt num';
-      amt.innerHTML = '<b>' + usd(e.usd) + '</b><small>' + eur(e.eur) + '</small>';
+      amt.innerHTML = e.cur === 'EUR' ? '<b>' + eur(e.eur) + '</b><small>Italia · fuori plafond</small>' : '<b>' + usd(e.usd) + '</b><small>' + eur(e.eur) + '</small>';
       el.appendChild(th); el.appendChild(body); el.appendChild(amt); list.appendChild(el);
     });
   }
@@ -1239,14 +1535,17 @@ var APP_VER = 'v55';
 
   /* ---------- impostazioni ---------- */
   function fillSettings() {
+    (function () {     var B = natPlugin('NativeBiometric'); $('secCard').hidden = !B; $('photoCard').hidden = !natPlugin('TexasPhotos'); $('rollChk').checked = st.rollAuto !== false; $('diaLockChk').checked = st.diaLock !== false; })();
     $('sUser').value = st.user || '';
     $('tax').value = String(st.tax).replace('.', ',');
     $('rate').value = String(Math.round(st.rate * 10000) / 10000).replace('.', ',');
     var l = topupTotal() - spentTotal();
     $('sLeft').textContent = 'Rimasto ' + (l < 0 ? '-' : '') + usd(Math.abs(l)); $('sSpent').textContent = 'Ricaricato ' + usd(topupTotal()) + ' · speso ' + usd(spentTotal());
     setRateInfo(); backupInfo(); exportInfo();
-    $('sTrip').value = st.trip || ''; syncInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
+    $('sTrip').value = st.trip || ''; syncInfo(); ntInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
   }
+  $('rollChk').onchange = function () { st.rollAuto = $('rollChk').checked; persist(); };
+  $('diaLockChk').onchange = function () { st.diaLock = $('diaLockChk').checked; if (!st.diaLock) diaUnlocked = true; persist(); };
   $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
   $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
   $('rate').addEventListener('input', function () { var v = num($('rate').value); if (v) { st.rate = v; st.rateManual = true; persist(); setRateInfo(); } });
@@ -1276,18 +1575,18 @@ var APP_VER = 'v55';
   function two2(n) { return n == null ? '' : (Math.round(n * 100) / 100).toFixed(2); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function buildCsv() {
-    var head = ['utente', 'tipo', 'data', 'ora', 'descrizione', 'categoria', 'subtotale_usd', 'tasse_usd', 'mancia_usd', 'totale_usd', 'totale_eur', 'cambio_eur_per_usd', 'origine', 'foto_scontrino'];
+    var head = ['utente', 'tipo', 'data', 'ora', 'descrizione', 'categoria', 'subtotale_usd', 'tasse_usd', 'mancia_usd', 'totale_usd', 'totale_eur', 'cambio_eur_per_usd', 'origine', 'foto_scontrino', 'valuta'];
     var rows = [head];
     var all = st.expenses.map(function (e) { return { k: 'spesa', e: e }; }).concat(st.topups.map(function (t) { return { k: 'ricarica', e: t }; }));
     all.sort(function (a, b) { return a.e.ts - b.e.ts; }).forEach(function (x) {
       var e = x.e, d = new Date(e.ts);
       if (x.k === 'ricarica') {
         rows.push([st.user, 'ricarica', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
-          e.note || 'Ricarica plafond', 'Ricarica', '', '', '', two2(e.usd), two2(e.usd * st.rate), st.rate.toFixed(4), '', '']);
+          e.note || 'Ricarica plafond', 'Ricarica', '', '', '', two2(e.usd), two2(e.usd * st.rate), st.rate.toFixed(4), '', '', 'USD']);
         return;
       }
       rows.push([st.user, 'spesa', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
-        e.desc, e.cat, two2(e.sub), two2(e.tax), two2(e.tip), two2(e.usd), two2(e.eur), e.usd ? (e.eur / e.usd).toFixed(4) : '', e.src || '', e.photo ? 'si' : 'no']);
+        e.desc, e.cat, two2(e.sub), two2(e.tax), two2(e.tip), two2(e.usd), two2(e.eur), e.usd ? (e.eur / e.usd).toFixed(4) : '', e.src || '', e.photo ? 'si' : 'no', e.cur === 'EUR' ? 'EUR (Italia, fuori plafond)' : 'USD']);
     });
     return rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
   }
@@ -1399,6 +1698,12 @@ var APP_VER = 'v55';
   /* Google Places (New): piu' preciso di OpenStreetMap; se non risponde si usa OpenStreetMap */
   var GP = 'https://places.googleapis.com/v1/places:';
   function gpCall(method, body) {
+    var H = natPlugin('CapacitorHttp'), ik = window.GOOGLE_IOS_KEY;
+    if (H && ik) {                                       // dentro l'app iOS: chiamata nativa con la chiave riservata all'app (quella del sito qui viene rifiutata)
+      return Promise.race([new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 10000); }), H.request({ url: GP + method, method: 'POST', connectTimeout: 9000, readTimeout: 9000, data: body,
+        headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': ik, 'X-Ios-Bundle-Identifier': window.GOOGLE_IOS_BUNDLE || '', 'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress' } })])
+        .then(function (r) { if (!r || r.status < 200 || r.status > 299) throw new Error('http' + (r && r.status)); return typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || {}); });
+    }
     var k = window.GOOGLE_PLACES_KEY; if (!k) return Promise.reject(new Error('nokey'));
     return fetchJson(GP + method, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': k, 'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress' }, body: JSON.stringify(body) }, 9000);
   }
@@ -1614,8 +1919,14 @@ var APP_VER = 'v55';
   var trDir = 'it-en', trCat = 'Ristorante', trGoogleOk = true, trViaBackup = false, trBusy = false;
   function trLang() { return trDir === 'it-en' ? { from: 'it', to: 'en', fromV: 'it-IT', toV: 'en-US', fromN: 'Italiano', toN: 'Inglese (USA)' } : { from: 'en', to: 'it', fromV: 'en-US', toV: 'it-IT', toN: 'Italiano', fromN: 'Inglese (USA)' }; }
   function decodeHtml(t) { var e = document.createElement('textarea'); e.innerHTML = t; return e.value; }
+  var trApple = false;
   function translateText(text) {
-    var L = trLang(); trViaBackup = false;
+    var L = trLang(); trViaBackup = false; trApple = false;
+    var T = natPlugin('TexasTranslate');
+    if (T) return T.translate({ text: text, source: L.fromV, target: L.toV }).then(function (r) { if (!r || !r.text) throw new Error('apple'); trApple = true; return r.text; }, function () { return translateOnline(text, L); });
+    return translateOnline(text, L);
+  }
+  function translateOnline(text, L) {
     function mymemory() {
       trViaBackup = true;
       return fetchJson('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + L.from + '|' + L.to, null, 9000).then(function (j) {
@@ -1630,6 +1941,11 @@ var APP_VER = 'v55';
     return mymemory();
   }
   function speak(text, lang) {
+    var NS = natPlugin('TexasSpeech');                 // app iOS: voce nativa di Apple (si sente anche con il silenzioso attivo)
+    if (NS && NS.speak && text) { NS.speak({ text: text, lang: lang }).catch(function () { webSpeak(text, lang); }); return; }
+    webSpeak(text, lang);
+  }
+  function webSpeak(text, lang) {
     if (!window.speechSynthesis || !text) { toast('Questo telefono non legge ad alta voce'); return; }
     try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = lang; u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {}
   }
@@ -1639,17 +1955,17 @@ var APP_VER = 'v55';
   function showOut(text) { $('trOutCard').hidden = false; $('trOut').textContent = text; }
   function doTranslate(autoSpeak) {
     var text = $('trIn').value.trim(); if (!text || trBusy) return;
-    if (navigator.onLine === false) { $('trHint').textContent = 'Nessuna rete: usa le frasi pronte qui sotto.'; return; }
+    if (navigator.onLine === false && !natPlugin('TexasTranslate')) { $('trHint').textContent = 'Nessuna rete: usa le frasi pronte qui sotto.'; return; }
     trBusy = true; $('trHint').textContent = 'Traduco…';
     translateText(text).then(function (out) {
-      $('trHint').textContent = trViaBackup ? 'Servizio gratuito di riserva: può sbagliare, controlla le frasi importanti o usa quelle pronte.' : ''; showOut(out);
+      $('trHint').textContent = trApple ? 'Traduzione di Apple, fatta sul telefono.' : trViaBackup ? 'Servizio gratuito di riserva: può sbagliare, controlla le frasi importanti o usa quelle pronte.' : ''; showOut(out);
       if (st.trAuto) speak(out, trLang().toV);
     }, function () { $('trHint').textContent = 'Non riesco a tradurre ora (rete o limite del servizio). Prova con una frase pronta.'; })
       .then(function () { trBusy = false; });
   }
   function renderTr() {
     var L = trLang(); $('trFrom').textContent = L.fromN; $('trTo').textContent = L.toN;
-    $('trIn').placeholder = 'Parla con la tastiera o scrivi qui';
+    $('trIn').placeholder = natPlugin('TexasSpeech') ? 'Tocca Parla oppure scrivi qui' : 'Parla con la tastiera o scrivi qui'; if (!trListening) trListenUi(false);
     $('phrCats').innerHTML = '';
     Object.keys(PHRASES).forEach(function (c) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c; b.setAttribute('aria-pressed', String(c === trCat));
@@ -1670,7 +1986,29 @@ var APP_VER = 'v55';
   $('trCopy').onclick = function () { try { navigator.clipboard.writeText($('trOut').textContent).then(function () { toast('Copiato'); }); } catch (e) { toast('Non riesco a copiare'); } };
   $('trAuto').checked = !!st.trAuto;
   $('trAuto').onchange = function () { unlockSpeech(); st.trAuto = $('trAuto').checked; persist(); if (st.trAuto) toast('Con il volume del telefono alzato e la suoneria attiva'); };
-  $('trKb').onclick = function () { unlockSpeech(); $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = ''; $('trIn').focus(); };
+  /* app iOS: "Parla" avvia subito la dettatura (riconoscimento vocale di Apple); nella PWA resta il giro dalla tastiera */
+  var trListening = false, trSpeechInit = false, trSpeechTimer = null;
+  function trListenUi(on) {
+    trListening = on; var hasN = !!natPlugin('TexasSpeech');
+    $('trKbTxt').textContent = on ? 'Sto ascoltando… tocca per fermare' : (hasN ? 'Parla' : 'Parla (dettatura tastiera)');
+    $('trKbHint').textContent = hasN ? (on ? 'Parla in ' + trLang().fromN.toLowerCase() + '. Quando hai finito tocca di nuovo: la traduzione parte da sola.' : 'Tocca Parla e di\u2019 la frase: si traduce da sola.') : 'Si apre la tastiera: tocca il microfono in basso a destra, parla, poi chiudi la tastiera. La traduzione parte da sola.';
+    $('trKb').style.background = on ? 'var(--ink)' : '';
+  }
+  function trSpeechEnd() {
+    clearTimeout(trSpeechTimer); if (!trListening) return; trListenUi(false);
+    if ($('trIn').value.trim()) doTranslate(st.trAuto); else $('trHint').textContent = 'Non ho sentito niente: riprova.';
+  }
+  $('trKb').onclick = function () {
+    unlockSpeech();
+    var S = natPlugin('TexasSpeech');
+    if (!S) { $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = ''; $('trIn').focus(); return; }
+    if (!trSpeechInit) { trSpeechInit = true; S.addListener('partial', function (e) { if (trListening && e && e.text != null) $('trIn').value = e.text; }); S.addListener('end', trSpeechEnd); }
+    if (trListening) { S.stop(); trSpeechTimer = setTimeout(trSpeechEnd, 3000); return; }
+    $('trIn').value = ''; $('trOutCard').hidden = true; $('trHint').textContent = '';
+    S.start({ lang: trLang().fromV }).then(function () { trListenUi(true); }, function (err) {
+      $('trHint').textContent = 'Non riesco ad ascoltare (' + ((err && err.message) || 'permesso negato') + '). Controlla in Impostazioni di iOS, oppure scrivi qui sotto.'; $('trIn').focus();
+    });
+  };
   var trLastTxt = '';
   $('trIn').addEventListener('focus', function () { trLastTxt = $('trIn').value; });
   $('trIn').addEventListener('blur', function () { var v = $('trIn').value.trim(); if (v && v !== trLastTxt.trim()) setTimeout(function () { doTranslate(false); }, 200); });
@@ -1907,7 +2245,7 @@ var APP_VER = 'v55';
   function dayLabel(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
   function slug(x) { return String(x || 'utente').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'utente'; }
   function diaryActive() { return !!(window.DIARY_PUBKEY && window.DiaryCrypto && window.crypto && window.crypto.subtle); }
-  function diaryDoc(day) { var e = st.diary[day]; return { day: day, text: e.text || '', photos: e.photos || [], loc: e.loc || null, ts: e.ts, upd: e.upd || e.ts }; }
+  function diaryDoc(day) { var e = st.diary[day]; return { day: day, text: e.text || '', photos: e.photos || [], loc: e.loc || null, pl: e.pl || {}, ts: e.ts, upd: e.upd || e.ts }; }
   function diaryPending() {
     if (!diaryActive() || !st.diary) return 0;
     var n = 0, pushed = st.diaPushed || {}, pp = st.diaPhotosPushed || {};
@@ -1947,6 +2285,14 @@ var APP_VER = 'v55';
     if (!st.diary[diaDay] && create) st.diary[diaDay] = { text: '', photos: [], loc: null, ts: Date.now(), upd: Date.now() };
     return st.diary[diaDay] || null;
   }
+  function diaPhotoLoc(e, id) { return (e.pl && e.pl[id]) || e.loc || null; }
+  function diaPhotoFix(e, id) {                     // ogni foto ricorda dove e' stata aggiunta: serve per la mappa accanto
+    getFix(6000).then(function (f) {
+      if (!f) return;
+      (e.pl = e.pl || {})[id] = { la: f.la, lo: f.lo }; if (!e.loc) e.loc = { la: f.la, lo: f.lo, ac: f.ac }; e.upd = Date.now(); persist();
+      if (hashView() === 'dia') renderDiary();
+    });
+  }
   function diaTouchLoc(e) { if (!e.loc) getFix(6000).then(function (f) { if (f && !e.loc) { e.loc = { la: f.la, lo: f.lo, ac: f.ac }; e.upd = Date.now(); persist(); diaStatus(); } }); }
   function diaStatus() {
     var el = $('diaStatus'); if (!el) return; var e = st.diary && st.diary[diaDay];
@@ -1955,53 +2301,173 @@ var APP_VER = 'v55';
     if (!diaryActive()) el.textContent = base + ' · salvato su questo telefono (manca ancora la chiave per inviarlo cifrato).';
     else { var n = diaryPending(); el.textContent = base + ' · ' + (n ? 'in coda per l\'invio cifrato' : 'inviato cifrato'); }
   }
-  function openDiary() { if (!diaDay) diaDay = dayKey(); renderDiary(); }
+  var diaMode = 'list', diaJump = false, diaUnlocked = false, diaAsking = false, diaGrace = 0;
+  /* Face ID per il Diario (solo app iOS): si richiude quando esci dalla schermata o dall'app. Se l'iPhone non ha ne' Face ID ne' codice, non blocca. */
+  function diaNeedLock() { return st.diaLock !== false && !diaUnlocked && !!natPlugin('NativeBiometric'); }
+  function diaAuth() {
+    var B = natPlugin('NativeBiometric');
+    return B.isAvailable({ useFallback: true }).then(function (r) {
+      if (!r || !r.isAvailable) return true;
+      return B.verifyIdentity({ reason: 'Apri il Diario', title: 'Diario', useFallback: true }).then(function () { return true; }, function () { return false; });
+    }).catch(function () { return true; });
+  }
+  function diaLockShow() {
+    $('diaListV').hidden = true; $('diaEditV').hidden = true; $('diaLockV').hidden = false;
+    if (diaAsking) return; diaAsking = true;
+    diaAuth().then(function (ok) { diaAsking = false; if (ok) { diaUnlocked = true; $('diaLockV').hidden = true; renderDiary(); } });
+  }
+  $('diaUnlock').onclick = function () { diaLockShow(); };
+  document.addEventListener('visibilitychange', function () {
+    if (hashView() !== 'dia' || !natPlugin('NativeBiometric') || st.diaLock === false) return;
+    if (document.hidden) { if (diaAsking || Date.now() < diaGrace) return; diaUnlocked = false; $('diaListV').hidden = true; $('diaEditV').hidden = true; $('diaLockV').hidden = false; }
+    else if (diaNeedLock()) diaLockShow();
+  });
+  function openDiary() { if (!diaDay) diaDay = dayKey(); diaMode = diaJump ? 'edit' : 'list'; diaJump = false; if (diaNeedLock()) { diaLockShow(); return; } $('diaLockV').hidden = true; renderDiary(); }
+  function diaOpenDay(k) { diaDay = k; diaMode = 'edit'; renderDiary(); window.scrollTo(0, 0); }
+  function diaFlush() { clearTimeout(diaTimer); var t = $('diaText'); if (!t || diaMode !== 'edit') return; var txt = t.value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } }
+  function diaFit() { var t = $('diaText'); t.style.height = 'auto'; t.style.height = Math.max(160, t.scrollHeight + 4) + 'px'; }
+  function monthLabel(k) { var p = k.split('-'), m = new Date(+p[0], +p[1] - 1, 1).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }); return m.charAt(0).toUpperCase() + m.slice(1); }
   function renderDiary() {
-    $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : '');
+    $('diaListV').hidden = diaMode !== 'list'; $('diaEditV').hidden = diaMode !== 'edit';
+    diaUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaUrls = [];
+    if (diaMode === 'list') renderDiaList(); else renderDiaEdit();
+  }
+  /* elenco come nell'app Diario di Apple: mesi, e per ogni giorno la foto grande con l'inizio del testo */
+  var diaQuery = '', diaFilter = 'all';
+  function djTile(lat, lon) {                      // piccola mappa: 3x3 riquadri di OpenStreetMap con il punto al centro (nessun servizio a pagamento)
+    var z = 16, n = Math.pow(2, z), px = (lon + 180) / 360 * n, la = lat * Math.PI / 180, py = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
+    var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0;
+    var box = document.createElement('div'); box.className = 'djmap';
+    var g = document.createElement('div'); g.className = 'djtiles'; g.style.marginLeft = -(256 + fx * 256) + 'px'; g.style.marginTop = -(256 + fy * 256) + 'px';
+    for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) { var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; im.src = 'https://tile.openstreetmap.org/' + z + '/' + (x0 + i) + '/' + (y0 + j) + '.png'; g.appendChild(im); }
+    var pin = document.createElement('span'); pin.className = 'djpin'; box.appendChild(g); box.appendChild(pin);
+    return box;
+  }
+  function djDate(k, e) {
+    var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]), t = e.ts ? new Date(e.ts) : null;
+    var s = d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); s = s.charAt(0).toUpperCase() + s.slice(1);
+    if (t && dayKey(e.ts) === k) s += ', ' + pad(t.getHours()) + ':' + pad(t.getMinutes());
+    return s;
+  }
+  function djSheet(buttons) {
+    var sh = document.createElement('div'); sh.className = 'sheet'; var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
+    function close() { sh.remove(); }
+    buttons.forEach(function (b) {
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'btn ghost'; x.textContent = b[0]; if (b[2]) x.style.color = 'var(--bad)';
+      x.onclick = function () { close(); if (b[1]) b[1](); }; inn.appendChild(x);
+    });
+    var c = document.createElement('button'); c.type = 'button'; c.className = 'btn ghost'; c.textContent = 'Annulla'; c.onclick = close; inn.appendChild(c);
+    sh.addEventListener('click', function (ev) { if (ev.target === sh) close(); });
+    document.body.appendChild(sh);
+  }
+  /* elenco come nell'app Diario di Apple: mesi, e per ogni giorno una scheda con foto e mappa affiancate, titolo, testo, data e "•••" */
+  function renderDiaList() {
+    var box = $('diaList'); box.innerHTML = '';
+    var all = Object.keys(st.diary || {}).filter(hasEntry).sort().reverse();
+    $('djCount').textContent = all.length + (all.length === 1 ? ' annotazione' : ' annotazioni');
+    var q = diaQuery.trim().toLowerCase();
+    var days = all.filter(function (k) {
+      var e = st.diary[k];
+      if (diaFilter === 'photo' && !(e.photos || []).length) return false;
+      if (diaFilter === 'loc' && !e.loc) return false;
+      if (q && (e.text || '').toLowerCase().indexOf(q) < 0 && dayLabel(k).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    if (!days.length) { var em = document.createElement('div'); em.className = 'empty'; em.innerHTML = all.length ? 'Nessuna voce trovata.' : 'Nessuna voce ancora.<br>Tocca + per scrivere la prima.'; box.appendChild(em); return; }
+    var lastM = '';
+    days.forEach(function (k) {
+      var m = k.slice(0, 7);
+      if (m !== lastM) { lastM = m; var h = document.createElement('div'); h.className = 'djmonth'; h.textContent = monthLabel(k); box.appendChild(h); }
+      var e = st.diary[k], card = document.createElement('div'); card.className = 'dje'; card.tabIndex = 0;
+      var ph = e.photos || [];
+      function photoTile(id) {
+        var t = document.createElement('div'); t.className = 'djph';
+        getPhoto('dia_' + id).then(function (bl) { if (!bl) { t.remove(); return; } var u = URL.createObjectURL(bl); diaUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = u; t.appendChild(im); });
+        return t;
+      }
+      function rowOf(tiles) { var row = document.createElement('div'); row.className = 'djrow' + (tiles.length === 1 ? ' one' : ''); tiles.forEach(function (x) { row.appendChild(x); }); return row; }
+      var body = document.createElement('div'); body.className = 'djbody';
+      var txt = (e.text || '').trim();
+      if (ph.length) {
+        ph.slice(0, 3).forEach(function (id, ix) {                       // ogni foto ha la sua mappa accanto
+          var lc = diaPhotoLoc(e, id), tl = [photoTile(id)]; if (lc) tl.push(djTile(lc.la, lc.lo));
+          var r = rowOf(tl); if (ix) r.style.marginTop = '8px'; card.appendChild(r);
+        });
+        if (ph.length > 3) { var more3 = document.createElement('div'); more3.className = 'djmeta'; more3.style.padding = '6px 8px 0'; more3.textContent = '+ ' + (ph.length - 3) + ' altre foto'; card.appendChild(more3); }
+        var lines = txt.split('\n'), first = lines[0] || '', rest = lines.slice(1).join('\n').trim();
+        if (rest) { var ti = document.createElement('div'); ti.className = 'djtitle'; ti.textContent = first; body.appendChild(ti); var tx = document.createElement('div'); tx.className = 'djtext'; tx.textContent = rest; body.appendChild(tx); }
+        else if (first) { var t1 = document.createElement('div'); t1.className = 'djtext one'; t1.textContent = first; body.appendChild(t1); }
+      } else if (txt) {                                                  // senza foto: il testo va su un Post-it accanto alla mappa
+        var post = document.createElement('div'); post.className = 'djpost'; var pt = document.createElement('span'); pt.textContent = txt; post.appendChild(pt);
+        var tl2 = [post]; if (e.loc) tl2.push(djTile(e.loc.la, e.loc.lo)); card.appendChild(rowOf(tl2));
+      }
+      if (body.childNodes.length) card.appendChild(body);
+      var foot = document.createElement('div'); foot.className = 'djfoot';
+      var dt = document.createElement('span'); dt.textContent = djDate(k, e); foot.appendChild(dt);
+      var more = document.createElement('button'); more.type = 'button'; more.className = 'djdots'; more.setAttribute('aria-label', 'Azioni'); more.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+      more.onclick = function (ev) {
+        ev.stopPropagation();
+        djSheet([['Modifica', function () { diaOpenDay(k); }], ['Elimina questa voce', function () {
+          if (!confirm('Eliminare la voce del ' + dayLabel(k) + ' con tutte le sue foto?')) return;
+          (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[k]; persist(); renderDiary();
+        }, true]]);
+      };
+      foot.appendChild(more); card.appendChild(foot);
+      card.onclick = function () { diaOpenDay(k); }; box.appendChild(card);
+    });
+  }
+  $('djSearchBtn').onclick = function () { var i = $('djSearch'); i.hidden = !i.hidden; if (i.hidden) { diaQuery = ''; i.value = ''; renderDiaList(); } else i.focus(); };
+  $('djSearch').addEventListener('input', function () { diaQuery = $('djSearch').value; renderDiaList(); });
+  $('djMoreBtn').onclick = function () {
+    djSheet([['Tutte le voci' + (diaFilter === 'all' ? ' ✓' : ''), function () { diaFilter = 'all'; renderDiaList(); }], ['Solo con foto' + (diaFilter === 'photo' ? ' ✓' : ''), function () { diaFilter = 'photo'; renderDiaList(); }], ['Solo con posizione' + (diaFilter === 'loc' ? ' ✓' : ''), function () { diaFilter = 'loc'; renderDiaList(); }]]);
+  };
+  function renderDiaEdit() {
+    $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : ''); $('diaPick').value = diaDay;
     var e = diaGet(false); if (document.activeElement !== $('diaText')) $('diaText').value = e ? e.text || '' : '';
-    var grid = $('diaPhotos'); grid.innerHTML = ''; diaUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaUrls = [];
+    diaFit();
+    var grid = $('diaPhotos'); grid.innerHTML = ''; grid.hidden = !(e && (e.photos || []).length);
     (e && e.photos || []).forEach(function (id) {
+      var row = document.createElement('div'), t = document.createElement('div'), lc = diaPhotoLoc(e, id);
+      row.className = 'djrow' + (lc ? '' : ' one'); t.className = 'djph';
       getPhoto('dia_' + id).then(function (b) {
         if (!b) return; var u = URL.createObjectURL(b); diaUrls.push(u);
-        var t = document.createElement('div'); t.className = 'atile'; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; t.appendChild(im);
+        var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; t.appendChild(im);
         var x = document.createElement('button'); x.type = 'button'; x.className = 'diax'; x.setAttribute('aria-label', 'Togli la foto'); x.textContent = '×';
-        x.onclick = function () { if (!confirm('Togliere questa foto dal diario?')) return; var en = diaGet(false); if (!en) return; en.photos = en.photos.filter(function (p) { return p !== id; }); en.upd = Date.now(); delPhoto('dia_' + id); persist(); renderDiary(); };
-        t.appendChild(x); grid.appendChild(t);
+        x.onclick = function () { if (!confirm('Togliere questa foto dal diario?')) return; var en = diaGet(false); if (!en) return; en.photos = en.photos.filter(function (p) { return p !== id; }); if (en.pl) delete en.pl[id]; en.upd = Date.now(); delPhoto('dia_' + id); persist(); renderDiary(); };
+        t.appendChild(x);
       });
-    });
-    var dd = {}, today = dayKey(); CAL_DAYS.forEach(function (k) { dd[k] = 1; }); Object.keys(st.diary || {}).forEach(function (k) { dd[k] = 1; }); (st.expenses || []).forEach(function (x) { dd[dayKey(x.ts)] = 1; }); dd[today] = 1; dd[diaDay] = 1;
-    var box = $('diaDays'); box.innerHTML = '';
-    Object.keys(dd).sort().forEach(function (d) {              // stessa fila di giorni del Programma di viaggio
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 10px;min-width:3.6rem';
-      var p = d.split('-'); b.textContent = (d === today ? 'Oggi ' : '') + Number(p[2]) + '/' + Number(p[1]) + (hasEntry(d) ? ' ✎' : ''); b.setAttribute('aria-pressed', String(d === diaDay));
-      b.onclick = function () { diaDay = d; renderDiary(); }; box.appendChild(b);
+      row.appendChild(t); if (lc) row.appendChild(djTile(lc.la, lc.lo)); grid.appendChild(row);
     });
     $('diaDel').hidden = !e; diaStatus();
     var ex = dayExpenses(diaDay); $('diaExp').hidden = !ex.length;
-    if (ex.length) { fillExpenses($('diaExpList'), ex); $('diaExpTot').textContent = usd(ex.reduce(function (a, z) { return a + z.usd; }, 0)); }
+    if (ex.length) { fillExpenses($('diaExpList'), ex); $('diaExpTot').textContent = sumLabel(ex); }
   }
+  $('diaNew').onclick = function () { diaOpenDay(dayKey()); };
+  $('diaBack').onclick = function () { diaFlush(); try { $('diaText').blur(); } catch (x) {} diaMode = 'list'; renderDiary(); window.scrollTo(0, 0); sync(); };
+  $('diaPick').addEventListener('change', function () { var v = $('diaPick').value; if (!v) return; diaFlush(); diaDay = v; renderDiary(); });
   $('diaText').addEventListener('input', function () {
     clearTimeout(diaTimer);
     diaTimer = setTimeout(function () {
       var txt = $('diaText').value, e = diaGet(!!txt.trim()); if (!e) return;
       if (e.text === txt) return; e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); $('diaDel').hidden = false; diaStatus();
     }, 700);
+    diaFit();
   });
   $('diaText').addEventListener('blur', function () { clearTimeout(diaTimer); var txt = $('diaText').value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } renderDiary(); });
   function diaAddFiles(files) {
     if (!files || !files.length) return; var list = [].slice.call(files), e = diaGet(true);
     $('diaStatus').textContent = 'Preparo le foto…';
     list.reduce(function (p, f) {
-      return p.then(function () { return resizeJpeg(f, 1100, 0.75).then(function (b) { var id = newId(); return putPhoto('dia_' + id, b).then(function () { e.photos.push(id); e.upd = Date.now(); }); }); });
+      return p.then(function () { return resizeJpeg(f, 1100, 0.75).then(function (b) { var id = newId(); return putPhoto('dia_' + id, b).then(function () { e.photos.push(id); e.upd = Date.now(); diaPhotoFix(e, id); }); }); });
     }, Promise.resolve()).then(function () { diaTouchLoc(e); persist(); renderDiary(); }, function () { $('diaStatus').textContent = 'Non riesco a leggere questa foto.'; });
   }
   function diaryAttach(blob, fix) {                 // dall'album: la foto va anche nel diario di oggi
     var save = diaDay; diaDay = dayKey(); var e = diaGet(true), id = newId();
-    return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (!e.loc && fix) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; diaDay = save || diaDay; });
+    return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (fix) { (e.pl = e.pl || {})[id] = { la: fix.la, lo: fix.lo }; if (!e.loc) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; } diaDay = save || diaDay; });
   }
-  $('diaCam').onclick = function () { $('diaCamFile').value = ''; $('diaCamFile').click(); };
-  $('diaLib').onclick = function () { $('diaLibFile').value = ''; $('diaLibFile').click(); };
-  $('diaCamFile').addEventListener('change', function () { diaAddFiles($('diaCamFile').files); });
+  $('diaCam').onclick = function () { diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
+  $('diaLib').onclick = function () { diaGrace = Date.now() + 90000; $('diaLibFile').value = ''; $('diaLibFile').click(); };
+  $('diaCamFile').addEventListener('change', function () { rollSave($('diaCamFile').files); diaAddFiles($('diaCamFile').files); });
   $('diaLibFile').addEventListener('change', function () { diaAddFiles($('diaLibFile').files); });
   $('diaSave').onclick = function () {
     clearTimeout(diaTimer);
@@ -2009,13 +2475,13 @@ var APP_VER = 'v55';
     if (!e || (!txt.trim() && !(e.photos || []).length)) { toast('Scrivi qualcosa o aggiungi una foto'); return; }
     if (e.text !== txt) { e.text = txt; e.upd = Date.now(); }
     diaTouchLoc(e); persist(); try { $('diaText').blur(); } catch (x) {}
-    toast('Diario salvato · ' + dayLabel(diaDay)); renderDiary(); sync(true);
+    toast('Diario salvato · ' + dayLabel(diaDay)); diaMode = 'list'; renderDiary(); window.scrollTo(0, 0); sync(true);
     if (diaDay === dayKey()) getFix(6000).then(posSet);
   };
   $('diaDel').onclick = function () {
     var e = diaGet(false); if (!e) return;
     if (!confirm('Eliminare la voce del ' + dayLabel(diaDay) + ' con tutte le sue foto?')) return;
-    (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[diaDay]; persist(); renderDiary();
+    (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[diaDay]; persist(); diaMode = 'list'; renderDiary();
   };
   $('alDia').checked = st.albDia !== false;
   $('alDia').onchange = function () { st.albDia = $('alDia').checked; persist(); };
@@ -2026,7 +2492,7 @@ var APP_VER = 'v55';
   function dayHas(k) { return hasEntry(k) || dayExpenses(k).length > 0; }
   function expLine(e) {
     var t = new Date(e.ts); var where = e.store || e.desc || 'senza nome';
-    return { k: where + ' · ' + e.cat + ' · ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + (e.loc ? ' · 📍' : ''), v: usd(e.usd) };
+    return { k: where + ' · ' + e.cat + ' · ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + (e.loc ? ' · 📍' : ''), v: money(e) };
   }
   function fillExpenses(box, list) {
     box.innerHTML = '';
@@ -2052,9 +2518,9 @@ var APP_VER = 'v55';
       if (ex.length) {
         var lb = document.createElement('div'); lb.className = 'label'; lb.textContent = 'Spese'; day.appendChild(lb);
         var bx = document.createElement('div'); day.appendChild(bx); fillExpenses(bx, ex);
-        var tot = ex.reduce(function (a, z) { return a + z.usd; }, 0), tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = usd(tot); day.appendChild(tl);
+        var tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = sumLabel(ex); day.appendChild(tl);
       }
-      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; go0('dia'); }; day.appendChild(go);
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; diaJump = true; go0('dia'); }; day.appendChild(go);
       inn.appendChild(day);
     });
     host.appendChild(sh);
@@ -2070,14 +2536,20 @@ var APP_VER = 'v55';
   }
   function groupMarker(layer, g, color, build, sheet) {
     var n = g.items.length, ll = [g.la, g.lo], m;
-    if (n === 1) m = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
-    else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn" style="background:' + color + '">' + n + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
+    var shake = !!(mapFocus && g.items.some(function (p) { return p.x && p.x.id === mapFocus.id; }));       // il punto della spesa scelta nel Registro trema
+    if (layer && layer.apple) {                          // mappa Apple (app iOS): il punto lo disegna la pagina nel riquadro, il tocco torna qui
+      var id = 'p' + layer.pts.length; layer.pts.push({ id: id, la: g.la, lo: g.lo, color: color, text: n > 1 ? String(n) : '', shake: shake });
+      layer.tap[id] = function () { if (sheet) sheet(g); else amPop(build(g)); };
+      return null;
+    }
+    if (n === 1 && !shake) m = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
+    else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn' + (shake ? ' shake' : '') + '" style="background:' + color + '">' + (n > 1 ? n : '') + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
     m.on('click', function () { if (sheet) { sheet(g); return; } m.bindPopup(build(g), { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup(); });
     return m;
   }
 
   /* ---------- album foto condiviso ---------- */
-  var albUnsub = null, albRemote = [], albLast = null, albUrls = [];
+  var albUnsub = null, albRemote = [], albLast = null, albUrls = [], albSel = null;      /* albSel: null = elenco album, 'matteo'/'leslie'/'leo' = un album, '*' = tutte */
   function resizeJpeg(file, max, q) {
     return new Promise(function (res, rej) {
       var u = URL.createObjectURL(file), im = new Image();
@@ -2121,11 +2593,11 @@ var APP_VER = 'v55';
       }, Promise.resolve());
     }).then(function () {
       $('alHint').textContent = 'Foto salvata. Parte nell\'album comune appena c\'è rete.';
-      $('alSaveRoll').hidden = !albLast; renderAlbum();
+      $('alSaveRoll').hidden = !albLast || (!!natPlugin('TexasPhotos') && st.rollAuto !== false); renderAlbum();
     }, function () { $('alHint').textContent = 'Non riesco a leggere questa foto.'; });
   }
   function openAlbum() {
-    renderAlbum();
+    albSel = null; renderAlbum();
     if (albUnsub) { albUnsub(); albUnsub = null; }
     fbReady().then(function (d) {
       albUnsub = d.collection('trips').doc(st.trip).collection('album').orderBy('ts', 'desc').limit(200).onSnapshot(function (snap) {
@@ -2144,17 +2616,35 @@ var APP_VER = 'v55';
     Promise.all(locals.map(function (a) { return getPhoto('albt_' + a.id).then(function (b) { if (!b) return null; var u = URL.createObjectURL(b); albUrls.push(u); return { id: a.id, user: a.user, ts: a.ts, loc: a.loc, thumbUrl: u, pending: !a.up }; }); })).then(function (ls) {
       ls.forEach(function (x) { if (x) items.push(x); });
       items.sort(function (a, b) { return b.ts - a.ts; });
-      items.forEach(function (x, ix) {
+      var AL = [['matteo', 'Matteo', '#0a84ff'], ['leslie', 'Leslie', '#ec4899'], ['leo', 'Leo', '#34c759']], key = function (u) { return String(u || '').trim().toLowerCase(); };
+      $('alAlbums').hidden = albSel !== null; $('alDetail').hidden = albSel === null;
+      if (albSel === null) {
+        var tiles = $('alTiles'); tiles.innerHTML = '';
+        AL.concat([['*', 'Tutte le foto', '#8e8e93']]).forEach(function (a) {
+          var mine = a[0] === '*' ? items : items.filter(function (x) { return key(x.user) === a[0]; }), b = document.createElement('button'); b.type = 'button'; b.className = 'albtile';
+          var cov = document.createElement('span'); cov.className = 'albcov';
+          if (mine.length) { var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = mine[0].thumbUrl || mine[0].thumb; cov.appendChild(im); }
+          else { cov.textContent = a[1].charAt(0); cov.style.color = a[2]; cov.style.background = 'color-mix(in srgb, ' + a[2] + ' 16%, var(--card))'; cov.classList.add('empty0'); }
+          var n = document.createElement('span'); n.className = 'albname'; n.textContent = a[1];
+          var c = document.createElement('span'); c.className = 'albcnt'; c.textContent = mine.length + (mine.length === 1 ? ' foto' : ' foto');
+          b.appendChild(cov); b.appendChild(n); b.appendChild(c); b.onclick = function () { albSel = a[0]; renderAlbum(); window.scrollTo(0, 0); }; tiles.appendChild(b);
+        });
+        return;
+      }
+      var shown = albSel === '*' ? items : items.filter(function (x) { return key(x.user) === albSel; });
+      $('alTitle').textContent = albSel === '*' ? 'Tutte le foto' : (AL.filter(function (a) { return a[0] === albSel; })[0] || [0, albSel])[1];
+      $('alGrid').classList.toggle('solo', albSel !== '*');
+      shown.forEach(function (x, ix) {
         var b = document.createElement('button'); b.type = 'button'; b.className = 'atile'; b.setAttribute('aria-label', 'Foto di ' + (x.user || ''));
-        var im = document.createElement('img'); im.alt = ''; im.src = x.thumbUrl || x.thumb; b.appendChild(im);
+        var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.loading = 'lazy'; im.src = x.thumbUrl || x.thumb; b.appendChild(im);
         var t = document.createElement('span'); t.className = 'atag'; t.textContent = x.user || '?'; b.appendChild(t);
         if (x.pending) { var p = document.createElement('span'); p.className = 'apend'; p.textContent = 'in coda'; b.appendChild(p); }
-        b.onclick = function () { viewAlbumPhoto(items.slice(), ix); }; grid.appendChild(b);
+        b.onclick = function () { viewAlbumPhoto(shown.slice(), ix); }; grid.appendChild(b);
       });
-      var users = {}; items.forEach(function (x) { users[x.user] = 1; });
-      $('alCount').textContent = items.length ? items.length + (items.length === 1 ? ' foto' : ' foto') + ' · ' + Object.keys(users).length + (Object.keys(users).length === 1 ? ' persona' : ' persone') : 'Ancora nessuna foto.';
+      $('alCount').textContent = shown.length ? shown.length + ' foto' : 'Ancora nessuna foto.';
     });
   }
+  $('alBack').onclick = function () { albSel = null; renderAlbum(); window.scrollTo(0, 0); };
   function viewAlbumPhoto(list, idx) {
     var host = $('viewerHost'), v = document.createElement('div'), mini = null, cur = -1, gen = 0, busy = false;
     v.className = 'viewer alb'; v.style.overflowY = 'auto'; v.style.justifyContent = 'flex-start';
@@ -2201,10 +2691,11 @@ var APP_VER = 'v55';
         var md = document.createElement('div'); md.className = 'vmap'; box.appendChild(md);
         var link = document.createElement('a'); link.className = 'vmaplink'; link.target = '_blank'; link.rel = 'noopener'; link.setAttribute('aria-label', 'Apri in Mappe');
         link.href = 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + encodeURIComponent('Foto di ' + (x.user || '')); md.appendChild(link);
-        if (!window.L) { md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; link.textContent = 'La mappa non si è caricata: tocca per aprire Mappe'; }
+        if (!window.L && !amWanted()) { md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; link.textContent = 'La mappa non si è caricata: tocca per aprire Mappe'; }
         else {
           var build = function () {
             if (my !== gen) return;
+            if (amBox(md, [{ id: 'p0', la: x.loc.la, lo: x.loc.lo, color: '#d6246e' }], { fixed: true, span: 0.012, before: link }, build)) return;
             try {
               if (mini) { mini.remove(); mini = null; }
               mini = L.map(md, { zoomControl: false, attributionControl: true, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false }).setView([x.loc.la, x.loc.lo], 15);
@@ -2247,7 +2738,12 @@ var APP_VER = 'v55';
   }
   $('alCam').onclick = function () { $('alCamFile').value = ''; $('alCamFile').click(); };
   $('alLib').onclick = function () { $('alLibFile').value = ''; $('alLibFile').click(); };
-  $('alCamFile').addEventListener('change', function () { addAlbumFiles($('alCamFile').files); });
+  /* app iOS: le foto scattate con la fotocamera finiscono anche nel rullino, con un solo gesto (plugin TexasPhotos) */
+  function rollSave(files) {
+    var P = natPlugin('TexasPhotos'); if (!P || st.rollAuto === false || !files || !files.length) return;
+    [].slice.call(files).forEach(function (fl) { blobToData(fl).then(function (u) { return u ? P.saveImage({ base64: u }) : null; }).then(function (r) { if (r) toast('Foto salvata anche nel rullino'); }, function () { toast('Rullino: serve il permesso in Impostazioni di iOS'); }); });
+  }
+  $('alCamFile').addEventListener('change', function () { rollSave($('alCamFile').files); addAlbumFiles($('alCamFile').files); });
   $('alLibFile').addEventListener('change', function () { addAlbumFiles($('alLibFile').files); });
   $('alSaveRoll').onclick = function () { if (albLast) sharePhoto(albLast.blob); };
 
@@ -2255,6 +2751,13 @@ var APP_VER = 'v55';
   var lastFix = null;
   function freshFix() { return lastFix && Date.now() - lastFix.ts < 5 * 60 * 1000 ? { la: lastFix.la, lo: lastFix.lo, ac: lastFix.ac } : null; }
   function getFix(maxWait) {
+    var G = natPlugin('Geolocation');
+    if (G) return new Promise(function (res) {            // app iOS: posizione nativa, senza il secondo avviso "localhost vuole usare la posizione"
+      var done = false, end = function () { if (!done) { done = true; clearTimeout(to); res(freshFix()); } }, to = setTimeout(end, maxWait + 500);
+      G.getCurrentPosition({ enableHighAccuracy: true, timeout: maxWait, maximumAge: 120000 }).then(function (p) {
+        lastFix = { la: Math.round(p.coords.latitude * 1e5) / 1e5, lo: Math.round(p.coords.longitude * 1e5) / 1e5, ac: Math.round(p.coords.accuracy || 0), ts: Date.now() };
+      }, function () {}).then(end);
+    });
     return new Promise(function (res) {
       if (!navigator.geolocation) { res(null); return; }
       var done = false, to = setTimeout(function () { if (!done) { done = true; res(freshFix()); } }, maxWait + 500);
@@ -2268,9 +2771,15 @@ var APP_VER = 'v55';
   }
   /* ---------- mappa unica: programma, spese, foto e diario, tutto il viaggio o un giorno solo ---------- */
   var MAP_KINDS = [['prog', 'Programma', '#1a7fc4'], ['exp', 'Spese', '#d70015'], ['pho', 'Foto', '#d6246e'], ['dia', 'Diario', '#e07b00']];
-  var map = null, mapLayer = null, mapSel = { prog: true, exp: true, pho: true, dia: true }, mapDay = '', mapFrom = '', mapUrls = [];
+  var map = null, mapLayer = null, mapSel = { prog: true, exp: true, pho: true, dia: true }, mapDay = '', mapFrom = '', mapUrls = [], mapFocus = null;
+  /* dal Registro: tocchi una spesa e la mappa si apre su quel punto, che trema */
+  function openMapAt(e) {
+    if (!e.loc || e.loc.la == null) { toast('Questa spesa non ha una posizione'); return; }
+    mapFrom = 'log'; mapDay = ''; mapSel = { exp: true }; mapFocus = { id: e.id, la: e.loc.la, lo: e.loc.lo };
+    go('map');
+  }
   function openMap(from) {                               // dalla home: tutto; dal Programma: solo le tappe
-    mapFrom = from || ''; mapDay = '';
+    mapFrom = from || ''; mapDay = ''; mapFocus = null;
     mapSel = from === 'cal' ? { prog: true } : { prog: true, exp: true, pho: true, dia: true };
     go('map');
   }
@@ -2285,12 +2794,68 @@ var APP_VER = 'v55';
   }
   function mapPop() { var pop = document.createElement('div'); pop.className = 'pop'; var sc = document.createElement('div'); sc.className = 'scroll'; pop.appendChild(sc); return pop; }
   function mapRow(sc, title, sub) { var it = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div'); it.className = 'it'; t.textContent = title; d.textContent = sub; it.appendChild(t); it.appendChild(d); sc.appendChild(it); return it; }
+  /* Mappa Apple dentro l'app iOS: una pagina del sito (l'unico indirizzo da cui Apple accetta il token) mostrata in un riquadro.
+     Se non si carica entro pochi secondi si torna a OpenStreetMap. Nella PWA non si usa mai. */
+  var AM_URL = 'https://tarragona2026.github.io/texas-cash/mappa-apple.html?v=4', AM_ORIGIN = 'https://tarragona2026.github.io';
+  var am = { frame: null, ready: false, failed: false, timer: null, last: null, tap: {} };
+  function amWanted() { try { return !am.failed && !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) && navigator.onLine !== false; } catch (e) { return false; } }
+  function amFail() {
+    if (am.failed) return; am.failed = true; clearTimeout(am.timer);
+    if (am.frame && am.frame.parentNode) am.frame.parentNode.removeChild(am.frame); am.frame = null; amPop(null);
+    var bx = amBoxes; amBoxes = [];
+    bx.forEach(function (o) { clearTimeout(o.timer); if (o.frame.parentNode) o.frame.parentNode.removeChild(o.frame); o.box._am = null; amPop(null, o.box); });
+    bx.forEach(function (o) { try { if (o.onFail && document.body.contains(o.box)) o.onFail(); } catch (e) {} });
+    if (hashView() === 'map') renderMap();
+  }
+  /* mappe piccole (foto, Dove sono i miei): stesso riquadro Apple dentro `box`; restituisce false se va usato OpenStreetMap */
+  var amBoxes = [];
+  function amBox(box, pts, opts, onFail) {
+    if (!amWanted()) return false;
+    opts = opts || {};
+    var o = box._am;
+    if (!o) {
+      amBoxes = amBoxes.filter(function (z) { return document.body.contains(z.box); });
+      o = box._am = { box: box, frame: document.createElement('iframe'), ready: false, last: null, tap: null, onFail: onFail, timer: null };
+      o.frame.title = 'Mappa'; o.frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0'; o.frame.onerror = amFail; o.frame.src = AM_URL;
+      if (opts.before) box.insertBefore(o.frame, opts.before); else box.appendChild(o.frame);
+      o.timer = setTimeout(function () { if (!o.ready) amFail(); }, 9000); amBoxes.push(o);
+    }
+    o.onFail = onFail; o.tap = opts.tap || null; amPop(null, box);
+    o.last = { src: 'app', t: 'set', pts: pts, fixed: !!opts.fixed, span: opts.span || 0 };
+    if (o.ready) o.frame.contentWindow.postMessage(o.last, AM_ORIGIN);
+    return true;
+  }
+  function amPost() { if (am.frame && am.ready && am.last) am.frame.contentWindow.postMessage(am.last, AM_ORIGIN); }
+  function amPop(node, box) {
+    box = box || $('mapbox');
+    var old = box.querySelector('.ampop'); if (old) old.parentNode.removeChild(old);
+    if (!node) return;
+    var w = document.createElement('div'), x = document.createElement('button'); w.className = 'ampop';
+    w.style.cssText = 'position:absolute;left:10px;right:10px;bottom:10px;z-index:5;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.3)';
+    x.type = 'button'; x.textContent = 'Chiudi'; x.style.cssText = 'float:right;margin:0 0 6px 10px;background:#e5e5ea;color:#1c1c1e';
+    node.style.maxWidth = 'none'; node.insertBefore(x, node.firstChild); x.onclick = function () { amPop(null, box); };
+    w.appendChild(node); box.appendChild(w);
+  }
+  window.addEventListener('message', function (ev) {
+    var d = ev.data; if (ev.origin !== AM_ORIGIN || !d || d.src !== 'amap') return;
+    var o = amBoxes.filter(function (z) { return z.frame.contentWindow === ev.source; })[0];
+    if (o) {
+      if (d.t === 'ready') { o.ready = true; clearTimeout(o.timer); if (o.last) o.frame.contentWindow.postMessage(o.last, AM_ORIGIN); }
+      else if (d.t === 'err') amFail();
+      else if (d.t === 'tap' && o.tap) o.tap(d.id);
+      return;
+    }
+    if (!am.frame || ev.source !== am.frame.contentWindow) return;
+    if (d.t === 'ready') { am.ready = true; clearTimeout(am.timer); amPost(); }
+    else if (d.t === 'err') amFail();
+    else if (d.t === 'tap' && am.tap[d.id]) am.tap[d.id]();
+  });
   function renderMap() {
     var info = $('mapInfo'), box = $('mapbox'), data = mapData(), kinds = $('mapKinds'), daysBox = $('mapDays'), dd = {};
     /* filtri: cosa mostrare */
     kinds.innerHTML = '';
     MAP_KINDS.forEach(function (K) {
-      var b = document.createElement('button'), dot = document.createElement('span'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:1 1 40%;padding:0 8px';
+      var b = document.createElement('button'), dot = document.createElement('span'); b.type = 'button'; b.className = 'chip'; b.style.setProperty('--k', K[2]);
       dot.className = 'kdot'; dot.style.background = K[2]; b.appendChild(dot); b.appendChild(document.createTextNode(K[1]));
       b.setAttribute('aria-pressed', String(!!mapSel[K[0]])); b.onclick = function () { mapSel[K[0]] = !mapSel[K[0]]; renderMap(); }; kinds.appendChild(b);
     });
@@ -2302,21 +2867,29 @@ var APP_VER = 'v55';
     var cur = null; Object.keys(dd).sort().forEach(function (d) { var p = d.split('-'), b = dayChip(Number(p[2]) + '/' + Number(p[1]), d); if (d === mapDay) cur = b; });
     if (cur) daysBox.scrollLeft = Math.max(0, cur.offsetLeft - daysBox.clientWidth / 2 + cur.offsetWidth / 2);
 
-    if (!window.L) { box.hidden = true; $('calFindAll').hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    var apple = amWanted() && !map, aLayer = null;
+    if (!apple && !window.L) { box.hidden = true; $('calFindAll').hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
     box.hidden = false;
-    if (!map) {
+    if (apple) {
+      if (!am.frame) {
+        am.frame = document.createElement('iframe'); am.frame.title = 'Mappa'; am.frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0';
+        am.frame.onerror = amFail; am.frame.src = AM_URL; box.appendChild(am.frame);
+        am.timer = setTimeout(function () { if (!am.ready) amFail(); }, 9000);
+      }
+      amPop(null); aLayer = { apple: true, pts: [], tap: {} };
+    } else if (!map) {
       map = L.map(box, { zoomControl: true, attributionControl: true }).setView([29.76, -95.37], 9);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
       mapLayer = L.layerGroup().addTo(map);
     }
-    mapLayer.clearLayers(); mapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); mapUrls = [];
+    if (!apple) mapLayer.clearLayers(); mapUrls.forEach(function (u) { URL.revokeObjectURL(u); }); mapUrls = [];
     var bounds = [], parts = [];
     function pick(kind) { return mapSel[kind] ? data[kind].filter(function (p) { return !mapDay || p.day === mapDay; }) : []; }
     function locOf(p) { return { la: p.loc.la, lo: p.loc.lo }; }
     function draw(kind, radius, color, build, sheet) {
       var list = pick(kind); if (!mapSel[kind]) return;
       var K = MAP_KINDS.filter(function (z) { return z[0] === kind; })[0]; parts.push(K[1] + ' ' + list.length);
-      clusterByPlace(list, locOf, radius).forEach(function (g) { bounds.push([g.la, g.lo]); groupMarker(mapLayer, g, typeof color === 'function' ? color(g) : color, build, sheet); });
+      clusterByPlace(list, locOf, radius).forEach(function (g) { bounds.push([g.la, g.lo]); groupMarker(apple ? aLayer : mapLayer, g, typeof color === 'function' ? color(g) : color, build, sheet); });
     }
     draw('prog', 80, '#1a7fc4', function (g) {
       var pop = mapPop();
@@ -2325,7 +2898,7 @@ var APP_VER = 'v55';
     });
     draw('exp', 40, function (g) { return g.items.length === 1 ? (CAT_COLORS[g.items[0].x.cat] || '#d70015') : '#d70015'; }, function (g) {
       var pop = mapPop();
-      g.items.slice().sort(function (a, b) { return b.x.ts - a.x.ts; }).forEach(function (p) { var e = p.x, it = mapRow(pop.firstChild, usd(e.usd) + ' · ' + e.cat, (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts)), b = document.createElement('button'); b.type = 'button'; b.textContent = 'Apri'; b.style.marginTop = '4px'; b.onclick = function () { logFocus = e.id; logTab = 'spese'; go('log'); }; it.appendChild(b); });
+      g.items.slice().sort(function (a, b) { return b.x.ts - a.x.ts; }).forEach(function (p) { var e = p.x, it = mapRow(pop.firstChild, money(e) + ' · ' + e.cat, (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts)), b = document.createElement('button'); b.type = 'button'; b.textContent = 'Apri'; b.style.marginTop = '4px'; b.onclick = function () { logFocus = e.id; logTab = 'spese'; go('log'); }; it.appendChild(b); });
       return pop;
     });
     draw('pho', 40, '#d6246e', function (g) {
@@ -2339,20 +2912,39 @@ var APP_VER = 'v55';
     info.textContent = (mapDay ? calDayLabel(mapDay) : 'Tutto il viaggio') + ' · ' + (parts.length ? parts.join(' · ') : 'scegli in alto cosa vedere') + '.'
       + (parts.length && !bounds.length ? ' Nessun punto da mostrare.' : '') + (bounds.length ? ' Tocca un punto per i dettagli.' : '')
       + (missing ? ' ' + missing + (missing === 1 ? ' luogo del programma non è ancora sulla mappa.' : ' luoghi del programma non sono ancora sulla mappa.') : '');
+    if (apple) { am.tap = aLayer.tap; am.last = { src: 'app', t: 'set', pts: aLayer.pts }; if (mapFocus) {
+        am.last.center = { la: mapFocus.la, lo: mapFocus.lo }; am.last.span = 0.012;
+        var fcs = mapFocus; clearTimeout(am.shakeT);
+        am.shakeT = setTimeout(function () {            // il punto trema per un secondo, poi si ferma
+          if (mapFocus !== fcs) return;
+          am.last = { src: 'app', t: 'set', fit: false, pts: aLayer.pts.map(function (q) { return Object.assign({}, q, { shake: false }); }) }; amPost();
+        }, 1100);
+      }
+      amPost(); return; }
     setTimeout(function () {
       map.invalidateSize();
-      if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      if (mapFocus) map.setView([mapFocus.la, mapFocus.lo], 16); else if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }, 50);
   }
 
   /* ---------- sfondo ---------- */
   var DEFAULT_BG = 'img/bandiera-usa.svg', bgUrl = null;
   function setBg(url) { $('bgimg').style.backgroundImage = 'url("' + url + '")'; $('bgPrev').style.backgroundImage = 'url("' + url + '")'; }
+  /* st.bgMode: 'plain' (grigio di iOS, predefinito), 'flag' (bandiera USA), 'photo' (foto scelta dal rullino) */
   function loadBg() {
-    getPhoto('bg').then(function (b) {
-      if (bgUrl) { URL.revokeObjectURL(bgUrl); bgUrl = null; }
-      if (b) { bgUrl = URL.createObjectURL(b); setBg(bgUrl); } else setBg(DEFAULT_BG);
-    });
+    var mode = st.bgMode || 'plain';
+    document.querySelectorAll('#bgPlain, #bgReset, #bgPick').forEach(function (b) { b.style.outline = ''; });
+    function mark(id) { $(id).style.outline = '2px solid var(--accent)'; }
+    if (bgUrl) { URL.revokeObjectURL(bgUrl); bgUrl = null; }
+    if (mode === 'flag') { setBg(DEFAULT_BG); document.body.classList.add('hasbg'); mark('bgReset'); return; }
+    if (mode === 'photo') {
+      getPhoto('bg').then(function (b) {
+        if (b) { bgUrl = URL.createObjectURL(b); setBg(bgUrl); document.body.classList.add('hasbg'); mark('bgPick'); }
+        else { st.bgMode = 'plain'; document.body.classList.remove('hasbg'); $('bgPrev').style.backgroundImage = 'none'; mark('bgPlain'); }
+      });
+      return;
+    }
+    document.body.classList.remove('hasbg'); $('bgPrev').style.backgroundImage = 'none'; mark('bgPlain');
   }
   function shrinkImage(file, max) {
     return new Promise(function (res, rej) {
@@ -2370,10 +2962,125 @@ var APP_VER = 'v55';
   $('bgPick').onclick = function () { $('bgFile').value = ''; $('bgFile').click(); };
   $('bgFile').addEventListener('change', function () {
     var fl = $('bgFile').files[0]; if (!fl) return;
-    shrinkImage(fl, 1600).then(function (b) { return putPhoto('bg', b); }).then(function () { loadBg(); toast('Sfondo cambiato'); })
+    shrinkImage(fl, 1600).then(function (b) { return putPhoto('bg', b); }).then(function () { st.bgMode = 'photo'; persist(); loadBg(); toast('Sfondo cambiato'); })
       .catch(function () { toast('Non riesco a leggere questa immagine'); });
   });
-  $('bgReset').onclick = function () { delPhoto('bg').then(function () { loadBg(); toast('Bandiera USA ripristinata'); }); };
+  $('bgReset').onclick = function () { st.bgMode = 'flag'; persist(); loadBg(); toast('Sfondo: bandiera USA'); };
+  $('bgPlain').onclick = function () { st.bgMode = 'plain'; persist(); loadBg(); toast('Sfondo: grigio iOS'); };
+
+  /* ---------- notifiche locali (solo app iOS): programma di domani e promemoria checklist ----------
+     Le prepara il telefono in anticipo e le ricalcola a ogni apertura e a ogni modifica. Niente server, niente rete. */
+  var NT_HOUR = 20, NT_CHK = [[2026, 12, 12], [2026, 12, 17], [2026, 12, 20], [2026, 12, 21]], NT_CHK_HOUR = 18, ntTimer = null, ntBusy = false, ntAgain = false;
+  function ntSoon() { if (!st.notifOn || !natPlugin('LocalNotifications')) return; clearTimeout(ntTimer); ntTimer = setTimeout(ntPlan, 2500); }
+  function ntList() {
+    var out = [], now = Date.now();
+    CAL_DAYS.forEach(function (day, i) {                 // la sera prima di ogni giorno del viaggio
+      var items = calItems(day); if (!items.length) return;
+      var p = day.split('-'), eve = new Date(+p[0], +p[1] - 1, +p[2] - 1, NT_HOUR, 0, 0);
+      if (eve.getTime() <= now) return;
+      var body = items.slice(0, 4).map(function (x) { return (x.time ? x.time + ' ' : '') + x.title; }).join(' · ') + (items.length > 4 ? ' · e altre ' + (items.length - 4) : '');
+      out.push({ id: 1000 + i, title: 'Domani · ' + calDayLabel(day), body: body, schedule: { on: { year: eve.getFullYear(), month: eve.getMonth() + 1, day: eve.getDate(), hour: NT_HOUR, minute: 0, second: 0 }, allowWhileIdle: true } });
+    });
+    if (st.user) {
+      var m = chkMine(), left = m.tot - m.done;
+      if (left > 0) NT_CHK.forEach(function (d, i) {
+        var when = new Date(d[0], d[1] - 1, d[2], NT_CHK_HOUR, 0, 0); if (when.getTime() <= now) return;
+        var days = Math.round((CHK_DEPART - new Date(d[0], d[1] - 1, d[2]).getTime()) / 86400000);
+        out.push({ id: 2000 + i, title: 'Checklist di viaggio', body: (left === 1 ? 'Ti manca ancora 1 voce' : 'Ti mancano ancora ' + left + ' voci') + (days === 1 ? ': si parte domani.' : ': mancano ' + days + ' giorni alla partenza.'),
+          schedule: { on: { year: d[0], month: d[1], day: d[2], hour: NT_CHK_HOUR, minute: 0, second: 0 }, allowWhileIdle: true } });
+      });
+    }
+    return out;
+  }
+  function ntIds() { var a = []; CAL_DAYS.forEach(function (d, i) { a.push({ id: 1000 + i }); }); NT_CHK.forEach(function (d, i) { a.push({ id: 2000 + i }); }); return a; }
+  function ntPlan() {
+    var N = natPlugin('LocalNotifications'); if (!N) return Promise.resolve(0);
+    if (ntBusy) { ntAgain = true; return Promise.resolve(0); }
+    ntBusy = true;
+    var list = st.notifOn ? ntList() : [];
+    return N.cancel({ notifications: ntIds() }).catch(function () {}).then(function () { return list.length ? N.schedule({ notifications: list }) : null; })
+      .then(function () { st.notifN = list.length; }, function () { st.notifN = -1; })
+      .then(function () { ntBusy = false; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} ntInfo(); if (ntAgain) { ntAgain = false; ntSoon(); } return list.length; });
+  }
+  function ntInfo() {
+    var N = natPlugin('LocalNotifications'), card = $('ntCard'); if (!card) return;
+    card.hidden = !N; if (!N) return;
+    $('ntToggle').textContent = st.notifOn ? 'Spegni le notifiche' : 'Attiva le notifiche'; $('ntToggle').className = st.notifOn ? 'btn ghost' : 'btn';
+    $('ntTest').hidden = !st.notifOn;
+    $('ntInfo').textContent = !st.notifOn ? 'Spente.' : st.notifN < 0 ? 'Non riesco a programmare gli avvisi: riprova.' : st.notifN ? 'Attive · ' + st.notifN + (st.notifN === 1 ? ' avviso programmato.' : ' avvisi programmati.') : 'Attive · nessun avviso da programmare per ora.';
+  }
+  $('ntToggle').onclick = function () {
+    var N = natPlugin('LocalNotifications'); if (!N) return;
+    if (st.notifOn) { st.notifOn = false; ntPlan(); pnRegister(); toast('Notifiche spente'); return; }
+    N.requestPermissions().then(function (r) {
+      if (!r || r.display !== 'granted') { toast('Permesso negato: attivalo in Impostazioni di iPhone → Notifiche'); $('ntInfo').textContent = 'L\'iPhone non permette le notifiche a questa app. Aprile da Impostazioni di iPhone → Notifiche → Xmas Texa$.'; return; }
+      st.notifOn = true; pnRegister(); ntPlan().then(function (n) { toast(n ? 'Notifiche attive' : 'Notifiche attive: per ora niente da avvisare'); });
+    }, function () { toast('Non riesco a chiedere il permesso'); });
+  };
+  $('ntTest').onclick = function () {
+    var N = natPlugin('LocalNotifications'); if (!N) return;
+    N.schedule({ notifications: [{ id: 2999, title: 'Xmas in Texa$', body: 'Avviso di prova: le notifiche funzionano.', schedule: { at: new Date(Date.now() + 6000), allowWhileIdle: true } }] })
+      .then(function () { toast('Arriva tra qualche secondo: puoi anche chiudere l\'app'); }, function () { toast('Non riesco a mandare l\'avviso di prova'); });
+    /* seconda prova, da fuori: il servizio su Cloudflare chiede ad Apple di avvisare questo stesso telefono (la strada degli avvisi sugli acquisti) */
+    var H = natPlugin('CapacitorHttp'), url = (window.PUSH_CONFIG || {}).apns, out = $('ntBuy');
+    if (!H || !url) return;
+    if (!st.pushTok) { out.textContent = 'Avvisi sugli acquisti: questo telefono non ha ancora ricevuto il suo codice da Apple. Chiudi e riapri l\'app, poi riprova.'; return; }
+    out.textContent = 'Avvisi sugli acquisti: prova in corso…';
+    setTimeout(function () {
+      H.request({ url: url, method: 'POST', connectTimeout: 12000, readTimeout: 12000, headers: { 'Content-Type': 'application/json' },
+        data: { tokens: [st.pushTok], msg: { title: 'Xmas in Texa$', body: 'Seconda prova: gli avvisi sugli acquisti funzionano.', kind: 'prova' } } }).then(function (r) {
+        var d = r && r.data ? (typeof r.data === 'string' ? JSON.parse(r.data) : r.data) : {}, x = (d.results || [])[0] || {};
+        out.textContent = x.status === 200 ? 'Avvisi sugli acquisti: Apple ha accettato la prova (' + (x.host || '') + '). Deve arrivare un secondo avviso.'
+          : 'Avvisi sugli acquisti: la prova non è riuscita (' + (x.reason || x.error || d.error || ('errore ' + (r && r.status))) + ').';
+      }, function () { out.textContent = 'Avvisi sugli acquisti: non riesco a raggiungere il servizio. Serve la rete.'; });
+    }, 9000);
+  };
+  /* ---------- notifica degli acquisti (solo app iOS) ----------
+     Ogni telefono con le notifiche attive salva il suo codice Apple in trips/{codice}/push/{nome}. Quando qualcuno salva una spesa,
+     la sua app chiede al servizio su Cloudflare di avvisare gli altri. Regola di Matteo: Leo non riceve questi avvisi (le sue spese pero' avvisano gli altri). */
+  var PN_NOT = ['leo'], pnReady = false;
+  function pnMe() { return st.user ? chkMe() : ''; }
+  function pnSave() {
+    var me = pnMe(); if (!me || !st.trip) return;
+    var want = !!(st.notifOn && st.pushTok && PN_NOT.indexOf(me) < 0), sig = want ? st.pushTok + '|' + st.trip + '|' + me : '';
+    if ((st.pushSaved || '') === sig) return;
+    fbReady().then(function (d) {
+      var ref = d.collection('trips').doc(st.trip).collection('push').doc(me);
+      return want ? ref.set({ token: st.pushTok, user: st.user, ts: Date.now() }) : ref.delete();
+    }).then(function () { st.pushSaved = sig; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }, function () {});
+  }
+  function pnRegister() {
+    var P = natPlugin('PushNotifications'); if (!P) return;
+    if (!pnReady) {
+      pnReady = true;
+      try {
+        P.addListener('registration', function (t) { if (t && t.value) { st.pushTok = String(t.value); pnSave(); } });
+        P.addListener('registrationError', function () {});
+      } catch (e) {}
+    }
+    if (!st.notifOn || PN_NOT.indexOf(pnMe()) >= 0) { pnSave(); return; }
+    P.checkPermissions().then(function (r) { if (r && r.receive === 'granted') return P.register(); }).catch(function () {});
+    pnSave();
+  }
+  function pnExpense(e) {
+    var H = natPlugin('CapacitorHttp'), url = (window.PUSH_CONFIG || {}).apns, me = pnMe();
+    if (!H || !url || !st.trip || !me || navigator.onLine === false) return;
+    fbReady().then(function (d) {
+      var col = d.collection('trips').doc(st.trip).collection('push');
+      return col.get().then(function (snap) {
+        var toks = [], ids = [];
+        snap.forEach(function (doc) { var x = doc.data() || {}; if (doc.id === me || PN_NOT.indexOf(doc.id) >= 0 || !x.token) return; toks.push(x.token); ids.push(doc.id); });
+        if (!toks.length) return;
+        var body = [e.cat, e.desc].filter(function (z) { return !!z; }).join(' · ') || 'Nuova spesa';
+        return H.request({ url: url, method: 'POST', connectTimeout: 12000, readTimeout: 12000, headers: { 'Content-Type': 'application/json' },
+          data: { tokens: toks, msg: { title: st.user + ' ha speso ' + money(e), body: body, kind: 'spesa' } } }).then(function (r) {
+          var res = r && r.data && (typeof r.data === 'string' ? JSON.parse(r.data) : r.data).results || [];
+          res.forEach(function (x, i) { if (x && (x.status === 410 || x.reason === 'BadDeviceToken' || x.reason === 'Unregistered')) col.doc(ids[i]).delete().catch(function () {}); });   // telefono che non esiste piu'
+        });
+      });
+    }).catch(function () {});
+  }
+  setTimeout(function () { try { ntInfo(); if (st.notifOn) ntPlan(); pnRegister(); } catch (e) {} }, 1500);
 
   /* ---------- sincronizzazione Firebase (il telefono carica, il Mac scarica) ---------- */
   var OLD_TRIP = 'texas2026', fbp = null, syncing = false, syncAgain = false, syncTimer = null, syncErr = '';
@@ -2692,6 +3399,7 @@ var APP_VER = 'v55';
     if (!open) {
       $('docLockT').textContent = setup ? 'Scegli un PIN per questa cartella' : 'Cartella protetta';
       $('docPin2').hidden = !setup; $('docForgot').hidden = setup;
+      var bio = !setup && !!dm.bio && !!natPlugin('NativeBiometric'); $('docBio').hidden = !bio; $('docBioOff').hidden = !bio; $('docUnlock').className = bio ? 'btn ghost' : 'btn';
       $('docUnlock').textContent = setup ? 'Crea PIN' : 'Apri';
       $('docLockHint').textContent = setup ? 'Almeno 4 cifre, e non lo stesso del telefono. Attenzione: se lo dimentichi le foto di questa cartella non si recuperano.' : 'Scrivi il tuo PIN per vedere carta d\'identità e passaporto.';
       return;
@@ -2715,13 +3423,33 @@ var APP_VER = 'v55';
       });
     });
   }
+  /* Face ID (solo app iOS): una comodita' in piu', il PIN resta valido. Il PIN viene custodito nel portachiavi dell'iPhone,
+     che lo restituisce solo dopo il riconoscimento del volto (o dell'impronta). Non esce mai dal telefono. */
+  var BIO_SRV = 'xmastexas.documenti';
+  function bioOffer(pin) {
+    var B = natPlugin('NativeBiometric'); if (!B || dm.bio || dm.bioNo) return;
+    B.isAvailable().then(function (r) {
+      if (!r || !r.isAvailable) return;
+      if (!confirm('Vuoi aprire questa cartella con Face ID le prossime volte?\n\nIl PIN resta valido e serve comunque ricordarlo.')) { dm.bioNo = 1; docMeta(); return; }
+      return B.setCredentials({ username: 'pin', password: pin, server: BIO_SRV, accessControl: 2 }).then(function () { dm.bio = 1; docMeta(); toast('Face ID attivato per questa cartella'); });
+    }).catch(function () {});
+  }
+  function bioForget() { var B = natPlugin('NativeBiometric'); delete dm.bio; delete dm.bioNo; docMeta(); if (B) B.deleteCredentials({ server: BIO_SRV }).catch(function () {}); }
+  $('docBio').onclick = function () {
+    var B = natPlugin('NativeBiometric'); if (!B) return;
+    B.getSecureCredentials({ server: BIO_SRV, reason: 'Apri la cartella Personali' }).then(function (c) { return pinCheck(String((c && c.password) || '')); }).then(function (k) {
+      if (!k) { bioForget(); renderDocP(); toast('Face ID non è più valido per questa cartella: usa il PIN'); return; }
+      dm.fail = 0; dm.wait = 0; docMeta(); docKey = k; renderDocP();
+    }, function () { toast('Face ID non riuscito: usa il PIN'); });
+  };
+  $('docBioOff').onclick = function () { bioForget(); renderDocP(); toast('Face ID tolto: la cartella si apre solo con il PIN'); };
   $('docUnlock').onclick = function () {
     if (!window.crypto || !crypto.subtle) { toast('Su questo telefono la cartella protetta non funziona'); return; }
     var p = $('docPin').value.trim();
     if (!pinOk(p)) return;
     if (!dm.pin) {
       if (p !== $('docPin2').value.trim()) { toast('I due PIN non sono uguali'); return; }
-      pinNew(p).then(function (r) { dm.pin = r.pin; dm.fail = 0; dm.wait = 0; docMeta(); docKey = r.key; $('docPin').value = ''; $('docPin2').value = ''; renderDocP(); toast('PIN creato'); });
+      pinNew(p).then(function (r) { dm.pin = r.pin; dm.fail = 0; dm.wait = 0; docMeta(); docKey = r.key; $('docPin').value = ''; $('docPin2').value = ''; renderDocP(); toast('PIN creato'); bioOffer(p); });
       return;
     }
     var w = (dm.wait || 0) - Date.now();
@@ -2729,13 +3457,13 @@ var APP_VER = 'v55';
     pinCheck(p).then(function (k) {
       $('docPin').value = '';
       if (!k) { dm.fail = (dm.fail || 0) + 1; if (dm.fail >= 5) dm.wait = Date.now() + 60000; docMeta(); toast('PIN sbagliato'); return; }
-      dm.fail = 0; dm.wait = 0; docMeta(); docKey = k; renderDocP();
+      dm.fail = 0; dm.wait = 0; docMeta(); docKey = k; renderDocP(); bioOffer(p);
     });
   };
   $('docPin').addEventListener('keydown', function (e) { if (e.key === 'Enter' && dm.pin) $('docUnlock').click(); });
   $('docForgot').onclick = function () {
     if (!confirm('Senza PIN le foto di questa cartella non si possono aprire.\n\nVuoi cancellarle tutte e scegliere un PIN nuovo?')) return;
-    docAll('p').then(function (l) { return docDelMany(l.map(function (x) { return x.id; })); }).then(function () { delete dm.pin; dm.fail = 0; dm.wait = 0; docMeta(); docLock(); renderDocP(); toast('Cartella svuotata: scegli un PIN nuovo'); });
+    docAll('p').then(function (l) { return docDelMany(l.map(function (x) { return x.id; })); }).then(function () { delete dm.pin; dm.fail = 0; dm.wait = 0; bioForget(); docMeta(); docLock(); renderDocP(); toast('Cartella svuotata: scegli un PIN nuovo'); });
   };
   $('docClose').onclick = function () { docLock(); renderDocP(); };
   $('docChPin').onclick = function () {
@@ -2885,6 +3613,9 @@ var APP_VER = 'v55';
       : (!src.length ? 'Gli altri non hanno ancora mandato la posizione. ' : '') + 'La posizione si aggiorna con "Sono qui" e quando si salva una spesa, una foto o il diario. Non è un tracciato continuo: vedi l\'ultimo punto e a che ora. Tocca un nome e Mappe ti porta da lui.'
         + (navigator.onLine === false ? ' Senza rete vedi le ultime posizioni ricevute.' : '');
     var mb = $('posMap');
+    if (list.length && !posMap && amBox(mb, list.map(function (p, i) { return { id: 'u' + i, la: p.la, lo: p.lo, color: p.col, text: p.name.charAt(0).toUpperCase() }; }),
+      { span: 0.03, tap: function (id) { var p = list[Number(id.slice(1))]; if (!p) return; var n = document.createElement('div'), b = document.createElement('b'); n.className = 'pop'; b.textContent = p.name + ' · ' + posAgo(p.ts); n.appendChild(b); amPop(n, mb); } },
+      function () { if (hashView() === 'pos') renderPos(); })) { mb.hidden = false; return; }
     if (!window.L || !list.length) { mb.hidden = true; return; }
     mb.hidden = false;
     if (!posMap) { posMap = L.map(mb).setView([29.76, -95.37], 9); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(posMap); posLayer = L.layerGroup().addTo(posMap); }
