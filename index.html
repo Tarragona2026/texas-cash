@@ -732,6 +732,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
       <div class="hint" id="ntInfo"></div>
       <button class="btn ghost" id="ntTest" type="button" hidden>Manda un avviso di prova</button>
       <div class="hint">Ogni sera alle 20 il programma del giorno dopo. Prima della partenza, un promemoria se nella tua checklist manca ancora qualcosa. Gli avvisi li prepara il telefono: non serve la rete.</div>
+      <div class="hint" id="ntBuy">Matteo e Leslie ricevono anche un avviso quando un altro salva una spesa (qui serve la rete).</div>
     </section>
     <section class="card" id="ctCard">
       <div class="label">Contatti per la chiamata rapida</div>
@@ -935,6 +936,7 @@ var APP_VER = 'v55';
   function addExpense(e) {
     var fx0 = e.loc ? null : freshFix(); if (fx0) e.loc = fx0;
     st.expenses.push(e); persist();
+    try { pnExpense(e); } catch (err) {}
     if (fx0) posSet(fx0);
     else getFix(8000).then(function (f) { if (f && !e.loc) { e.loc = f; persist(); } posSet(f); });
   }
@@ -2511,10 +2513,10 @@ var APP_VER = 'v55';
   }
   $('ntToggle').onclick = function () {
     var N = natPlugin('LocalNotifications'); if (!N) return;
-    if (st.notifOn) { st.notifOn = false; ntPlan(); toast('Notifiche spente'); return; }
+    if (st.notifOn) { st.notifOn = false; ntPlan(); pnRegister(); toast('Notifiche spente'); return; }
     N.requestPermissions().then(function (r) {
       if (!r || r.display !== 'granted') { toast('Permesso negato: attivalo in Impostazioni di iPhone → Notifiche'); $('ntInfo').textContent = 'L\'iPhone non permette le notifiche a questa app. Aprile da Impostazioni di iPhone → Notifiche → Xmas Texa$.'; return; }
-      st.notifOn = true; ntPlan().then(function (n) { toast(n ? 'Notifiche attive' : 'Notifiche attive: per ora niente da avvisare'); });
+      st.notifOn = true; pnRegister(); ntPlan().then(function (n) { toast(n ? 'Notifiche attive' : 'Notifiche attive: per ora niente da avvisare'); });
     }, function () { toast('Non riesco a chiedere il permesso'); });
   };
   $('ntTest').onclick = function () {
@@ -2522,7 +2524,52 @@ var APP_VER = 'v55';
     N.schedule({ notifications: [{ id: 2999, title: 'Xmas in Texa$', body: 'Avviso di prova: le notifiche funzionano.', schedule: { at: new Date(Date.now() + 6000), allowWhileIdle: true } }] })
       .then(function () { toast('Arriva tra qualche secondo: puoi anche chiudere l\'app'); }, function () { toast('Non riesco a mandare l\'avviso di prova'); });
   };
-  setTimeout(function () { try { ntInfo(); if (st.notifOn) ntPlan(); } catch (e) {} }, 1500);
+  /* ---------- notifica degli acquisti (solo app iOS) ----------
+     Ogni telefono con le notifiche attive salva il suo codice Apple in trips/{codice}/push/{nome}. Quando qualcuno salva una spesa,
+     la sua app chiede al servizio su Cloudflare di avvisare gli altri. Regola di Matteo: Leo non riceve questi avvisi (le sue spese pero' avvisano gli altri). */
+  var PN_NOT = ['leo'], pnReady = false;
+  function pnMe() { return st.user ? chkMe() : ''; }
+  function pnSave() {
+    var me = pnMe(); if (!me || !st.trip) return;
+    var want = !!(st.notifOn && st.pushTok && PN_NOT.indexOf(me) < 0), sig = want ? st.pushTok + '|' + st.trip + '|' + me : '';
+    if ((st.pushSaved || '') === sig) return;
+    fbReady().then(function (d) {
+      var ref = d.collection('trips').doc(st.trip).collection('push').doc(me);
+      return want ? ref.set({ token: st.pushTok, user: st.user, ts: Date.now() }) : ref.delete();
+    }).then(function () { st.pushSaved = sig; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }, function () {});
+  }
+  function pnRegister() {
+    var P = natPlugin('PushNotifications'); if (!P) return;
+    if (!pnReady) {
+      pnReady = true;
+      try {
+        P.addListener('registration', function (t) { if (t && t.value) { st.pushTok = String(t.value); pnSave(); } });
+        P.addListener('registrationError', function () {});
+      } catch (e) {}
+    }
+    if (!st.notifOn || PN_NOT.indexOf(pnMe()) >= 0) { pnSave(); return; }
+    P.checkPermissions().then(function (r) { if (r && r.receive === 'granted') return P.register(); }).catch(function () {});
+    pnSave();
+  }
+  function pnExpense(e) {
+    var H = natPlugin('CapacitorHttp'), url = (window.PUSH_CONFIG || {}).apns, me = pnMe();
+    if (!H || !url || !st.trip || !me || navigator.onLine === false) return;
+    fbReady().then(function (d) {
+      var col = d.collection('trips').doc(st.trip).collection('push');
+      return col.get().then(function (snap) {
+        var toks = [], ids = [];
+        snap.forEach(function (doc) { var x = doc.data() || {}; if (doc.id === me || PN_NOT.indexOf(doc.id) >= 0 || !x.token) return; toks.push(x.token); ids.push(doc.id); });
+        if (!toks.length) return;
+        var body = [e.cat, e.desc].filter(function (z) { return !!z; }).join(' · ') || 'Nuova spesa';
+        return H.request({ url: url, method: 'POST', connectTimeout: 12000, readTimeout: 12000, headers: { 'Content-Type': 'application/json' },
+          data: { tokens: toks, msg: { title: st.user + ' ha speso ' + usd(e.usd), body: body, kind: 'spesa' } } }).then(function (r) {
+          var res = r && r.data && (typeof r.data === 'string' ? JSON.parse(r.data) : r.data).results || [];
+          res.forEach(function (x, i) { if (x && (x.status === 410 || x.reason === 'BadDeviceToken' || x.reason === 'Unregistered')) col.doc(ids[i]).delete().catch(function () {}); });   // telefono che non esiste piu'
+        });
+      });
+    }).catch(function () {});
+  }
+  setTimeout(function () { try { ntInfo(); if (st.notifOn) ntPlan(); pnRegister(); } catch (e) {} }, 1500);
 
   /* ---------- sincronizzazione Firebase (il telefono carica, il Mac scarica) ---------- */
   var OLD_TRIP = 'texas2026', fbp = null, syncing = false, syncAgain = false, syncTimer = null, syncErr = '';

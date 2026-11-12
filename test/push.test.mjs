@@ -54,4 +54,29 @@ assert.ok(!hostAllowed('https://evil.example.com/x')); assert.ok(!hostAllowed('h
   const msg = JSON.parse(decrypt(p.ecdh, p.auth, Buffer.from(s0.opt.body))); assert.strictEqual(msg.body, 'Matteo chiede dove sei'); assert.strictEqual(msg.kind, 'pos'); assert.strictEqual(msg.title, 'Xmas in Texa$');
   globalThis.fetch = realFetch; ok('il servizio accetta solo la nostra app e consegna il messaggio cifrato'); }
 
+// 5. app iOS: richiesta ad Apple (APNs) con la rete finta
+{ const { apnsJwt } = await import('../cloudflare/worker.js');
+  const kp2 = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const der = Buffer.from(await crypto.subtle.exportKey('pkcs8', kp2.privateKey)).toString('base64');
+  const pem = '-----BEGIN PRIVATE KEY-----\n' + der.match(/.{1,64}/g).join('\n') + '\n-----END PRIVATE KEY-----\n';
+  const env = { APNS_KEY: pem, APNS_KEY_ID: 'ABC123DEFG', APNS_TEAM_ID: 'TEAM123456', APNS_TOPIC: 'com.example.app' };
+  const jwt = await apnsJwt(env, 1800000000), parts = jwt.split('.');
+  assert.deepStrictEqual(JSON.parse(Buffer.from(unb64u(parts[0])).toString()), { alg: 'ES256', kid: 'ABC123DEFG' });
+  assert.deepStrictEqual(JSON.parse(Buffer.from(unb64u(parts[1])).toString()), { iss: 'TEAM123456', iat: 1800000000 });
+  assert.ok(await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, kp2.publicKey, unb64u(parts[2]), new TextEncoder().encode(parts[0] + '.' + parts[1])));
+  const sent = [], realFetch = globalThis.fetch, T = 'a'.repeat(64), SB = 'b'.repeat(64), GONE = 'c'.repeat(64);
+  globalThis.fetch = async (url, opt) => { sent.push({ url, opt });
+    if (url.includes(GONE)) return new Response(JSON.stringify({ reason: 'Unregistered' }), { status: 410 });
+    if (url.includes(SB) && !url.includes('sandbox')) return new Response(JSON.stringify({ reason: 'BadDeviceToken' }), { status: 400 });
+    return new Response(null, { status: 200 }); };
+  const call = (body, e) => worker.fetch(new Request('https://x/apns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), e || env);
+  let r = await call({ tokens: [T], msg: { body: 'x' } }, {}); assert.strictEqual(r.status, 500);
+  r = await call({ tokens: [], msg: { body: 'x' } }); assert.strictEqual(r.status, 400);
+  r = await call({ tokens: [T, SB, GONE, 'non-valido'], msg: { title: 'Leslie ha speso', body: '$12,50 · Ristoranti', kind: 'spesa' } });
+  const j = await r.json(); assert.deepStrictEqual(j.results.map((x) => x.status), [200, 200, 410, 0]); assert.strictEqual(j.results[2].reason, 'Unregistered');
+  assert.strictEqual(sent.length, 4); assert.ok(sent.some((x) => x.url === 'https://api.push.apple.com/3/device/' + T)); assert.ok(sent.some((x) => x.url === 'https://api.sandbox.push.apple.com/3/device/' + SB));
+  assert.strictEqual(sent[0].opt.headers['apns-topic'], 'com.example.app'); assert.ok(/^bearer /.test(sent[0].opt.headers.authorization));
+  const pl = JSON.parse(sent[0].opt.body); assert.strictEqual(pl.aps.alert.title, 'Leslie ha speso'); assert.strictEqual(pl.aps.alert.body, '$12,50 · Ristoranti');
+  globalThis.fetch = realFetch; ok('app iOS: firma APNs valida, consegna e ripiego sull\'ambiente di prova'); }
+
 console.log('tutti i test passano (' + n + ')');

@@ -4,3 +4,8 @@ name = "texas-push"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 workers_dev = true
+
+# App iOS (APNs). La chiave .p8 e il suo ID NON stanno qui: `wrangler secret put APNS_KEY` e `wrangler secret put APNS_KEY_ID`.
+[vars]
+APNS_TEAM_ID = "39XBU532CT"
+APNS_TOPIC = "com.tarragona2026.xmastexas.prova"

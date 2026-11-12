@@ -67,6 +67,44 @@ async function sendOne(jwk, sub, plain) {
   } catch (e) { return { status: 0, error: String((e && e.message) || e).slice(0, 80) }; }
 }
 
+// ---- App iOS: notifiche tramite Apple (APNs). L'app manda i codici dei telefoni da avvisare e il testo;
+// qui si firma la richiesta con la chiave APNs (segreti APNS_KEY e APNS_KEY_ID) e la si consegna ad Apple. Niente viene conservato.
+const APNS_HOSTS = ['https://api.push.apple.com', 'https://api.sandbox.push.apple.com'];   // TestFlight e App Store usano il primo; le prove da Xcode il secondo
+let apnsCache = null;
+export async function apnsJwt(env, nowSec) {
+  if (apnsCache && apnsCache.kid === env.APNS_KEY_ID && nowSec - apnsCache.iat < 40 * 60) return apnsCache.jwt;   // Apple vuole che si riusi lo stesso per un po'
+  const pem = String(env.APNS_KEY || '').replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  const key = await crypto.subtle.importKey('pkcs8', unb64u(pem.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const head = b64u(enc.encode(JSON.stringify({ alg: 'ES256', kid: env.APNS_KEY_ID }))), claims = b64u(enc.encode(JSON.stringify({ iss: env.APNS_TEAM_ID, iat: nowSec })));
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, enc.encode(head + '.' + claims));
+  apnsCache = { kid: env.APNS_KEY_ID, iat: nowSec, jwt: head + '.' + claims + '.' + b64u(sig) };
+  return apnsCache.jwt;
+}
+async function apnsOne(env, jwt, token, payload) {
+  try {
+    if (!/^[0-9a-f]{64,200}$/i.test(String(token))) return { status: 0, error: 'token' };
+    let last = null;
+    for (const host of APNS_HOSTS) {
+      const r = await fetch(host + '/3/device/' + token, { method: 'POST', body: payload,
+        headers: { authorization: 'bearer ' + jwt, 'apns-topic': env.APNS_TOPIC, 'apns-push-type': 'alert', 'apns-priority': '10', 'apns-expiration': String(Math.floor(Date.now() / 1000) + 6 * 3600), 'content-type': 'application/json' } });
+      let reason = ''; if (r.status !== 200) { try { reason = ((await r.json()) || {}).reason || ''; } catch (e) {} }
+      last = { status: r.status, reason };
+      if (!(r.status === 400 && reason === 'BadDeviceToken')) break;      // codice dell'altro ambiente: si prova il secondo indirizzo
+    }
+    return last;
+  } catch (e) { return { status: 0, error: String((e && e.message) || e).slice(0, 80) }; }
+}
+async function apnsRoute(req, env) {
+  if (!env.APNS_KEY || !env.APNS_KEY_ID || !env.APNS_TEAM_ID || !env.APNS_TOPIC) return json({ error: 'no-key' }, 500);
+  let data; try { data = await req.json(); } catch (e) { return json({ error: 'json' }, 400); }
+  const tokens = Array.isArray(data && data.tokens) ? data.tokens.slice(0, MAX_SUBS) : [], m = (data && data.msg) || {};
+  const title = String(m.title || 'Xmas in Texa$').slice(0, 80), body = String(m.body || '').slice(0, 240);
+  if (!tokens.length || !body) return json({ error: 'input' }, 400);
+  const payload = JSON.stringify({ aps: { alert: { title, body }, sound: 'default', 'thread-id': String(m.kind || 'texas').slice(0, 20) }, kind: String(m.kind || '').slice(0, 20) });
+  let jwt; try { jwt = await apnsJwt(env, Math.floor(Date.now() / 1000)); } catch (e) { return json({ error: 'key' }, 500); }
+  return json({ results: await Promise.all(tokens.map((t) => apnsOne(env, jwt, t, payload))) }, 200);
+}
+
 function cors(origin) {
   return { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400', Vary: 'Origin' };
 }
@@ -74,6 +112,12 @@ function json(obj, status, origin) { return new Response(JSON.stringify(obj), { 
 
 export default {
   async fetch(req, env) {
+    const path = new URL(req.url).pathname;
+    if (path === '/apns') {                              // l'app iOS chiama dal lato nativo, senza Origin: chi non ha i codici dei telefoni non può avvisare nessuno
+      if (req.method === 'GET') return json({ ok: true, apns: !!(env.APNS_KEY && env.APNS_KEY_ID) }, 200);
+      if (req.method !== 'POST') return json({ error: 'method' }, 405);
+      return apnsRoute(req, env);
+    }
     const origin = req.headers.get('Origin') || '', ok = ALLOWED_ORIGINS.includes(origin);
     let jwk = null; try { jwk = JSON.parse(env.VAPID_JWK || 'null'); } catch (e) {}
     if (req.method === 'OPTIONS') return new Response(null, { status: ok ? 204 : 403, headers: ok ? cors(origin) : {} });
