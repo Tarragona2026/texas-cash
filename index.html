@@ -555,6 +555,12 @@ body.hasbg .bgwrap::after { display: block; }
 .djpost { position: relative; aspect-ratio: 1; border-radius: 6px 6px 14px 6px; padding: 14px 12px; overflow: hidden; background: linear-gradient(160deg, #fff6a8, #ffe66d); color: #4a3b00; box-shadow: 0 3px 8px rgba(0,0,0,.18); font-family: "Bradley Hand", "Noteworthy", "Marker Felt", "Segoe Print", cursive; font-size: 1.12rem; line-height: 1.3; transform: rotate(-1.2deg); }
 .djpost span { display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
 .djrow.one .djpost { aspect-ratio: 16 / 9; }
+
+/* le schermate non devono mai spostarsi di lato (la scheda "Modifica la tappa" usciva dallo schermo: il campo dell'ora era piu' largo) */
+html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; overscroll-behavior-x: none; }
+.sheet, .sheetin, .calform, .calform label { min-width: 0; max-width: 100%; }
+.calform input, input[type=time], input[type=date] { display: block; width: 100%; min-width: 0; max-width: 100%; -webkit-appearance: none; appearance: none; text-align: left; }
+.calform input::-webkit-date-and-time-value { text-align: left; min-width: 0; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
