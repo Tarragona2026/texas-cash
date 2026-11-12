@@ -485,6 +485,22 @@ section.wrap { width: 100%; }
 .diatext2 { width: 100%; min-height: 160px; border: 0; background: transparent; resize: none; font: inherit; font-size: 1.08rem; line-height: 1.5; color: var(--ink); padding: 4px 0; outline: none; }
 .diabtns .btn { flex: 0 0 auto; }
 .dellink { border: 0; background: none; color: var(--bad); font-size: .98rem; padding: 10px 0; text-align: center; }
+
+/* ===== Impostazioni a tendina, schermata Diario bloccato ===== */
+details.acc { display: block; padding: 0; }
+details.acc > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 0 16px; font-weight: 600; font-size: 1.04rem; cursor: pointer; -webkit-user-select: none; user-select: none; }
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: ""; flex: none; width: 8px; height: 8px; border: solid var(--ink-soft); border-width: 0 2px 2px 0; transform: rotate(-45deg); transition: transform .2s; margin-right: 4px; }
+details.acc[open] > summary::after { transform: rotate(45deg); }
+details.acc[open] > summary { border-bottom: 1px solid var(--sep); margin-bottom: 14px; }
+details.acc > :not(summary) { margin: 0 16px 14px; }
+details.acc[hidden] { display: none; }
+.lockbox { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 56px 16px; text-align: center; }
+.lockbox svg { width: 64px; height: 64px; color: var(--ink-soft); }
+.lockbox b { font-family: var(--font-display); font-size: 1.4rem; }
+.lockbox .btn { margin-top: 10px; min-width: 220px; }
+#diaLockV { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+#diaLockV[hidden] { display: none; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -528,7 +544,7 @@ section.wrap { width: 100%; }
       <button class="app" id="goDocs" type="button"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.500 7.500A2.500 2.500 0 0 1 6 5h3.600l2 2.200H18a2.500 2.500 0 0 1 2.500 2.500v7.300A2.500 2.500 0 0 1 18 19.500H6A2.500 2.500 0 0 1 3.500 17z"/><path d="M8 12.500h8M8 15.500h5"/></svg></span>Documenti</button>
       <button class="app" id="goCall" type="button"><span class="ic mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.500 4h2.600l1.400 3.800-1.900 1.300a11 11 0 0 0 5.300 5.300l1.300-1.900 3.800 1.400v2.600A2.500 2.500 0 0 1 16.500 19 13.500 13.500 0 0 1 4 6.500 2.500 2.500 0 0 1 6.500 4z"/></svg></span>Chiama</button>
       <button class="app" id="goPos" type="button"><span class="ic coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.500" cy="8" r="2.800"/><path d="M3.500 18.500c.4-3 2.300-4.700 5-4.700s4.600 1.700 5 4.700"/><path d="M17.500 20s3.500-3.100 3.500-5.700a3.500 3.500 0 0 0-7 0c0 2.600 3.500 5.700 3.500 5.700z"/><circle cx="17.500" cy="14.300" r="1"/></svg></span>Dove sono i miei</button>
-      <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg></span>Impostazioni</button>
+      <button class="app" id="goSettings" type="button"><span class="ic grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>Impostazioni</button>
     </nav>
     <button class="btn" id="appsDone" type="button" hidden>Fine</button>
     <section class="card" id="tomCard" hidden><div class="label" id="tomLabel">Domani</div><div id="tomList"></div></section>
@@ -673,6 +689,15 @@ section.wrap { width: 100%; }
 
   <!-- DIARIO -->
   <section id="v-dia" class="wrap" aria-label="Diario" hidden>
+    <div id="diaLockV" class="wrap" hidden>
+      <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
+      <div class="lockbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        <b>Diario bloccato</b>
+        <span class="hint">Si apre con Face ID.</span>
+        <button class="btn" id="diaUnlock" type="button">Apri con Face ID</button>
+      </div>
+    </div>
     <div id="diaListV" class="wrap">
       <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
       <div id="diaList" class="wrap"></div>
@@ -845,13 +870,14 @@ section.wrap { width: 100%; }
   <!-- IMPOSTAZIONI -->
   <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
-    <section class="card">
-      <div class="label">Plafond</div>
+    <details class="card acc">
+      <summary>Plafond</summary>
       <div class="budget-top"><div class="budget-left num" id="sLeft"></div><div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="sSpent"></span></div></div>
       <button class="btn" id="goTopup" type="button">Ricarica plafond</button>
       <div class="hint">Le ricariche si vedono e si eliminano dalla scheda Ricariche del Registro spese e ricariche.</div>
-    </section>
-    <section class="card">
+    </details>
+    <details class="card acc">
+      <summary>Nome, tasse e cambio</summary>
       <div class="field"><label class="label" for="sUser">Nome utente</label><input id="sUser" type="text" autocomplete="off" placeholder="es. Matteo"></div>
       <div class="field"><label class="label" for="tax">Tasse</label><div class="pct"><input id="tax" type="text" inputmode="decimal"><span>%</span></div></div>
       <div class="field">
@@ -860,37 +886,42 @@ section.wrap { width: 100%; }
         <div class="budget-sub"><span id="rateInfo">Cambio manuale</span></div>
         <button class="btn ghost small" id="rateRefresh" type="button">Aggiorna cambio</button>
       </div>
-    </section>
-    <section class="card">
-      <div class="label">Invia registro</div>
+    </details>
+    <details class="card acc">
+      <summary>Invia registro</summary>
       <div class="hint">Scarica un file CSV con spese e ricariche: nome, tipo, giorno, ora, descrizione, categoria e importi in dollari ed euro.</div>
       <button class="btn" id="exportCsv" type="button">Invia registro</button>
       <div class="hint" id="exportInfo"></div>
-    </section>
-    <section class="card" id="ntCard" hidden>
-      <div class="label">Notifiche</div>
+    </details>
+    <details class="card acc" id="ntCard" hidden>
+      <summary>Notifiche</summary>
       <button class="btn" id="ntToggle" type="button">Attiva le notifiche</button>
       <div class="hint" id="ntInfo"></div>
       <button class="btn ghost" id="ntTest" type="button" hidden>Manda un avviso di prova</button>
       <div class="hint">Ogni sera alle 20 il programma del giorno dopo. Prima della partenza, un promemoria se nella tua checklist manca ancora qualcosa. Gli avvisi li prepara il telefono: non serve la rete.</div>
       <div class="hint" id="ntBuy">Matteo e Leslie ricevono anche un avviso quando un altro salva una spesa (qui serve la rete).</div>
-    </section>
-    <section class="card" id="ctCard">
-      <div class="label">Contatti per la chiamata rapida</div>
+    </details>
+    <details class="card acc" id="ctCard">
+      <summary>Contatti per la chiamata rapida</summary>
       <div class="doclist" id="ctList"></div>
       <button class="btn ghost" id="ctAdd" type="button">+ Aggiungi un contatto</button>
       <div class="hint">I numeri restano solo su questo telefono: vanno scritti su ognuno dei tre. Tocca un contatto per modificarlo.</div>
-    </section>
-    <section class="card">
-      <div class="label">Sincronizzazione</div>
+    </details>
+    <details class="card acc" id="secCard" hidden>
+      <summary>Sicurezza</summary>
+      <label class="toggle"><input type="checkbox" id="diaLockChk"> Chiedi Face ID per aprire il Diario</label>
+      <div class="hint">Il Diario si richiude quando esci dalla schermata o dall'app. Se Face ID non va, l'iPhone chiede il codice di sblocco.</div>
+    </details>
+    <details class="card acc">
+      <summary>Sincronizzazione</summary>
       <div class="field"><label class="label" for="sTrip">Codice viaggio</label><input id="sTrip" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
       <div class="hint">È il vostro codice segreto: almeno 8 caratteri, uguale sui tre telefoni e sul Mac (maiuscole e minuscole non contano). Non dirlo a nessuno: chi lo conosce può leggere i dati del viaggio.</div>
       <div class="hint">Spese, ricariche e foto degli scontrini partono da sole verso il database comune. Senza rete restano in coda e partono quando torna il segnale.</div>
       <button class="btn ghost" id="syncNow" type="button">Sincronizza ora</button>
       <div class="hint" id="syncInfo"></div>
-    </section>
-    <section class="card">
-      <div class="label">Sfondo</div>
+    </details>
+    <details class="card acc">
+      <summary>Sfondo</summary>
       <div class="bgprev" id="bgPrev" aria-hidden="true"></div>
       <div class="hint">Di base c'è la bandiera americana. Puoi scegliere una tua foto dal rullino.</div>
       <div class="btnrow">
@@ -898,9 +929,9 @@ section.wrap { width: 100%; }
         <button class="btn ghost" id="bgReset" type="button">Bandiera USA</button>
       </div>
       <input type="file" id="bgFile" accept="image/*" hidden>
-    </section>
-    <section class="card">
-      <div class="label">Backup con foto</div>
+    </details>
+    <details class="card acc">
+      <summary>Backup con foto</summary>
       <div class="hint">Copia completa di spese e foto degli scontrini, per cambiare telefono o se iOS libera spazio.</div>
       <div class="btnrow">
         <button class="btn ghost" id="bkExport" type="button">Salva backup</button>
@@ -910,7 +941,7 @@ section.wrap { width: 100%; }
       <div class="hint" id="bkInfo"></div>
       <div class="hint" id="verInfo"></div>
       <button class="btn ghost small" id="updNow" type="button">Aggiorna l'app adesso</button>
-    </section>
+    </details>
   </section>
 
 </div>
@@ -1022,6 +1053,7 @@ var APP_VER = 'v57';
     if (v === 'tr') renderTr();
     if (v !== 'album' && albUnsub) { albUnsub(); albUnsub = null; }
     if (v === 'album') openAlbum();
+    if (v !== 'dia') diaUnlocked = false;
     if (v === 'dia') openDiary();
     if (v === 'chk') renderChk();
     if (v === 'cal') openCal();
@@ -1411,6 +1443,7 @@ var APP_VER = 'v57';
 
   /* ---------- impostazioni ---------- */
   function fillSettings() {
+    (function () { var B = natPlugin('NativeBiometric'); $('secCard').hidden = !B; $('diaLockChk').checked = st.diaLock !== false; })();
     $('sUser').value = st.user || '';
     $('tax').value = String(st.tax).replace('.', ',');
     $('rate').value = String(Math.round(st.rate * 10000) / 10000).replace('.', ',');
@@ -1419,6 +1452,7 @@ var APP_VER = 'v57';
     setRateInfo(); backupInfo(); exportInfo();
     $('sTrip').value = st.trip || ''; syncInfo(); ntInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
   }
+  $('diaLockChk').onchange = function () { st.diaLock = $('diaLockChk').checked; if (!st.diaLock) diaUnlocked = true; persist(); };
   $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
   $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
   $('rate').addEventListener('input', function () { var v = num($('rate').value); if (v) { st.rate = v; st.rateManual = true; persist(); setRateInfo(); } });
@@ -2133,8 +2167,28 @@ var APP_VER = 'v57';
     if (!diaryActive()) el.textContent = base + ' · salvato su questo telefono (manca ancora la chiave per inviarlo cifrato).';
     else { var n = diaryPending(); el.textContent = base + ' · ' + (n ? 'in coda per l\'invio cifrato' : 'inviato cifrato'); }
   }
-  var diaMode = 'list', diaJump = false;
-  function openDiary() { if (!diaDay) diaDay = dayKey(); diaMode = diaJump ? 'edit' : 'list'; diaJump = false; renderDiary(); }
+  var diaMode = 'list', diaJump = false, diaUnlocked = false, diaAsking = false, diaGrace = 0;
+  /* Face ID per il Diario (solo app iOS): si richiude quando esci dalla schermata o dall'app. Se l'iPhone non ha ne' Face ID ne' codice, non blocca. */
+  function diaNeedLock() { return st.diaLock !== false && !diaUnlocked && !!natPlugin('NativeBiometric'); }
+  function diaAuth() {
+    var B = natPlugin('NativeBiometric');
+    return B.isAvailable({ useFallback: true }).then(function (r) {
+      if (!r || !r.isAvailable) return true;
+      return B.verifyIdentity({ reason: 'Apri il Diario', title: 'Diario', useFallback: true }).then(function () { return true; }, function () { return false; });
+    }).catch(function () { return true; });
+  }
+  function diaLockShow() {
+    $('diaListV').hidden = true; $('diaEditV').hidden = true; $('diaLockV').hidden = false;
+    if (diaAsking) return; diaAsking = true;
+    diaAuth().then(function (ok) { diaAsking = false; if (ok) { diaUnlocked = true; $('diaLockV').hidden = true; renderDiary(); } });
+  }
+  $('diaUnlock').onclick = function () { diaLockShow(); };
+  document.addEventListener('visibilitychange', function () {
+    if (hashView() !== 'dia' || !natPlugin('NativeBiometric') || st.diaLock === false) return;
+    if (document.hidden) { if (diaAsking || Date.now() < diaGrace) return; diaUnlocked = false; $('diaListV').hidden = true; $('diaEditV').hidden = true; $('diaLockV').hidden = false; }
+    else if (diaNeedLock()) diaLockShow();
+  });
+  function openDiary() { if (!diaDay) diaDay = dayKey(); diaMode = diaJump ? 'edit' : 'list'; diaJump = false; if (diaNeedLock()) { diaLockShow(); return; } $('diaLockV').hidden = true; renderDiary(); }
   function diaOpenDay(k) { diaDay = k; diaMode = 'edit'; renderDiary(); window.scrollTo(0, 0); }
   function diaFlush() { clearTimeout(diaTimer); var t = $('diaText'); if (!t || diaMode !== 'edit') return; var txt = t.value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } }
   function diaFit() { var t = $('diaText'); t.style.height = 'auto'; t.style.height = Math.max(160, t.scrollHeight + 4) + 'px'; }
@@ -2209,8 +2263,8 @@ var APP_VER = 'v57';
     var save = diaDay; diaDay = dayKey(); var e = diaGet(true), id = newId();
     return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (!e.loc && fix) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; diaDay = save || diaDay; });
   }
-  $('diaCam').onclick = function () { $('diaCamFile').value = ''; $('diaCamFile').click(); };
-  $('diaLib').onclick = function () { $('diaLibFile').value = ''; $('diaLibFile').click(); };
+  $('diaCam').onclick = function () { diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
+  $('diaLib').onclick = function () { diaGrace = Date.now() + 90000; $('diaLibFile').value = ''; $('diaLibFile').click(); };
   $('diaCamFile').addEventListener('change', function () { diaAddFiles($('diaCamFile').files); });
   $('diaLibFile').addEventListener('change', function () { diaAddFiles($('diaLibFile').files); });
   $('diaSave').onclick = function () {
