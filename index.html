@@ -501,6 +501,12 @@ details.acc[hidden] { display: none; }
 .lockbox .btn { margin-top: 10px; min-width: 220px; }
 #diaLockV { display: flex; flex-direction: column; gap: 14px; width: 100%; }
 #diaLockV[hidden] { display: none; }
+
+#v-calc.eur .noteur { display: none; }
+
+body.hasbg .bgimg { display: block; }
+body.hasbg .bgwrap::after { display: block; }
+.bgprev { background-color: var(--field); }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -581,6 +587,7 @@ details.acc[hidden] { display: none; }
       <div class="row2" style="grid-template-columns:1fr auto"><input id="storeQ" type="text" placeholder="Scrivi l'indirizzo per vedere le attività" autocomplete="off"><button class="chip" id="storeQBtn" type="button" style="min-height:44px;padding:0 16px">Cerca</button></div>
       <input id="descScan" type="text" placeholder="Cosa hai comprato? (es. cena da Terry Black's)" autocomplete="off">
       <select id="catScan" aria-label="Categoria"></select>
+      <label class="toggle"><input type="checkbox" id="scanIt"> Spesa in Italia: in euro, fuori dal plafond</label>
       <button class="btn" id="saveScan" type="button">Salva scontrino e spesa</button>
     </section>
   </section>
@@ -588,22 +595,24 @@ details.acc[hidden] { display: none; }
   <!-- CALCOLA PREZZO -->
   <section id="v-calc" class="wrap" aria-label="Calcola prezzo" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Calcola prezzo</h2><span></span></div>
-    <section class="card" aria-label="Prezzo in dollari">
+    <div class="chips" id="curSeg" role="group" aria-label="Valuta"><button type="button" class="chip" data-cur="USD" aria-pressed="true">Dollari · USA</button><button type="button" class="chip" data-cur="EUR" aria-pressed="false">Euro · Italia</button></div>
+    <div class="hint" id="curHint" hidden>Spesa in Italia, prima della partenza: resta in euro e non viene tolta dal plafond in dollari.</div>
+    <section class="card" aria-label="Prezzo">
       <div class="field price">
-        <label class="label" for="price">Prezzo in dollari</label>
-        <div class="money"><span>$</span><input id="price" type="text" inputmode="decimal" value="" placeholder="0,00"></div>
+        <label class="label" for="price" id="priceLabel">Prezzo in dollari</label>
+        <div class="money"><span id="priceSym">$</span><input id="price" type="text" inputmode="decimal" value="" placeholder="0,00"></div>
       </div>
-      <div class="field">
+      <div class="field noteur">
         <span class="label" id="tiplabel">Mancia</span>
         <div class="chips" role="group" aria-labelledby="tiplabel" id="chips"></div>
         <div class="pct" id="tipcWrap" hidden><input id="tipc" type="text" inputmode="decimal" placeholder="Percentuale" aria-label="Mancia personalizzata in percentuale"><span>%</span></div>
       </div>
-      <label class="toggle"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
+      <label class="toggle noteur"><input type="checkbox" id="incl"> Il prezzo include già le tasse</label>
     </section>
     <section class="card result" aria-label="Riepilogo" aria-live="polite">
-      <div class="line"><span class="k">Prezzo senza tasse</span><span class="v num" id="rNet"></span></div>
-      <div class="line"><span class="k" id="rTaxK">Tasse</span><span class="v num" id="rTax"></span></div>
-      <div class="line"><span class="k" id="rTipK">Mancia</span><span class="v num" id="rTip"></span></div>
+      <div class="line noteur"><span class="k">Prezzo senza tasse</span><span class="v num" id="rNet"></span></div>
+      <div class="line noteur"><span class="k" id="rTaxK">Tasse</span><span class="v num" id="rTax"></span></div>
+      <div class="line noteur"><span class="k" id="rTipK">Mancia</span><span class="v num" id="rTip"></span></div>
       <div class="line total"><span class="k">Totale</span><span class="v num" id="rTot"></span></div>
     </section>
     <section class="card" aria-label="Salva nel registro">
@@ -907,6 +916,11 @@ details.acc[hidden] { display: none; }
       <button class="btn ghost" id="ctAdd" type="button">+ Aggiungi un contatto</button>
       <div class="hint">I numeri restano solo su questo telefono: vanno scritti su ognuno dei tre. Tocca un contatto per modificarlo.</div>
     </details>
+    <details class="card acc" id="photoCard" hidden>
+      <summary>Foto</summary>
+      <label class="toggle"><input type="checkbox" id="rollChk"> Salva nel rullino le foto che scatto con l'app</label>
+      <div class="hint">Vale per le foto di Foto e Diario scattate con la fotocamera. Quelle prese dal rullino ci sono già. La prima volta iOS chiede il permesso di aggiungere foto.</div>
+    </details>
     <details class="card acc" id="secCard" hidden>
       <summary>Sicurezza</summary>
       <label class="toggle"><input type="checkbox" id="diaLockChk"> Chiedi Face ID per aprire il Diario</label>
@@ -923,10 +937,11 @@ details.acc[hidden] { display: none; }
     <details class="card acc">
       <summary>Sfondo</summary>
       <div class="bgprev" id="bgPrev" aria-hidden="true"></div>
-      <div class="hint">Di base c'è la bandiera americana. Puoi scegliere una tua foto dal rullino.</div>
+      <div class="hint" id="bgHint">Di base c'è il grigio chiaro di iOS. Puoi mettere la bandiera americana o una tua foto dal rullino.</div>
       <div class="btnrow">
-        <button class="btn ghost" id="bgPick" type="button">Scegli dal rullino</button>
-        <button class="btn ghost" id="bgReset" type="button">Bandiera USA</button>
+        <button class="btn ghost small" id="bgPlain" type="button">Grigio iOS</button>
+        <button class="btn ghost small" id="bgReset" type="button">Bandiera USA</button>
+        <button class="btn ghost small" id="bgPick" type="button">Dal rullino</button>
       </div>
       <input type="file" id="bgFile" accept="image/*" hidden>
     </details>
@@ -973,6 +988,9 @@ var APP_VER = 'v57';
   function fx(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ','); }
   function usd(n) { return '$' + f(n); }
   function eur(n) { return '€' + f(n); }
+  /* spese in Italia: cur 'EUR', importo in e.eur, usd a 0 cosi' il plafond e i totali in dollari non cambiano */
+  function money(e) { return e.cur === 'EUR' ? eur(e.eur) : usd(e.usd); }
+  function sumLabel(list) { var u = 0, w = 0; list.forEach(function (z) { if (z.cur === 'EUR') w += z.eur; else u += z.usd; }); return (u || !w ? usd(u) : '') + (u && w ? ' + ' : '') + (w ? eur(w) : ''); }
   function r2(n) { return Math.round(n * 100) / 100; }
   function dateStr(ts) { return new Date(ts).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
 
@@ -1042,7 +1060,7 @@ var APP_VER = 'v57';
     document.body.classList.toggle('inner', v !== 'home');
     window.scrollTo(0, 0);
     if (v === 'home') { renderHome(); chkBanner(); calHome(); posAskBanner(); tripBanner(); }
-    if (v === 'calc') renderCalc();
+    if (v === 'calc') { setCur(false); renderCalc(); }
     if (v === 'log') renderLog();
     if (v === 'settings') { fillSettings(); renderContacts(); }
     if (v === 'call') renderCall();
@@ -1124,7 +1142,15 @@ var APP_VER = 'v57';
     return { net: net, tax: tax, tip: tip, tot: net + tax + tip, r: st.rate };
   }
   function two(v, r) { return usd(v) + '<small>' + eur(v * r) + '</small>'; }
+  var curIt = false;
+  function setCur(it) {
+    curIt = it; $('v-calc').classList.toggle('eur', it); $('curHint').hidden = !it;
+    document.querySelectorAll('#curSeg .chip').forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.cur === 'EUR') === it)); });
+    $('priceLabel').textContent = it ? 'Prezzo in euro' : 'Prezzo in dollari'; $('priceSym').textContent = it ? '€' : '$'; renderCalc();
+  }
+  $('curSeg').addEventListener('click', function (ev) { var b = ev.target.closest('.chip'); if (b) setCur(b.dataset.cur === 'EUR'); });
   function renderCalc() {
+    if (curIt) { $('rTot').innerHTML = eur(num($('price').value)); return; }
     var c = calc(), pct = String(st.tip).replace('.', ',');
     $('rNet').innerHTML = two(c.net, c.r);
     $('rTax').innerHTML = two(c.tax, c.r);
@@ -1153,6 +1179,11 @@ var APP_VER = 'v57';
   if (tipCustom) $('tipc').value = st.tip ? String(st.tip).replace('.', ',') : '';
 
   $('save').onclick = function () {
+    if (curIt) {
+      var w = num($('price').value); if (!w) { toast('Inserisci un prezzo'); return; }
+      addExpense({ id: newId(), ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: 0, eur: r2(w), cur: 'EUR', sub: null, tax: null, tip: null, photo: false, src: 'calcolo', store: storeCalc || undefined });
+      $('desc').value = ''; $('price').value = ''; toast('Salvata in Italia: ' + eur(r2(w))); go('home'); return;
+    }
     var c = calc();
     if (!c.tot) { toast('Inserisci un prezzo'); return; }
     addExpense({ id: newId(), ts: Date.now(), desc: $('desc').value.trim(), cat: $('cat').value, usd: r2(c.tot), eur: c.tot * st.rate, sub: r2(c.net), tax: r2(c.tax), tip: r2(c.tip), photo: false, src: 'calcolo', store: storeCalc || undefined });
@@ -1321,13 +1352,15 @@ var APP_VER = 'v57';
     var id = newId(), hasPhoto = !!pendingPhoto;
     var sub = num($('oSub').value), tax = num($('oTax').value), tip = num($('oTip').value);
     var dts = $('dtScan').value ? new Date($('dtScan').value).getTime() : NaN, when = isNaN(dts) ? Date.now() : Math.min(dts, Date.now());
-    var e = { id: id, ts: when, desc: $('descScan').value.trim(), cat: $('catScan').value, usd: r2(tot), eur: tot * st.rate,
+    var it = $('scanIt').checked;
+    var e = { id: id, ts: when, desc: $('descScan').value.trim(), cat: $('catScan').value, usd: it ? 0 : r2(tot), eur: it ? r2(tot) : tot * st.rate,
       sub: sub ? r2(sub) : null, tax: tax ? r2(tax) : null, tip: tip ? r2(tip) : null, photo: hasPhoto, src: 'scontrino' };
+    if (it) e.cur = 'EUR';
     if (storeScan) e.store = storeScan;
     if (scanLoc) e.loc = { la: scanLoc.la, lo: scanLoc.lo, ac: scanLoc.ac, src: 'indirizzo' };
     (hasPhoto ? putPhoto(id, pendingPhoto) : Promise.resolve()).then(function () {
       addExpense(e); resetScan();
-      toast('Scontrino salvato: ' + usd(e.usd));
+      $('scanIt').checked = false; toast('Scontrino salvato: ' + money(e));
       go('home');
     });
   };
@@ -1335,7 +1368,7 @@ var APP_VER = 'v57';
   /* ---------- registro ---------- */
   var CAT_COLORS = { Cibo: '#ff9f0a', Vestiti: '#bf5af2', Regali: '#ff375f', Souvenir: '#ffd60a', Benzina: '#8e8e93', Hotel: '#0a84ff', Attrazioni: '#30d158', Altro: '#64d2ff' };
   function renderChart() {
-    var by = {}, card = $('chartCard'); st.expenses.forEach(function (e) { by[e.cat] = (by[e.cat] || 0) + e.usd; });
+    var by = {}, card = $('chartCard'); st.expenses.forEach(function (e) { if (e.cur !== 'EUR') by[e.cat] = (by[e.cat] || 0) + e.usd; });
     var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), tot = spentTotal();
     card.hidden = !keys.length || logTab !== 'spese'; if (card.hidden) return;
     var off = 0, svg = '<svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(120,130,150,.22)" stroke-width="6.5"></circle>';
@@ -1389,9 +1422,10 @@ var APP_VER = 'v57';
     $('logTotLabel').textContent = 'Totale speso';
     renderChart();
     var byCat = {};
-    st.expenses.forEach(function (e) { byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
+    st.expenses.forEach(function (e) { if (e.cur !== 'EUR') byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
     $('logTot').innerHTML = usd(spentTotal()) + ' · ' + eur(spentTotal() * st.rate);
-    $('catSum').innerHTML = Object.keys(byCat).map(function (c) { return '<span class="num">' + c + ' ' + usd(byCat[c]) + '</span>'; }).join('') || '<span>Nessuna spesa</span>';
+    var itTot = st.expenses.reduce(function (a, e) { return a + (e.cur === 'EUR' ? e.eur : 0); }, 0);
+    $('catSum').innerHTML = (Object.keys(byCat).map(function (c) { return '<span class="num">' + c + ' ' + usd(byCat[c]) + '</span>'; }).join('') || (itTot ? '' : '<span>Nessuna spesa</span>')) + (itTot ? '<span class="num">Italia (fuori plafond) ' + eur(itTot) + '</span>' : '');
     var list = $('list'); list.innerHTML = '';
     if (!st.expenses.length) {
       list.innerHTML = '<div class="empty">Nessuna spesa ancora.<br>Carica uno scontrino o calcola un prezzo e salvalo.</div>';
@@ -1427,7 +1461,7 @@ var APP_VER = 'v57';
       };
       acts.appendChild(del); body.appendChild(acts);
       var amt = document.createElement('div'); amt.className = 'amt num';
-      amt.innerHTML = '<b>' + usd(e.usd) + '</b><small>' + eur(e.eur) + '</small>';
+      amt.innerHTML = e.cur === 'EUR' ? '<b>' + eur(e.eur) + '</b><small>Italia · fuori plafond</small>' : '<b>' + usd(e.usd) + '</b><small>' + eur(e.eur) + '</small>';
       el.appendChild(th); el.appendChild(body); el.appendChild(amt); list.appendChild(el);
     });
   }
@@ -1443,7 +1477,7 @@ var APP_VER = 'v57';
 
   /* ---------- impostazioni ---------- */
   function fillSettings() {
-    (function () { var B = natPlugin('NativeBiometric'); $('secCard').hidden = !B; $('diaLockChk').checked = st.diaLock !== false; })();
+    (function () {     var B = natPlugin('NativeBiometric'); $('secCard').hidden = !B; $('photoCard').hidden = !natPlugin('TexasPhotos'); $('rollChk').checked = st.rollAuto !== false; $('diaLockChk').checked = st.diaLock !== false; })();
     $('sUser').value = st.user || '';
     $('tax').value = String(st.tax).replace('.', ',');
     $('rate').value = String(Math.round(st.rate * 10000) / 10000).replace('.', ',');
@@ -1452,6 +1486,7 @@ var APP_VER = 'v57';
     setRateInfo(); backupInfo(); exportInfo();
     $('sTrip').value = st.trip || ''; syncInfo(); ntInfo(); $('verInfo').textContent = 'Versione dell\'app: ' + APP_VER;
   }
+  $('rollChk').onchange = function () { st.rollAuto = $('rollChk').checked; persist(); };
   $('diaLockChk').onchange = function () { st.diaLock = $('diaLockChk').checked; if (!st.diaLock) diaUnlocked = true; persist(); };
   $('sUser').addEventListener('input', function () { st.user = $('sUser').value.trim(); persist(); });
   $('tax').addEventListener('input', function () { st.tax = num($('tax').value); persist(); });
@@ -1482,18 +1517,18 @@ var APP_VER = 'v57';
   function two2(n) { return n == null ? '' : (Math.round(n * 100) / 100).toFixed(2); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function buildCsv() {
-    var head = ['utente', 'tipo', 'data', 'ora', 'descrizione', 'categoria', 'subtotale_usd', 'tasse_usd', 'mancia_usd', 'totale_usd', 'totale_eur', 'cambio_eur_per_usd', 'origine', 'foto_scontrino'];
+    var head = ['utente', 'tipo', 'data', 'ora', 'descrizione', 'categoria', 'subtotale_usd', 'tasse_usd', 'mancia_usd', 'totale_usd', 'totale_eur', 'cambio_eur_per_usd', 'origine', 'foto_scontrino', 'valuta'];
     var rows = [head];
     var all = st.expenses.map(function (e) { return { k: 'spesa', e: e }; }).concat(st.topups.map(function (t) { return { k: 'ricarica', e: t }; }));
     all.sort(function (a, b) { return a.e.ts - b.e.ts; }).forEach(function (x) {
       var e = x.e, d = new Date(e.ts);
       if (x.k === 'ricarica') {
         rows.push([st.user, 'ricarica', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
-          e.note || 'Ricarica plafond', 'Ricarica', '', '', '', two2(e.usd), two2(e.usd * st.rate), st.rate.toFixed(4), '', '']);
+          e.note || 'Ricarica plafond', 'Ricarica', '', '', '', two2(e.usd), two2(e.usd * st.rate), st.rate.toFixed(4), '', '', 'USD']);
         return;
       }
       rows.push([st.user, 'spesa', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()), pad(d.getHours()) + ':' + pad(d.getMinutes()),
-        e.desc, e.cat, two2(e.sub), two2(e.tax), two2(e.tip), two2(e.usd), two2(e.eur), e.usd ? (e.eur / e.usd).toFixed(4) : '', e.src || '', e.photo ? 'si' : 'no']);
+        e.desc, e.cat, two2(e.sub), two2(e.tax), two2(e.tip), two2(e.usd), two2(e.eur), e.usd ? (e.eur / e.usd).toFixed(4) : '', e.src || '', e.photo ? 'si' : 'no', e.cur === 'EUR' ? 'EUR (Italia, fuori plafond)' : 'USD']);
     });
     return rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
   }
@@ -1826,8 +1861,14 @@ var APP_VER = 'v57';
   var trDir = 'it-en', trCat = 'Ristorante', trGoogleOk = true, trViaBackup = false, trBusy = false;
   function trLang() { return trDir === 'it-en' ? { from: 'it', to: 'en', fromV: 'it-IT', toV: 'en-US', fromN: 'Italiano', toN: 'Inglese (USA)' } : { from: 'en', to: 'it', fromV: 'en-US', toV: 'it-IT', toN: 'Italiano', fromN: 'Inglese (USA)' }; }
   function decodeHtml(t) { var e = document.createElement('textarea'); e.innerHTML = t; return e.value; }
+  var trApple = false;
   function translateText(text) {
-    var L = trLang(); trViaBackup = false;
+    var L = trLang(); trViaBackup = false; trApple = false;
+    var T = natPlugin('TexasTranslate');
+    if (T) return T.translate({ text: text, source: L.fromV, target: L.toV }).then(function (r) { if (!r || !r.text) throw new Error('apple'); trApple = true; return r.text; }, function () { return translateOnline(text, L); });
+    return translateOnline(text, L);
+  }
+  function translateOnline(text, L) {
     function mymemory() {
       trViaBackup = true;
       return fetchJson('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + L.from + '|' + L.to, null, 9000).then(function (j) {
@@ -1851,10 +1892,10 @@ var APP_VER = 'v57';
   function showOut(text) { $('trOutCard').hidden = false; $('trOut').textContent = text; }
   function doTranslate(autoSpeak) {
     var text = $('trIn').value.trim(); if (!text || trBusy) return;
-    if (navigator.onLine === false) { $('trHint').textContent = 'Nessuna rete: usa le frasi pronte qui sotto.'; return; }
+    if (navigator.onLine === false && !natPlugin('TexasTranslate')) { $('trHint').textContent = 'Nessuna rete: usa le frasi pronte qui sotto.'; return; }
     trBusy = true; $('trHint').textContent = 'Traduco…';
     translateText(text).then(function (out) {
-      $('trHint').textContent = trViaBackup ? 'Servizio gratuito di riserva: può sbagliare, controlla le frasi importanti o usa quelle pronte.' : ''; showOut(out);
+      $('trHint').textContent = trApple ? 'Traduzione di Apple, fatta sul telefono.' : trViaBackup ? 'Servizio gratuito di riserva: può sbagliare, controlla le frasi importanti o usa quelle pronte.' : ''; showOut(out);
       if (st.trAuto) speak(out, trLang().toV);
     }, function () { $('trHint').textContent = 'Non riesco a tradurre ora (rete o limite del servizio). Prova con una frase pronta.'; })
       .then(function () { trBusy = false; });
@@ -2238,7 +2279,7 @@ var APP_VER = 'v57';
     });
     $('diaDel').hidden = !e; diaStatus();
     var ex = dayExpenses(diaDay); $('diaExp').hidden = !ex.length;
-    if (ex.length) { fillExpenses($('diaExpList'), ex); $('diaExpTot').textContent = usd(ex.reduce(function (a, z) { return a + z.usd; }, 0)); }
+    if (ex.length) { fillExpenses($('diaExpList'), ex); $('diaExpTot').textContent = sumLabel(ex); }
   }
   $('diaNew').onclick = function () { diaOpenDay(dayKey()); };
   $('diaBack').onclick = function () { diaFlush(); try { $('diaText').blur(); } catch (x) {} diaMode = 'list'; renderDiary(); window.scrollTo(0, 0); sync(); };
@@ -2265,7 +2306,7 @@ var APP_VER = 'v57';
   }
   $('diaCam').onclick = function () { diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
   $('diaLib').onclick = function () { diaGrace = Date.now() + 90000; $('diaLibFile').value = ''; $('diaLibFile').click(); };
-  $('diaCamFile').addEventListener('change', function () { diaAddFiles($('diaCamFile').files); });
+  $('diaCamFile').addEventListener('change', function () { rollSave($('diaCamFile').files); diaAddFiles($('diaCamFile').files); });
   $('diaLibFile').addEventListener('change', function () { diaAddFiles($('diaLibFile').files); });
   $('diaSave').onclick = function () {
     clearTimeout(diaTimer);
@@ -2290,7 +2331,7 @@ var APP_VER = 'v57';
   function dayHas(k) { return hasEntry(k) || dayExpenses(k).length > 0; }
   function expLine(e) {
     var t = new Date(e.ts); var where = e.store || e.desc || 'senza nome';
-    return { k: where + ' · ' + e.cat + ' · ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + (e.loc ? ' · 📍' : ''), v: usd(e.usd) };
+    return { k: where + ' · ' + e.cat + ' · ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + (e.loc ? ' · 📍' : ''), v: money(e) };
   }
   function fillExpenses(box, list) {
     box.innerHTML = '';
@@ -2316,7 +2357,7 @@ var APP_VER = 'v57';
       if (ex.length) {
         var lb = document.createElement('div'); lb.className = 'label'; lb.textContent = 'Spese'; day.appendChild(lb);
         var bx = document.createElement('div'); day.appendChild(bx); fillExpenses(bx, ex);
-        var tot = ex.reduce(function (a, z) { return a + z.usd; }, 0), tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = usd(tot); day.appendChild(tl);
+        var tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = sumLabel(ex); day.appendChild(tl);
       }
       var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; diaJump = true; go0('dia'); }; day.appendChild(go);
       inn.appendChild(day);
@@ -2390,7 +2431,7 @@ var APP_VER = 'v57';
       }, Promise.resolve());
     }).then(function () {
       $('alHint').textContent = 'Foto salvata. Parte nell\'album comune appena c\'è rete.';
-      $('alSaveRoll').hidden = !albLast; renderAlbum();
+      $('alSaveRoll').hidden = !albLast || (!!natPlugin('TexasPhotos') && st.rollAuto !== false); renderAlbum();
     }, function () { $('alHint').textContent = 'Non riesco a leggere questa foto.'; });
   }
   function openAlbum() {
@@ -2535,7 +2576,12 @@ var APP_VER = 'v57';
   }
   $('alCam').onclick = function () { $('alCamFile').value = ''; $('alCamFile').click(); };
   $('alLib').onclick = function () { $('alLibFile').value = ''; $('alLibFile').click(); };
-  $('alCamFile').addEventListener('change', function () { addAlbumFiles($('alCamFile').files); });
+  /* app iOS: le foto scattate con la fotocamera finiscono anche nel rullino, con un solo gesto (plugin TexasPhotos) */
+  function rollSave(files) {
+    var P = natPlugin('TexasPhotos'); if (!P || st.rollAuto === false || !files || !files.length) return;
+    [].slice.call(files).forEach(function (fl) { blobToData(fl).then(function (u) { return u ? P.saveImage({ base64: u }) : null; }).then(function (r) { if (r) toast('Foto salvata anche nel rullino'); }, function () { toast('Rullino: serve il permesso in Impostazioni di iOS'); }); });
+  }
+  $('alCamFile').addEventListener('change', function () { rollSave($('alCamFile').files); addAlbumFiles($('alCamFile').files); });
   $('alLibFile').addEventListener('change', function () { addAlbumFiles($('alLibFile').files); });
   $('alSaveRoll').onclick = function () { if (albLast) sharePhoto(albLast.blob); };
 
@@ -2684,7 +2730,7 @@ var APP_VER = 'v57';
     });
     draw('exp', 40, function (g) { return g.items.length === 1 ? (CAT_COLORS[g.items[0].x.cat] || '#d70015') : '#d70015'; }, function (g) {
       var pop = mapPop();
-      g.items.slice().sort(function (a, b) { return b.x.ts - a.x.ts; }).forEach(function (p) { var e = p.x, it = mapRow(pop.firstChild, usd(e.usd) + ' · ' + e.cat, (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts)), b = document.createElement('button'); b.type = 'button'; b.textContent = 'Apri'; b.style.marginTop = '4px'; b.onclick = function () { logFocus = e.id; logTab = 'spese'; go('log'); }; it.appendChild(b); });
+      g.items.slice().sort(function (a, b) { return b.x.ts - a.x.ts; }).forEach(function (p) { var e = p.x, it = mapRow(pop.firstChild, money(e) + ' · ' + e.cat, (e.desc ? e.desc + ' · ' : '') + dateStr(e.ts)), b = document.createElement('button'); b.type = 'button'; b.textContent = 'Apri'; b.style.marginTop = '4px'; b.onclick = function () { logFocus = e.id; logTab = 'spese'; go('log'); }; it.appendChild(b); });
       return pop;
     });
     draw('pho', 40, '#d6246e', function (g) {
@@ -2708,11 +2754,21 @@ var APP_VER = 'v57';
   /* ---------- sfondo ---------- */
   var DEFAULT_BG = 'img/bandiera-usa.svg', bgUrl = null;
   function setBg(url) { $('bgimg').style.backgroundImage = 'url("' + url + '")'; $('bgPrev').style.backgroundImage = 'url("' + url + '")'; }
+  /* st.bgMode: 'plain' (grigio di iOS, predefinito), 'flag' (bandiera USA), 'photo' (foto scelta dal rullino) */
   function loadBg() {
-    getPhoto('bg').then(function (b) {
-      if (bgUrl) { URL.revokeObjectURL(bgUrl); bgUrl = null; }
-      if (b) { bgUrl = URL.createObjectURL(b); setBg(bgUrl); } else setBg(DEFAULT_BG);
-    });
+    var mode = st.bgMode || 'plain';
+    document.querySelectorAll('#bgPlain, #bgReset, #bgPick').forEach(function (b) { b.style.outline = ''; });
+    function mark(id) { $(id).style.outline = '2px solid var(--accent)'; }
+    if (bgUrl) { URL.revokeObjectURL(bgUrl); bgUrl = null; }
+    if (mode === 'flag') { setBg(DEFAULT_BG); document.body.classList.add('hasbg'); mark('bgReset'); return; }
+    if (mode === 'photo') {
+      getPhoto('bg').then(function (b) {
+        if (b) { bgUrl = URL.createObjectURL(b); setBg(bgUrl); document.body.classList.add('hasbg'); mark('bgPick'); }
+        else { st.bgMode = 'plain'; document.body.classList.remove('hasbg'); $('bgPrev').style.backgroundImage = 'none'; mark('bgPlain'); }
+      });
+      return;
+    }
+    document.body.classList.remove('hasbg'); $('bgPrev').style.backgroundImage = 'none'; mark('bgPlain');
   }
   function shrinkImage(file, max) {
     return new Promise(function (res, rej) {
@@ -2730,10 +2786,11 @@ var APP_VER = 'v57';
   $('bgPick').onclick = function () { $('bgFile').value = ''; $('bgFile').click(); };
   $('bgFile').addEventListener('change', function () {
     var fl = $('bgFile').files[0]; if (!fl) return;
-    shrinkImage(fl, 1600).then(function (b) { return putPhoto('bg', b); }).then(function () { loadBg(); toast('Sfondo cambiato'); })
+    shrinkImage(fl, 1600).then(function (b) { return putPhoto('bg', b); }).then(function () { st.bgMode = 'photo'; persist(); loadBg(); toast('Sfondo cambiato'); })
       .catch(function () { toast('Non riesco a leggere questa immagine'); });
   });
-  $('bgReset').onclick = function () { delPhoto('bg').then(function () { loadBg(); toast('Bandiera USA ripristinata'); }); };
+  $('bgReset').onclick = function () { st.bgMode = 'flag'; persist(); loadBg(); toast('Sfondo: bandiera USA'); };
+  $('bgPlain').onclick = function () { st.bgMode = 'plain'; persist(); loadBg(); toast('Sfondo: grigio iOS'); };
 
   /* ---------- notifiche locali (solo app iOS): programma di domani e promemoria checklist ----------
      Le prepara il telefono in anticipo e le ricalcola a ogni apertura e a ogni modifica. Niente server, niente rete. */
@@ -2840,7 +2897,7 @@ var APP_VER = 'v57';
         if (!toks.length) return;
         var body = [e.cat, e.desc].filter(function (z) { return !!z; }).join(' · ') || 'Nuova spesa';
         return H.request({ url: url, method: 'POST', connectTimeout: 12000, readTimeout: 12000, headers: { 'Content-Type': 'application/json' },
-          data: { tokens: toks, msg: { title: st.user + ' ha speso ' + usd(e.usd), body: body, kind: 'spesa' } } }).then(function (r) {
+          data: { tokens: toks, msg: { title: st.user + ' ha speso ' + money(e), body: body, kind: 'spesa' } } }).then(function (r) {
           var res = r && r.data && (typeof r.data === 'string' ? JSON.parse(r.data) : r.data).results || [];
           res.forEach(function (x, i) { if (x && (x.status === 410 || x.reason === 'BadDeviceToken' || x.reason === 'Unregistered')) col.doc(ids[i]).delete().catch(function () {}); });   // telefono che non esiste piu'
         });

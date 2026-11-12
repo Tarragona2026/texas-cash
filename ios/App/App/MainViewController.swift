@@ -5,5 +5,7 @@ import Capacitor
 class MainViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(TexasOcrPlugin())
+        bridge?.registerPluginInstance(TexasPhotosPlugin())
+        bridge?.registerPluginInstance(TexasTranslatePlugin())
     }
 }
