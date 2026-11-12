@@ -210,33 +210,69 @@ h1 { font-size: 2.3rem; font-weight: 700; letter-spacing: -.02em; }
 .djpost { position: relative; aspect-ratio: 1; border-radius: 6px 6px 14px 6px; padding: 14px 12px; overflow: hidden; background: linear-gradient(160deg, #fff6a8, #ffe66d); color: #4a3b00; box-shadow: 0 3px 8px rgba(0,0,0,.18); font-family: "Bradley Hand", "Noteworthy", "Marker Felt", "Segoe Print", cursive; font-size: 1.1rem; line-height: 1.3; transform: rotate(-1.2deg); }
 .djpost span { display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
 .djrow.one .djpost { aspect-ratio: 16 / 9; }
+
+/* ===== Mac piu' vicino al telefono: barra laterale con le stesse icone a riquadro, titolo grande, tasti a destra ===== */
+body { padding: 0; }
+.shell { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
+.side { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 26px 16px 20px; display: flex; flex-direction: column; gap: 22px; border-right: 1px solid var(--sep); }
+.brand b { font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; letter-spacing: -.02em; }
+.brand .sub { color: var(--ink-soft); font-size: .8rem; margin-top: 4px; }
+.side .tabs { display: flex; flex-direction: column; gap: 2px; width: auto; max-width: none; margin: 0; padding: 0; background: none; border-radius: 0; overflow: visible; flex-wrap: nowrap; }
+.side .tab { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 5px 10px; border-radius: 12px; text-align: left; font-size: 1rem; font-weight: 500; background: transparent; box-shadow: none; }
+.side .tab[aria-pressed="true"] { background: var(--card); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+.side .tab .ic { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 16%, var(--card)); color: var(--c); }
+.side .tab .ic svg { width: 20px; height: 20px; }
+.ic.red { --c: #ff375f; } .ic.blue { --c: #0a84ff; } .ic.indigo { --c: #6e6af0; } .ic.sky { --c: #27a9e8; } .ic.lime { --c: #2fb457; } .ic.amber { --c: #f59a0c; }
+.ic.pink { --c: #ec4899; } .ic.teal { --c: #14a9be; } .ic.green { --c: #34c759; } .ic.purple { --c: #a24ee0; } .ic.mint { --c: #00b8a9; } .ic.coral { --c: #ff6a3d; }
+.cloudbox { margin-top: auto; background: var(--card); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.cloudbox .cloudrow { display: flex; gap: 8px; }
+.cloudbox .cloudrow input[type=text] { flex: 1; width: auto; min-width: 0; }
+.content { padding: 26px max(26px, env(safe-area-inset-right, 0px)) 40px 28px; min-width: 0; }
+.chead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: 1600px; margin: 0 auto 18px; }
+.chead h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.chead .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .side { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--sep); padding: 16px; gap: 12px; }
+  .side .tabs { flex-direction: row; overflow-x: auto; }
+  .side .tab { width: auto; flex: none; padding: 5px 12px 5px 8px; }
+  .cloudbox { margin-top: 0; }
+  .content { padding: 18px 16px 32px; }
+}
 </style>
 </head>
 <body>
 <div class="bgwrap" aria-hidden="true"></div><div class="scrim" aria-hidden="true"></div>
-<header class="top glass">
-  <div><h1>Xmas in Texa$</h1><div class="sub" id="sub">Trascina qui i file CSV ricevuti dagli iPhone, oppure usa Importa file.</div></div>
-  <div style="display:flex; gap:10px; flex-wrap:wrap">
+<div class="shell">
+<aside class="side">
+  <div class="brand"><b>Xmas in Texa$</b><div class="sub" id="sub">Trascina qui i file CSV ricevuti dagli iPhone, oppure usa Importa file.</div></div>
+  <nav class="tabs" id="tabs">
+  <button class="tab" type="button" data-v="spese" aria-pressed="true"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span><span class="tl">Spese</span></button>
+  <button class="tab" type="button" data-v="mappa" aria-pressed="false"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span><span class="tl">Mappa</span></button>
+  <button class="tab" type="button" data-v="foto" aria-pressed="false"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.500" cy="10" r="1.600"/><path d="M21 16l-5-5-8 8"/></svg></span><span class="tl">Foto</span></button>
+  <button class="tab" type="button" data-v="diario" aria-pressed="false"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M10 8h6M10 12h6M10 16h4"/></svg></span><span class="tl">Diari</span></button>
+  <button class="tab" type="button" data-v="checklist" aria-pressed="false"><span class="ic lime"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.500l2.800 2.800L16.500 9"/></svg></span><span class="tl">Checklist</span></button>
+  <button class="tab" type="button" data-v="programma" aria-pressed="false"><span class="ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.500" y="5" width="17" height="15" rx="3"/><path d="M3.500 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg></span><span class="tl">Programma</span></button>
+  <button class="tab" type="button" data-v="posizioni" aria-pressed="false"><span class="ic coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.500" cy="8" r="2.800"/><path d="M3.500 18.500c.4-3 2.300-4.700 5-4.700s4.600 1.700 5 4.700"/><path d="M17.500 20s3.500-3.100 3.500-5.700a3.500 3.500 0 0 0-7 0c0 2.600 3.500 5.700 3.500 5.700z"/><circle cx="17.500" cy="14.300" r="1"/></svg></span><span class="tl">Posizioni</span></button>
+  </nav>
+  <div class="cloudbox">
+    <div class="label">Collegamento</div>
+    <div class="cloudrow">
+      <input type="text" id="tripCode" placeholder="Codice viaggio" autocomplete="off" autocapitalize="none" spellcheck="false">
+      <button class="btn small" id="cloudGo" type="button">Collega</button>
+    </div>
+    <div class="sub2" id="cloudSt">Non collegato.</div>
+  </div>
+</aside>
+<div class="content">
+<div class="chead"><h1 id="viewTitle">Spese</h1>
+  <div class="actions">
     <button class="btn" id="pick" type="button">Importa file</button>
     <button class="btn ghost" id="pdf" type="button">Scarica PDF</button>
     <button class="btn ghost" id="reset" type="button">Azzera tutto</button>
   </div>
   <input type="file" id="file" accept=".csv,text/csv" multiple hidden>
-  <div class="cloudrow" style="width:100%">
-    <span>Codice viaggio</span><input type="text" id="tripCode" autocomplete="off" autocapitalize="none" spellcheck="false">
-    <button class="btn small" id="cloudGo" type="button">Collega</button>
-    <span id="cloudSt">Non collegato.</span>
-  </div>
-</header>
-<nav class="tabs" id="tabs">
-  <button class="tab" type="button" data-v="spese" aria-pressed="true">Spese</button>
-  <button class="tab" type="button" data-v="mappa" aria-pressed="false">Mappa</button>
-  <button class="tab" type="button" data-v="foto" aria-pressed="false">Foto</button>
-  <button class="tab" type="button" data-v="diario" aria-pressed="false">Diari</button>
-  <button class="tab" type="button" data-v="checklist" aria-pressed="false">Checklist</button>
-  <button class="tab" type="button" data-v="programma" aria-pressed="false">Programma</button>
-  <button class="tab" type="button" data-v="posizioni" aria-pressed="false">Posizioni</button>
-</nav>
+</div>
 <div class="msg glass" id="msg" hidden></div>
 <main class="cols" id="cols"></main>
 <section class="view" id="mapView" hidden></section>
@@ -245,6 +281,8 @@ h1 { font-size: 2.3rem; font-weight: 700; letter-spacing: -.02em; }
 <section class="view" id="chkView" hidden></section>
 <section class="view" id="calView" hidden></section>
 <section class="view" id="posView" hidden></section>
+</div>
+</div>
 <div class="drop" id="drop" hidden>Rilascia i file CSV</div>
 <div id="toastHost"></div>
 
@@ -873,6 +911,7 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
   }
   function showView(name) {
     cloud.view = name;
+    var TT = { spese: 'Spese', mappa: 'Mappa', foto: 'Foto', diario: 'Diari', checklist: 'Checklist', programma: 'Programma di viaggio', posizioni: 'Dove sono i miei' }; $('viewTitle').textContent = TT[name] || name;
     [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === name)); });
     $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist'; $('calView').hidden = name !== 'programma'; $('posView').hidden = name !== 'posizioni';
     if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView(); else if (name === 'checklist') renderChkView(); else if (name === 'programma') renderCalView(); else if (name === 'posizioni') renderPosView();
