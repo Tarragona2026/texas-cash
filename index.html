@@ -354,6 +354,54 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 .vmaplink { position: absolute; left: 0; right: 0; top: 0; bottom: 20px; z-index: 1000; display: block; color: #fff; font-size: .8rem; text-align: center; padding-top: 40px; text-decoration: none; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-line); padding: 10px 16px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: 90%; text-align: center; box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+
+/* ===== Stile iOS (12 nov 2026): strato che sovrascrive il resto, la logica non cambia ===== */
+:root { --card: #ffffff; --sep: rgba(60,60,67,.18); --tint-soft: rgba(0,122,255,.12); }
+@media (prefers-color-scheme: dark) { :root { --card: #1c1c1e; --sep: rgba(84,84,88,.6); --tint-soft: rgba(10,132,255,.2); } }
+body { font-size: 17px; }
+/* sfondo: grigio di sistema, come Impostazioni di iOS (la foto di sfondo non si vede piu') */
+.bgwrap { background: var(--bg); }
+.bgimg, .bgwrap::after { display: none; }
+/* schede e righe: blocchi bianchi arrotondati, senza bordi ne' ombre */
+.card, .item, .empty, .hero { background: var(--card); border: 0; box-shadow: none; border-radius: 14px; }
+.hero.glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card); }
+.card { padding: 14px 16px; gap: 12px; }
+.item { padding: 12px 14px; }
+.label { font-size: .78rem; letter-spacing: .02em; font-weight: 600; text-transform: uppercase; color: var(--ink-soft); }
+.line, .chkrow, .calday, .sday { border-bottom-color: var(--sep); }
+/* barra in alto: "‹ Indietro" in blu, titolo grande a sinistra */
+.topbar { grid-template-columns: 1fr auto; row-gap: 2px; padding-top: 2px; }
+.back { grid-column: 1; grid-row: 1; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; margin-left: -4px; min-height: 36px; font-size: 1.06rem; font-weight: 400; }
+.topbar h2 { grid-column: 1 / -1; grid-row: 2; text-align: left; font-size: 2.1rem; font-weight: 700; letter-spacing: -.02em; text-shadow: none; line-height: 1.12; }
+.topbar > :last-child:not(h2):not(.back) { grid-column: 2; grid-row: 1; justify-self: end; }
+/* tasti */
+.btn { min-height: 50px; border-radius: 14px; font-weight: 600; font-size: 1.04rem; transition: opacity .12s, transform .12s; }
+.btn:active { opacity: .7; transform: scale(.98); }
+.btn.ghost { background: var(--tint-soft); color: var(--accent); }
+.btn.small { min-height: 38px; border-radius: 10px; font-size: .95rem; }
+input[type=text], input[type=password], input[type=tel], select, .trarea, .calform input { border-radius: 10px; }
+/* schede a scelta (Spese/Ricariche ecc.): controllo segmentato */
+.chips { gap: 4px; background: var(--field); padding: 3px; border-radius: 10px; flex-wrap: wrap; }
+.chips .chip { background: transparent; border-radius: 8px; min-height: 34px; min-width: 0; padding: 0 8px; font-weight: 500; font-size: .92rem; }
+.chips .chip[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.chips.scroll { flex-wrap: nowrap; }
+.store-chips, #phrCats, .chips.wrapok { background: none; padding: 0; flex-wrap: wrap; }
+.store-chips .chip, #phrCats .chip { background: var(--field); border-radius: 999px; }
+.store-chips .chip[aria-pressed="true"], #phrCats .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+/* casella delle liste: cerchio */
+.chkbox { border-radius: 50%; width: 26px; height: 26px; }
+/* icone della home: forma iOS */
+.app .ic { border-radius: 19px; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+.app { text-shadow: none; font-weight: 500; font-size: .78rem; }
+/* finestre dal basso: maniglia e scivolamento */
+@keyframes sheetup { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheetfade { from { opacity: 0; } to { opacity: 1; } }
+.sheet { animation: sheetfade .2s ease-out; }
+.sheetin { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 16px 16px 0 0; animation: sheetup .3s cubic-bezier(.2,.9,.25,1); position: relative; padding-top: 22px; }
+.sheetin::before { content: ""; position: absolute; top: 7px; left: 50%; width: 38px; height: 5px; margin-left: -19px; border-radius: 3px; background: rgba(120,120,128,.4); }
+.sheethd { background: var(--bg); top: -22px; padding-top: 12px; }
+.toast { background: rgba(60,60,67,.92); color: #fff; border: 0; font-weight: 600; font-size: .92rem; }
+@media (prefers-reduced-motion: reduce) { .sheet, .sheetin { animation: none; } }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -789,7 +837,7 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v56';
+var APP_VER = 'v57';
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
