@@ -542,13 +542,19 @@ body.hasbg .bgwrap::after { display: block; }
 
 /* punto che trema (spesa scelta dal Registro) */
 @keyframes tremble { 0%, 100% { transform: translate(0, 0) rotate(0); } 15% { transform: translate(-3px, 1px) rotate(-10deg); } 30% { transform: translate(3px, -1px) rotate(9deg); } 45% { transform: translate(-3px, -1px) rotate(-8deg); } 60% { transform: translate(3px, 1px) rotate(8deg); } 80% { transform: translate(-2px, 0) rotate(-4deg); } }
-.mkn.shake { animation: tremble .5s infinite; box-shadow: 0 0 0 5px rgba(255,255,255,.55), 0 2px 8px rgba(0,0,0,.35); }
+.mkn.shake { animation: tremble .5s 2; box-shadow: 0 0 0 5px rgba(255,255,255,.55), 0 2px 8px rgba(0,0,0,.35); }
 .item.hasloc { cursor: pointer; }
 .item.hasloc:active { opacity: .75; }
 
 /* Diario: solo dissolvenza (uno scivolamento sposterebbe il tasto + che e' fisso in basso) */
 @keyframes vfade { from { opacity: 0; } to { opacity: 1; } }
 #v-dia:not([hidden]) { animation: vfade .2s ease-out; }
+
+/* Diario: foto con la mappa accanto, Post-it per i soli testi */
+.dstrip { display: flex; flex-direction: column; gap: 8px; overflow: visible; margin: 0; padding: 0; scroll-snap-type: none; }
+.djpost { position: relative; aspect-ratio: 1; border-radius: 6px 6px 14px 6px; padding: 14px 12px; overflow: hidden; background: linear-gradient(160deg, #fff6a8, #ffe66d); color: #4a3b00; box-shadow: 0 3px 8px rgba(0,0,0,.18); font-family: "Bradley Hand", "Noteworthy", "Marker Felt", "Segoe Print", cursive; font-size: 1.12rem; line-height: 1.3; transform: rotate(-1.2deg); }
+.djpost span { display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.djrow.one .djpost { aspect-ratio: 16 / 9; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -1935,6 +1941,11 @@ var APP_VER = 'v59';
     return mymemory();
   }
   function speak(text, lang) {
+    var NS = natPlugin('TexasSpeech');                 // app iOS: voce nativa di Apple (si sente anche con il silenzioso attivo)
+    if (NS && NS.speak && text) { NS.speak({ text: text, lang: lang }).catch(function () { webSpeak(text, lang); }); return; }
+    webSpeak(text, lang);
+  }
+  function webSpeak(text, lang) {
     if (!window.speechSynthesis || !text) { toast('Questo telefono non legge ad alta voce'); return; }
     try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = lang; u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {}
   }
@@ -2274,6 +2285,14 @@ var APP_VER = 'v59';
     if (!st.diary[diaDay] && create) st.diary[diaDay] = { text: '', photos: [], loc: null, ts: Date.now(), upd: Date.now() };
     return st.diary[diaDay] || null;
   }
+  function diaPhotoLoc(e, id) { return (e.pl && e.pl[id]) || e.loc || null; }
+  function diaPhotoFix(e, id) {                     // ogni foto ricorda dove e' stata aggiunta: serve per la mappa accanto
+    getFix(6000).then(function (f) {
+      if (!f) return;
+      (e.pl = e.pl || {})[id] = { la: f.la, lo: f.lo }; if (!e.loc) e.loc = { la: f.la, lo: f.lo, ac: f.ac }; e.upd = Date.now(); persist();
+      if (hashView() === 'dia') renderDiary();
+    });
+  }
   function diaTouchLoc(e) { if (!e.loc) getFix(6000).then(function (f) { if (f && !e.loc) { e.loc = { la: f.la, lo: f.lo, ac: f.ac }; e.upd = Date.now(); persist(); diaStatus(); } }); }
   function diaStatus() {
     var el = $('diaStatus'); if (!el) return; var e = st.diary && st.diary[diaDay];
@@ -2360,19 +2379,28 @@ var APP_VER = 'v59';
       var m = k.slice(0, 7);
       if (m !== lastM) { lastM = m; var h = document.createElement('div'); h.className = 'djmonth'; h.textContent = monthLabel(k); box.appendChild(h); }
       var e = st.diary[k], card = document.createElement('div'); card.className = 'dje'; card.tabIndex = 0;
-      var ph = e.photos || [], tiles = [];
+      var ph = e.photos || [];
       function photoTile(id) {
         var t = document.createElement('div'); t.className = 'djph';
         getPhoto('dia_' + id).then(function (bl) { if (!bl) { t.remove(); return; } var u = URL.createObjectURL(bl); diaUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = u; t.appendChild(im); });
         return t;
       }
-      if (ph.length) tiles.push(photoTile(ph[0]));
-      if (e.loc) tiles.push(djTile(e.loc.la, e.loc.lo)); else if (ph.length > 1) tiles.push(photoTile(ph[1]));
-      if (tiles.length) { var row = document.createElement('div'); row.className = 'djrow' + (tiles.length === 1 ? ' one' : ''); tiles.forEach(function (t) { row.appendChild(t); }); card.appendChild(row); }
+      function rowOf(tiles) { var row = document.createElement('div'); row.className = 'djrow' + (tiles.length === 1 ? ' one' : ''); tiles.forEach(function (x) { row.appendChild(x); }); return row; }
       var body = document.createElement('div'); body.className = 'djbody';
-      var lines = (e.text || '').trim().split('\n'), first = lines[0] || '', rest = lines.slice(1).join('\n').trim();
-      if (rest) { var ti = document.createElement('div'); ti.className = 'djtitle'; ti.textContent = first; body.appendChild(ti); var tx = document.createElement('div'); tx.className = 'djtext'; tx.textContent = rest; body.appendChild(tx); }
-      else if (first) { var t1 = document.createElement('div'); t1.className = 'djtext one'; t1.textContent = first; body.appendChild(t1); }
+      var txt = (e.text || '').trim();
+      if (ph.length) {
+        ph.slice(0, 3).forEach(function (id, ix) {                       // ogni foto ha la sua mappa accanto
+          var lc = diaPhotoLoc(e, id), tl = [photoTile(id)]; if (lc) tl.push(djTile(lc.la, lc.lo));
+          var r = rowOf(tl); if (ix) r.style.marginTop = '8px'; card.appendChild(r);
+        });
+        if (ph.length > 3) { var more3 = document.createElement('div'); more3.className = 'djmeta'; more3.style.padding = '6px 8px 0'; more3.textContent = '+ ' + (ph.length - 3) + ' altre foto'; card.appendChild(more3); }
+        var lines = txt.split('\n'), first = lines[0] || '', rest = lines.slice(1).join('\n').trim();
+        if (rest) { var ti = document.createElement('div'); ti.className = 'djtitle'; ti.textContent = first; body.appendChild(ti); var tx = document.createElement('div'); tx.className = 'djtext'; tx.textContent = rest; body.appendChild(tx); }
+        else if (first) { var t1 = document.createElement('div'); t1.className = 'djtext one'; t1.textContent = first; body.appendChild(t1); }
+      } else if (txt) {                                                  // senza foto: il testo va su un Post-it accanto alla mappa
+        var post = document.createElement('div'); post.className = 'djpost'; var pt = document.createElement('span'); pt.textContent = txt; post.appendChild(pt);
+        var tl2 = [post]; if (e.loc) tl2.push(djTile(e.loc.la, e.loc.lo)); card.appendChild(rowOf(tl2));
+      }
       if (body.childNodes.length) card.appendChild(body);
       var foot = document.createElement('div'); foot.className = 'djfoot';
       var dt = document.createElement('span'); dt.textContent = djDate(k, e); foot.appendChild(dt);
@@ -2399,13 +2427,16 @@ var APP_VER = 'v59';
     diaFit();
     var grid = $('diaPhotos'); grid.innerHTML = ''; grid.hidden = !(e && (e.photos || []).length);
     (e && e.photos || []).forEach(function (id) {
+      var row = document.createElement('div'), t = document.createElement('div'), lc = diaPhotoLoc(e, id);
+      row.className = 'djrow' + (lc ? '' : ' one'); t.className = 'djph';
       getPhoto('dia_' + id).then(function (b) {
         if (!b) return; var u = URL.createObjectURL(b); diaUrls.push(u);
-        var t = document.createElement('div'); t.className = 'dph'; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; t.appendChild(im);
+        var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; t.appendChild(im);
         var x = document.createElement('button'); x.type = 'button'; x.className = 'diax'; x.setAttribute('aria-label', 'Togli la foto'); x.textContent = '×';
-        x.onclick = function () { if (!confirm('Togliere questa foto dal diario?')) return; var en = diaGet(false); if (!en) return; en.photos = en.photos.filter(function (p) { return p !== id; }); en.upd = Date.now(); delPhoto('dia_' + id); persist(); renderDiary(); };
-        t.appendChild(x); grid.appendChild(t);
+        x.onclick = function () { if (!confirm('Togliere questa foto dal diario?')) return; var en = diaGet(false); if (!en) return; en.photos = en.photos.filter(function (p) { return p !== id; }); if (en.pl) delete en.pl[id]; en.upd = Date.now(); delPhoto('dia_' + id); persist(); renderDiary(); };
+        t.appendChild(x);
       });
+      row.appendChild(t); if (lc) row.appendChild(djTile(lc.la, lc.lo)); grid.appendChild(row);
     });
     $('diaDel').hidden = !e; diaStatus();
     var ex = dayExpenses(diaDay); $('diaExp').hidden = !ex.length;
@@ -2427,12 +2458,12 @@ var APP_VER = 'v59';
     if (!files || !files.length) return; var list = [].slice.call(files), e = diaGet(true);
     $('diaStatus').textContent = 'Preparo le foto…';
     list.reduce(function (p, f) {
-      return p.then(function () { return resizeJpeg(f, 1100, 0.75).then(function (b) { var id = newId(); return putPhoto('dia_' + id, b).then(function () { e.photos.push(id); e.upd = Date.now(); }); }); });
+      return p.then(function () { return resizeJpeg(f, 1100, 0.75).then(function (b) { var id = newId(); return putPhoto('dia_' + id, b).then(function () { e.photos.push(id); e.upd = Date.now(); diaPhotoFix(e, id); }); }); });
     }, Promise.resolve()).then(function () { diaTouchLoc(e); persist(); renderDiary(); }, function () { $('diaStatus').textContent = 'Non riesco a leggere questa foto.'; });
   }
   function diaryAttach(blob, fix) {                 // dall'album: la foto va anche nel diario di oggi
     var save = diaDay; diaDay = dayKey(); var e = diaGet(true), id = newId();
-    return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (!e.loc && fix) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; diaDay = save || diaDay; });
+    return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (fix) { (e.pl = e.pl || {})[id] = { la: fix.la, lo: fix.lo }; if (!e.loc) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; } diaDay = save || diaDay; });
   }
   $('diaCam').onclick = function () { diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
   $('diaLib').onclick = function () { diaGrace = Date.now() + 90000; $('diaLibFile').value = ''; $('diaLibFile').click(); };
@@ -2881,7 +2912,15 @@ var APP_VER = 'v59';
     info.textContent = (mapDay ? calDayLabel(mapDay) : 'Tutto il viaggio') + ' · ' + (parts.length ? parts.join(' · ') : 'scegli in alto cosa vedere') + '.'
       + (parts.length && !bounds.length ? ' Nessun punto da mostrare.' : '') + (bounds.length ? ' Tocca un punto per i dettagli.' : '')
       + (missing ? ' ' + missing + (missing === 1 ? ' luogo del programma non è ancora sulla mappa.' : ' luoghi del programma non sono ancora sulla mappa.') : '');
-    if (apple) { am.tap = aLayer.tap; am.last = { src: 'app', t: 'set', pts: aLayer.pts }; if (mapFocus) { am.last.center = { la: mapFocus.la, lo: mapFocus.lo }; am.last.span = 0.012; } amPost(); return; }
+    if (apple) { am.tap = aLayer.tap; am.last = { src: 'app', t: 'set', pts: aLayer.pts }; if (mapFocus) {
+        am.last.center = { la: mapFocus.la, lo: mapFocus.lo }; am.last.span = 0.012;
+        var fcs = mapFocus; clearTimeout(am.shakeT);
+        am.shakeT = setTimeout(function () {            // il punto trema per un secondo, poi si ferma
+          if (mapFocus !== fcs) return;
+          am.last = { src: 'app', t: 'set', fit: false, pts: aLayer.pts.map(function (q) { return Object.assign({}, q, { shake: false }); }) }; amPost();
+        }, 1100);
+      }
+      amPost(); return; }
     setTimeout(function () {
       map.invalidateSize();
       if (mapFocus) map.setView([mapFocus.la, mapFocus.lo], 16); else if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });

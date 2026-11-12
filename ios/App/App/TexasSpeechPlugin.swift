@@ -13,8 +13,11 @@ public class TexasSpeechPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "TexasSpeech"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "start", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "speak", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "stopSpeaking", returnType: CAPPluginReturnPromise)
     ]
+    private let synth = AVSpeechSynthesizer()
 
     private var engine: AVAudioEngine?
     private var request: SFSpeechAudioBufferRecognitionRequest?
@@ -102,5 +105,26 @@ public class TexasSpeechPlugin: CAPPlugin, CAPBridgedPlugin {
         engine = nil
         request = nil
         task = nil
+    }
+
+    /// Legge ad alta voce la traduzione con la voce di Apple. Con la categoria "playback" si sente anche con il tasto del silenzioso attivo.
+    @objc func speak(_ call: CAPPluginCall) {
+        guard let text = call.getString("text"), !text.isEmpty else { call.reject("testo mancante"); return }
+        let lang = call.getString("lang") ?? "en-US"
+        DispatchQueue.main.async {
+            let session = AVAudioSession.sharedInstance()
+            try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+            try? session.setActive(true, options: [])
+            self.synth.stopSpeaking(at: .immediate)
+            let u = AVSpeechUtterance(string: text)
+            u.voice = AVSpeechSynthesisVoice(language: lang)
+            u.rate = AVSpeechUtteranceDefaultSpeechRate * 0.95
+            self.synth.speak(u)
+            call.resolve()
+        }
+    }
+
+    @objc func stopSpeaking(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { self.synth.stopSpeaking(at: .immediate); call.resolve() }
     }
 }
