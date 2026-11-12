@@ -145,6 +145,49 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
 .ovr { display: grid; grid-template-columns: 8rem 1fr auto; gap: 12px; align-items: center; }
 
 .lock input[type=password] { min-height: 38px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); padding: 0 12px; color: var(--ink); }
+
+/* ===== Stile iOS (12 nov 2026): strato che sovrascrive il resto, la logica non cambia ===== */
+:root { --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --ink-soft: #636366; --sep: rgba(60,60,67,.18); --field: rgba(118,118,128,.12);
+  --accent: #007aff; --accent-ink: #fff; --tint-soft: rgba(0,122,255,.12); --good: #248a3d; --warn: #b25000; --bad: #d70015;
+  --font-display: -apple-system, "SF Pro Rounded", "SF Pro Display", system-ui, sans-serif; }
+@media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1c1c1e; --ink: #fff; --ink-soft: #aeaeb2; --sep: rgba(84,84,88,.6); --field: rgba(118,118,128,.24);
+  --accent: #0a84ff; --accent-ink: #fff; --tint-soft: rgba(10,132,255,.22); --good: #30d158; --warn: #ff9f0a; --bad: #ff453a; } }
+.bgwrap, .scrim { display: none; }
+body { background: var(--bg); font-size: 15px; }
+.glass, .col, .panel, .dcard, .chkcol { background: var(--card); border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.col, .panel, .chkcol { border-radius: 16px; }
+.dcard { border-radius: 14px; }
+.col.total { box-shadow: 0 0 0 2px var(--accent); }
+.col.empty { background: transparent; border: 2px dashed var(--sep); }
+.msg { background: var(--card); border-radius: 12px; }
+/* intestazione: titolo grande, senza riquadro */
+.top { background: none; box-shadow: none; padding: 4px 4px 0; border-radius: 0; }
+h1 { font-size: 2.3rem; font-weight: 700; letter-spacing: -.02em; }
+.col h2, .sheetm h3, .dcard h3, .chkcol h3 { font-weight: 700; letter-spacing: -.01em; }
+/* tasti a pastiglia */
+.btn { min-height: 36px; border-radius: 999px; border: 0; padding: 0 16px; font-weight: 600; background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.btn:active { opacity: .7; }
+.btn.ghost { background: var(--tint-soft); color: var(--accent); }
+.btn.small { min-height: 28px; padding: 0 12px; font-size: .8rem; }
+/* schede: controllo segmentato */
+.tabs { width: fit-content; max-width: 100%; gap: 2px; background: var(--field); padding: 3px; border-radius: 10px; flex-wrap: nowrap; overflow-x: auto; }
+.tab { min-height: 30px; border: 0; border-radius: 8px; padding: 0 16px; font-weight: 500; background: transparent; color: var(--ink); }
+.tab[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.fchip, .chip { border: 0; background: var(--field); color: var(--ink); }
+.fchip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.cloudrow input[type=text], .lock input[type=password], select.sel, .cedit textarea { border: 0; background: var(--field); border-radius: 10px; }
+.row, details, .it { border-color: var(--sep); }
+.cnote { background: var(--field); }
+.cbtn { color: var(--accent); }
+.label { letter-spacing: .02em; font-weight: 600; }
+.left { font-weight: 700; }
+.bar { background: var(--field); box-shadow: none; }
+.mapbox { border: 0; border-radius: 14px; }
+.pg button { border-radius: 12px; }
+.toast { background: rgba(60,60,67,.92); color: #fff; border: 0; box-shadow: none; }
+.sheetm { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+.sect > .erow { display: flex; justify-content: space-between; gap: 8px; font-size: .9rem; padding: 3px 0; }
 </style>
 </head>
 <body>
