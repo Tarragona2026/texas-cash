@@ -451,6 +451,40 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 .agrid.solo { gap: 2px; }
 .agrid.solo .atile { border-radius: 0; }
 .agrid.solo .atag { display: none; }
+
+/* ===== Diario in stile Apple ===== */
+.fab { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 0; background: var(--accent); color: #fff; font-size: 2rem; font-weight: 300; line-height: 1; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0,122,255,.4); z-index: 8; padding: 0 0 3px; }
+.fab:active { transform: scale(.94); }
+section.wrap { width: 100%; }
+#diaListV, #diaEditV, #diaList { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+#diaListV[hidden], #diaEditV[hidden] { display: none; }
+.dianote { padding: 6px 4px 80px; }
+.djmonth { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; margin: 8px 2px -4px; }
+.dje { border: 0; padding: 0; text-align: left; color: var(--ink); background: var(--card); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
+.djcover { position: relative; aspect-ratio: 16 / 10; background: var(--field); }
+.djcover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.djbadge { position: absolute; right: 10px; top: 10px; font-size: .72rem; font-weight: 600; color: #fff; background: rgba(0,0,0,.5); padding: 3px 9px; border-radius: 999px; }
+.djbody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px; }
+.djdate { font-size: .74rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-soft); }
+.djtext { font-size: 1rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.djmeta { font-size: .78rem; color: var(--ink-soft); }
+.diahead { display: flex; align-items: center; justify-content: space-between; min-height: 36px; }
+.diahead .back { grid-column: auto; }
+.donebtn { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: 1.06rem; padding: 0 2px; }
+.diatitle { display: flex; flex-direction: column; gap: 2px; }
+.diadate { position: relative; display: inline-block; font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; line-height: 1.15; letter-spacing: -.02em; }
+#diaDate { display: inline-block; }
+#diaDate::first-letter { text-transform: uppercase; }
+.diadate input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; min-height: 0; padding: 0; background: transparent; border: 0; -webkit-appearance: none; appearance: none; }
+.dstrip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+.dstrip::-webkit-scrollbar { display: none; }
+.dstrip[hidden] { display: none; }
+.dph { position: relative; flex: 0 0 82%; max-width: 360px; aspect-ratio: 4 / 5; border-radius: 18px; overflow: hidden; scroll-snap-align: center; background: var(--field); }
+.dph:only-child { flex-basis: 100%; max-width: none; aspect-ratio: 4 / 3; }
+.dph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.diatext2 { width: 100%; min-height: 160px; border: 0; background: transparent; resize: none; font: inherit; font-size: 1.08rem; line-height: 1.5; color: var(--ink); padding: 4px 0; outline: none; }
+.diabtns .btn { flex: 0 0 auto; }
+.dellink { border: 0; background: none; color: var(--bad); font-size: .98rem; padding: 10px 0; text-align: center; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -639,36 +673,29 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 
   <!-- DIARIO -->
   <section id="v-dia" class="wrap" aria-label="Diario" hidden>
-    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
-    <div id="diaWrite" class="wrap">
-    <section class="card">
-      <div class="label">Giorni</div>
-      <div class="chips" id="diaDays"></div>
-      <div class="hint">La matita ✎ segna i giorni in cui hai già scritto o messo foto.</div>
-    </section>
-
-    <section class="card">
-      <div class="label" id="diaDate"></div>
-      <textarea class="trarea diatext" id="diaText" placeholder="Cosa hai fatto? Cosa hai visto? Scrivi quello che vuoi: lo leggi solo tu." autocomplete="off" autocapitalize="sentences"></textarea>
-      <div class="agrid" id="diaPhotos"></div>
-      <div class="btnrow">
-        <button class="btn" id="diaCam" type="button">Scatta foto</button>
-        <button class="btn ghost" id="diaLib" type="button">Dal rullino</button>
+    <div id="diaListV" class="wrap">
+      <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
+      <div id="diaList" class="wrap"></div>
+      <div class="hint dianote">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
+      <button class="fab" id="diaNew" type="button" aria-label="Nuova voce">+</button>
+    </div>
+    <div id="diaEditV" class="wrap" hidden>
+      <div class="diahead"><button class="back" id="diaBack" type="button">‹ Diario</button><button class="donebtn" id="diaSave" type="button">Fine</button></div>
+      <div class="diatitle"><label class="diadate"><span id="diaDate"></span><input type="date" id="diaPick" aria-label="Cambia giorno"></label><div class="hint" id="diaStatus"></div></div>
+      <div class="dstrip" id="diaPhotos"></div>
+      <textarea class="diatext2" id="diaText" placeholder="Cosa hai fatto? Cosa hai visto? Scrivi quello che vuoi: lo leggi solo tu." autocomplete="off" autocapitalize="sentences"></textarea>
+      <div class="btnrow diabtns">
+        <button class="btn ghost small" id="diaCam" type="button">Scatta foto</button>
+        <button class="btn ghost small" id="diaLib" type="button">Dal rullino</button>
       </div>
       <input type="file" id="diaCamFile" accept="image/*" capture="environment" hidden>
       <input type="file" id="diaLibFile" accept="image/*" multiple hidden>
-      <button class="btn" id="diaSave" type="button">Salva</button>
-      <div class="hint" id="diaStatus"></div>
-      <button class="btn ghost small" id="diaDel" type="button">Elimina questa voce</button>
-    </section>
-    <section class="card" id="diaExp" hidden>
-      <div class="label">Spese di questo giorno</div>
-      <div id="diaExpList"></div>
-      <div class="line total"><span class="k">Totale del giorno</span><span class="v num" id="diaExpTot"></span></div>
-    </section>
-    <section class="card">
-      <div class="hint">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
-    </section>
+      <section class="card" id="diaExp" hidden>
+        <div class="label">Spese di questo giorno</div>
+        <div id="diaExpList"></div>
+        <div class="line total"><span class="k">Totale del giorno</span><span class="v num" id="diaExpTot"></span></div>
+      </section>
+      <button class="dellink" id="diaDel" type="button">Elimina questa voce</button>
     </div>
   </section>
 
@@ -2106,37 +2133,69 @@ var APP_VER = 'v57';
     if (!diaryActive()) el.textContent = base + ' · salvato su questo telefono (manca ancora la chiave per inviarlo cifrato).';
     else { var n = diaryPending(); el.textContent = base + ' · ' + (n ? 'in coda per l\'invio cifrato' : 'inviato cifrato'); }
   }
-  function openDiary() { if (!diaDay) diaDay = dayKey(); renderDiary(); }
+  var diaMode = 'list', diaJump = false;
+  function openDiary() { if (!diaDay) diaDay = dayKey(); diaMode = diaJump ? 'edit' : 'list'; diaJump = false; renderDiary(); }
+  function diaOpenDay(k) { diaDay = k; diaMode = 'edit'; renderDiary(); window.scrollTo(0, 0); }
+  function diaFlush() { clearTimeout(diaTimer); var t = $('diaText'); if (!t || diaMode !== 'edit') return; var txt = t.value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } }
+  function diaFit() { var t = $('diaText'); t.style.height = 'auto'; t.style.height = Math.max(160, t.scrollHeight + 4) + 'px'; }
+  function monthLabel(k) { var p = k.split('-'), m = new Date(+p[0], +p[1] - 1, 1).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }); return m.charAt(0).toUpperCase() + m.slice(1); }
   function renderDiary() {
-    $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : '');
+    $('diaListV').hidden = diaMode !== 'list'; $('diaEditV').hidden = diaMode !== 'edit';
+    diaUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaUrls = [];
+    if (diaMode === 'list') renderDiaList(); else renderDiaEdit();
+  }
+  /* elenco come nell'app Diario di Apple: mesi, e per ogni giorno la foto grande con l'inizio del testo */
+  function renderDiaList() {
+    var box = $('diaList'); box.innerHTML = '';
+    var days = Object.keys(st.diary || {}).filter(hasEntry).sort().reverse();
+    if (!days.length) { var em = document.createElement('div'); em.className = 'empty'; em.innerHTML = 'Nessuna voce ancora.<br>Tocca + per scrivere la prima.'; box.appendChild(em); return; }
+    var lastM = '';
+    days.forEach(function (k) {
+      var m = k.slice(0, 7);
+      if (m !== lastM) { lastM = m; var h = document.createElement('div'); h.className = 'djmonth'; h.textContent = monthLabel(k); box.appendChild(h); }
+      var e = st.diary[k], b = document.createElement('button'); b.type = 'button'; b.className = 'dje';
+      var ph = e.photos || [];
+      if (ph.length) {
+        var cv = document.createElement('div'); cv.className = 'djcover'; b.appendChild(cv);
+        getPhoto('dia_' + ph[0]).then(function (bl) { if (!bl) { cv.remove(); return; } var u = URL.createObjectURL(bl); diaUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = u; cv.appendChild(im); });
+        if (ph.length > 1) { var bd = document.createElement('span'); bd.className = 'djbadge'; bd.textContent = ph.length + ' foto'; cv.appendChild(bd); }
+      }
+      var body = document.createElement('div'); body.className = 'djbody';
+      var d = document.createElement('div'); d.className = 'djdate'; d.textContent = dayLabel(k) + (k === dayKey() ? ' · oggi' : ''); body.appendChild(d);
+      var t = (e.text || '').trim();
+      if (t) { var tx = document.createElement('div'); tx.className = 'djtext'; tx.textContent = t; body.appendChild(tx); }
+      if (e.loc) { var mt = document.createElement('div'); mt.className = 'djmeta'; mt.textContent = 'Con posizione'; body.appendChild(mt); }
+      b.appendChild(body); b.onclick = function () { diaOpenDay(k); }; box.appendChild(b);
+    });
+  }
+  function renderDiaEdit() {
+    $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : ''); $('diaPick').value = diaDay;
     var e = diaGet(false); if (document.activeElement !== $('diaText')) $('diaText').value = e ? e.text || '' : '';
-    var grid = $('diaPhotos'); grid.innerHTML = ''; diaUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaUrls = [];
+    diaFit();
+    var grid = $('diaPhotos'); grid.innerHTML = ''; grid.hidden = !(e && (e.photos || []).length);
     (e && e.photos || []).forEach(function (id) {
       getPhoto('dia_' + id).then(function (b) {
         if (!b) return; var u = URL.createObjectURL(b); diaUrls.push(u);
-        var t = document.createElement('div'); t.className = 'atile'; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; t.appendChild(im);
+        var t = document.createElement('div'); t.className = 'dph'; var im = document.createElement('img'); im.src = u; im.alt = 'Foto del diario'; t.appendChild(im);
         var x = document.createElement('button'); x.type = 'button'; x.className = 'diax'; x.setAttribute('aria-label', 'Togli la foto'); x.textContent = '×';
         x.onclick = function () { if (!confirm('Togliere questa foto dal diario?')) return; var en = diaGet(false); if (!en) return; en.photos = en.photos.filter(function (p) { return p !== id; }); en.upd = Date.now(); delPhoto('dia_' + id); persist(); renderDiary(); };
         t.appendChild(x); grid.appendChild(t);
       });
     });
-    var dd = {}, today = dayKey(); CAL_DAYS.forEach(function (k) { dd[k] = 1; }); Object.keys(st.diary || {}).forEach(function (k) { dd[k] = 1; }); (st.expenses || []).forEach(function (x) { dd[dayKey(x.ts)] = 1; }); dd[today] = 1; dd[diaDay] = 1;
-    var box = $('diaDays'); box.innerHTML = '';
-    Object.keys(dd).sort().forEach(function (d) {              // stessa fila di giorni del Programma di viaggio
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 10px;min-width:3.6rem';
-      var p = d.split('-'); b.textContent = (d === today ? 'Oggi ' : '') + Number(p[2]) + '/' + Number(p[1]) + (hasEntry(d) ? ' ✎' : ''); b.setAttribute('aria-pressed', String(d === diaDay));
-      b.onclick = function () { diaDay = d; renderDiary(); }; box.appendChild(b);
-    });
     $('diaDel').hidden = !e; diaStatus();
     var ex = dayExpenses(diaDay); $('diaExp').hidden = !ex.length;
     if (ex.length) { fillExpenses($('diaExpList'), ex); $('diaExpTot').textContent = usd(ex.reduce(function (a, z) { return a + z.usd; }, 0)); }
   }
+  $('diaNew').onclick = function () { diaOpenDay(dayKey()); };
+  $('diaBack').onclick = function () { diaFlush(); try { $('diaText').blur(); } catch (x) {} diaMode = 'list'; renderDiary(); window.scrollTo(0, 0); sync(); };
+  $('diaPick').addEventListener('change', function () { var v = $('diaPick').value; if (!v) return; diaFlush(); diaDay = v; renderDiary(); });
   $('diaText').addEventListener('input', function () {
     clearTimeout(diaTimer);
     diaTimer = setTimeout(function () {
       var txt = $('diaText').value, e = diaGet(!!txt.trim()); if (!e) return;
       if (e.text === txt) return; e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); $('diaDel').hidden = false; diaStatus();
     }, 700);
+    diaFit();
   });
   $('diaText').addEventListener('blur', function () { clearTimeout(diaTimer); var txt = $('diaText').value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } renderDiary(); });
   function diaAddFiles(files) {
@@ -2160,13 +2219,13 @@ var APP_VER = 'v57';
     if (!e || (!txt.trim() && !(e.photos || []).length)) { toast('Scrivi qualcosa o aggiungi una foto'); return; }
     if (e.text !== txt) { e.text = txt; e.upd = Date.now(); }
     diaTouchLoc(e); persist(); try { $('diaText').blur(); } catch (x) {}
-    toast('Diario salvato · ' + dayLabel(diaDay)); renderDiary(); sync(true);
+    toast('Diario salvato · ' + dayLabel(diaDay)); diaMode = 'list'; renderDiary(); window.scrollTo(0, 0); sync(true);
     if (diaDay === dayKey()) getFix(6000).then(posSet);
   };
   $('diaDel').onclick = function () {
     var e = diaGet(false); if (!e) return;
     if (!confirm('Eliminare la voce del ' + dayLabel(diaDay) + ' con tutte le sue foto?')) return;
-    (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[diaDay]; persist(); renderDiary();
+    (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[diaDay]; persist(); diaMode = 'list'; renderDiary();
   };
   $('alDia').checked = st.albDia !== false;
   $('alDia').onchange = function () { st.albDia = $('alDia').checked; persist(); };
@@ -2205,7 +2264,7 @@ var APP_VER = 'v57';
         var bx = document.createElement('div'); day.appendChild(bx); fillExpenses(bx, ex);
         var tot = ex.reduce(function (a, z) { return a + z.usd; }, 0), tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = usd(tot); day.appendChild(tl);
       }
-      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; go0('dia'); }; day.appendChild(go);
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; diaJump = true; go0('dia'); }; day.appendChild(go);
       inn.appendChild(day);
     });
     host.appendChild(sh);
