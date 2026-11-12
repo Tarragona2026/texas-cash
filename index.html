@@ -507,6 +507,48 @@ details.acc[hidden] { display: none; }
 body.hasbg .bgimg { display: block; }
 body.hasbg .bgwrap::after { display: block; }
 .bgprev { background-color: var(--field); }
+
+/* ===== Diario: elenco come l'app Diario di Apple ===== */
+.fab { background: var(--indigo); box-shadow: 0 6px 18px rgba(94,92,230,.45); }
+.djhead { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 12px; margin: calc(-12px - env(safe-area-inset-top, 0px)) -16px 4px; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 10px; background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.djcirc, .djpill { background: var(--card); border: 1px solid var(--sep); box-shadow: 0 1px 4px rgba(0,0,0,.08); color: var(--ink); }
+.djcirc { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; padding: 0; }
+.djcirc svg { width: 22px; height: 22px; }
+.djtt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.djtt b { font-size: 1.04rem; font-weight: 700; }
+.djtt span { font-size: .95rem; color: var(--ink-soft); }
+.djpill { flex: none; display: flex; align-items: center; border-radius: 999px; height: 46px; padding: 0 6px; }
+.djpill button { border: 0; background: none; color: var(--ink); width: 46px; height: 40px; display: grid; place-items: center; padding: 0; }
+.djpill svg { width: 24px; height: 24px; }
+.djsearch { margin-bottom: 4px; }
+.djmonth { font-size: 1.6rem; margin: 14px 2px -2px; }
+.dje { background: var(--card); border-radius: 22px; padding: 8px; display: flex; flex-direction: column; gap: 0; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06); cursor: pointer; }
+.djrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.djrow.one { grid-template-columns: 1fr; }
+.djph, .djmap { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--field); }
+.djrow.one .djph, .djrow.one .djmap { aspect-ratio: 16 / 10; }
+.djph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.djtiles { position: absolute; left: 50%; top: 50%; width: 768px; height: 768px; display: grid; grid-template-columns: repeat(3, 256px); grid-template-rows: repeat(3, 256px); }
+.djtiles img { width: 256px; height: 256px; display: block; }
+.djpin { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: var(--indigo); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.djpin::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; }
+.djbody { padding: 14px 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.djtitle { font-size: 1.12rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.djtext { font-size: 1.04rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+.djtext.one { font-size: 1.1rem; }
+.djfoot { display: flex; align-items: center; justify-content: space-between; margin: 4px 8px 0; padding: 10px 0 6px; border-top: 1px solid var(--sep); font-size: .86rem; font-weight: 600; color: var(--ink-soft); }
+.djdots { border: 0; background: none; color: var(--ink-soft); width: 44px; height: 32px; display: grid; place-items: center; padding: 0; margin-right: -10px; }
+.djdots svg { width: 22px; height: 22px; }
+
+/* punto che trema (spesa scelta dal Registro) */
+@keyframes tremble { 0%, 100% { transform: translate(0, 0) rotate(0); } 15% { transform: translate(-3px, 1px) rotate(-10deg); } 30% { transform: translate(3px, -1px) rotate(9deg); } 45% { transform: translate(-3px, -1px) rotate(-8deg); } 60% { transform: translate(3px, 1px) rotate(8deg); } 80% { transform: translate(-2px, 0) rotate(-4deg); } }
+.mkn.shake { animation: tremble .5s infinite; box-shadow: 0 0 0 5px rgba(255,255,255,.55), 0 2px 8px rgba(0,0,0,.35); }
+.item.hasloc { cursor: pointer; }
+.item.hasloc:active { opacity: .75; }
+
+/* Diario: solo dissolvenza (uno scivolamento sposterebbe il tasto + che e' fisso in basso) */
+@keyframes vfade { from { opacity: 0; } to { opacity: 1; } }
+#v-dia:not([hidden]) { animation: vfade .2s ease-out; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -708,7 +750,15 @@ body.hasbg .bgwrap::after { display: block; }
       </div>
     </div>
     <div id="diaListV" class="wrap">
-      <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Diario</h2><span></span></div>
+      <div class="djhead">
+        <button class="djcirc" data-back type="button" aria-label="Indietro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="djtt"><b>Diario</b><span id="djCount"></span></div>
+        <div class="djpill">
+          <button id="djSearchBtn" type="button" aria-label="Cerca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.500 15.500L20 20"/></svg></button>
+          <button id="djMoreBtn" type="button" aria-label="Altro"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+        </div>
+      </div>
+      <input type="text" id="djSearch" class="djsearch" placeholder="Cerca nel diario" autocomplete="off" hidden>
       <div id="diaList" class="wrap"></div>
       <div class="hint dianote">Il diario è privato: parte cifrato e lo apre solo il Mac di Matteo con il suo PIN. Leslie e Leo non leggono quello degli altri.</div>
       <button class="fab" id="diaNew" type="button" aria-label="Nuova voce">+</button>
@@ -1071,6 +1121,7 @@ var APP_VER = 'v58';
     if (v === 'tr') renderTr();
     if (v !== 'album' && albUnsub) { albUnsub(); albUnsub = null; }
     if (v === 'album') openAlbum();
+    if (v !== 'map') mapFocus = null;
     if (v !== 'dia') diaUnlocked = false;
     if (v === 'dia') openDiary();
     if (v === 'chk') renderChk();
@@ -1083,7 +1134,7 @@ var APP_VER = 'v58';
   }
   function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
   window.addEventListener('hashchange', function () { show(hashView()); });
-  document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : (b.closest('#v-map') && mapFrom === 'cal') ? 'cal' : 'home'); }; });
+  document.querySelectorAll('[data-back]').forEach(function (b) { b.onclick = function () { go(b.closest('#v-topup') ? 'settings' : (b.closest('#v-map') && mapFrom === 'cal') ? 'cal' : (b.closest('#v-map') && mapFrom === 'log') ? 'log' : 'home'); }; });
   $('goCalc').onclick = function () { go('calc'); };
   $('goCal').onclick = function () { go('cal'); };
   $('goChk').onclick = function () { go('chk'); };
@@ -1432,7 +1483,8 @@ var APP_VER = 'v58';
       return;
     }
     st.expenses.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (e) {
-      var el = document.createElement('div'); el.className = 'item';
+      var el = document.createElement('div'); el.className = 'item'; if (e.loc) el.classList.add('hasloc');
+      el.addEventListener('click', function (ev) { if (ev.target.closest('button, label, input, a')) return; openMapAt(e); });
       if (e.id === logFocus) { logFocus = ''; el.classList.add('focus'); setTimeout(function () { el.scrollIntoView({ block: 'center' }); }, 80); setTimeout(function () { el.classList.remove('focus'); }, 3500); }
       var th = document.createElement('div');
       if (e.photo) {
@@ -1444,7 +1496,7 @@ var APP_VER = 'v58';
       var body = document.createElement('div'); body.className = 'body';
       body.innerHTML = '<span class="t"></span><span class="m"></span>';
       body.firstChild.textContent = e.desc || e.cat;
-      body.lastChild.textContent = e.cat + ' · ' + dateStr(e.ts);
+      body.lastChild.textContent = e.cat + ' · ' + dateStr(e.ts) + (e.loc ? ' · 📍' : '');
       var acts = document.createElement('div'); acts.className = 'acts';
       if (!e.photo) {
         var lb = document.createElement('label'); lb.className = 'btn ghost small'; lb.style.cursor = 'pointer'; lb.textContent = 'Aggiungi foto';
@@ -2262,29 +2314,85 @@ var APP_VER = 'v58';
     if (diaMode === 'list') renderDiaList(); else renderDiaEdit();
   }
   /* elenco come nell'app Diario di Apple: mesi, e per ogni giorno la foto grande con l'inizio del testo */
+  var diaQuery = '', diaFilter = 'all';
+  function djTile(lat, lon) {                      // piccola mappa: 3x3 riquadri di OpenStreetMap con il punto al centro (nessun servizio a pagamento)
+    var z = 16, n = Math.pow(2, z), px = (lon + 180) / 360 * n, la = lat * Math.PI / 180, py = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
+    var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0;
+    var box = document.createElement('div'); box.className = 'djmap';
+    var g = document.createElement('div'); g.className = 'djtiles'; g.style.marginLeft = -(256 + fx * 256) + 'px'; g.style.marginTop = -(256 + fy * 256) + 'px';
+    for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) { var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; im.src = 'https://tile.openstreetmap.org/' + z + '/' + (x0 + i) + '/' + (y0 + j) + '.png'; g.appendChild(im); }
+    var pin = document.createElement('span'); pin.className = 'djpin'; box.appendChild(g); box.appendChild(pin);
+    return box;
+  }
+  function djDate(k, e) {
+    var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]), t = e.ts ? new Date(e.ts) : null;
+    var s = d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); s = s.charAt(0).toUpperCase() + s.slice(1);
+    if (t && dayKey(e.ts) === k) s += ', ' + pad(t.getHours()) + ':' + pad(t.getMinutes());
+    return s;
+  }
+  function djSheet(buttons) {
+    var sh = document.createElement('div'); sh.className = 'sheet'; var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
+    function close() { sh.remove(); }
+    buttons.forEach(function (b) {
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'btn ghost'; x.textContent = b[0]; if (b[2]) x.style.color = 'var(--bad)';
+      x.onclick = function () { close(); if (b[1]) b[1](); }; inn.appendChild(x);
+    });
+    var c = document.createElement('button'); c.type = 'button'; c.className = 'btn ghost'; c.textContent = 'Annulla'; c.onclick = close; inn.appendChild(c);
+    sh.addEventListener('click', function (ev) { if (ev.target === sh) close(); });
+    document.body.appendChild(sh);
+  }
+  /* elenco come nell'app Diario di Apple: mesi, e per ogni giorno una scheda con foto e mappa affiancate, titolo, testo, data e "•••" */
   function renderDiaList() {
     var box = $('diaList'); box.innerHTML = '';
-    var days = Object.keys(st.diary || {}).filter(hasEntry).sort().reverse();
-    if (!days.length) { var em = document.createElement('div'); em.className = 'empty'; em.innerHTML = 'Nessuna voce ancora.<br>Tocca + per scrivere la prima.'; box.appendChild(em); return; }
+    var all = Object.keys(st.diary || {}).filter(hasEntry).sort().reverse();
+    $('djCount').textContent = all.length + (all.length === 1 ? ' annotazione' : ' annotazioni');
+    var q = diaQuery.trim().toLowerCase();
+    var days = all.filter(function (k) {
+      var e = st.diary[k];
+      if (diaFilter === 'photo' && !(e.photos || []).length) return false;
+      if (diaFilter === 'loc' && !e.loc) return false;
+      if (q && (e.text || '').toLowerCase().indexOf(q) < 0 && dayLabel(k).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    if (!days.length) { var em = document.createElement('div'); em.className = 'empty'; em.innerHTML = all.length ? 'Nessuna voce trovata.' : 'Nessuna voce ancora.<br>Tocca + per scrivere la prima.'; box.appendChild(em); return; }
     var lastM = '';
     days.forEach(function (k) {
       var m = k.slice(0, 7);
       if (m !== lastM) { lastM = m; var h = document.createElement('div'); h.className = 'djmonth'; h.textContent = monthLabel(k); box.appendChild(h); }
-      var e = st.diary[k], b = document.createElement('button'); b.type = 'button'; b.className = 'dje';
-      var ph = e.photos || [];
-      if (ph.length) {
-        var cv = document.createElement('div'); cv.className = 'djcover'; b.appendChild(cv);
-        getPhoto('dia_' + ph[0]).then(function (bl) { if (!bl) { cv.remove(); return; } var u = URL.createObjectURL(bl); diaUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = u; cv.appendChild(im); });
-        if (ph.length > 1) { var bd = document.createElement('span'); bd.className = 'djbadge'; bd.textContent = ph.length + ' foto'; cv.appendChild(bd); }
+      var e = st.diary[k], card = document.createElement('div'); card.className = 'dje'; card.tabIndex = 0;
+      var ph = e.photos || [], tiles = [];
+      function photoTile(id) {
+        var t = document.createElement('div'); t.className = 'djph';
+        getPhoto('dia_' + id).then(function (bl) { if (!bl) { t.remove(); return; } var u = URL.createObjectURL(bl); diaUrls.push(u); var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = u; t.appendChild(im); });
+        return t;
       }
+      if (ph.length) tiles.push(photoTile(ph[0]));
+      if (e.loc) tiles.push(djTile(e.loc.la, e.loc.lo)); else if (ph.length > 1) tiles.push(photoTile(ph[1]));
+      if (tiles.length) { var row = document.createElement('div'); row.className = 'djrow' + (tiles.length === 1 ? ' one' : ''); tiles.forEach(function (t) { row.appendChild(t); }); card.appendChild(row); }
       var body = document.createElement('div'); body.className = 'djbody';
-      var d = document.createElement('div'); d.className = 'djdate'; d.textContent = dayLabel(k) + (k === dayKey() ? ' · oggi' : ''); body.appendChild(d);
-      var t = (e.text || '').trim();
-      if (t) { var tx = document.createElement('div'); tx.className = 'djtext'; tx.textContent = t; body.appendChild(tx); }
-      if (e.loc) { var mt = document.createElement('div'); mt.className = 'djmeta'; mt.textContent = 'Con posizione'; body.appendChild(mt); }
-      b.appendChild(body); b.onclick = function () { diaOpenDay(k); }; box.appendChild(b);
+      var lines = (e.text || '').trim().split('\n'), first = lines[0] || '', rest = lines.slice(1).join('\n').trim();
+      if (rest) { var ti = document.createElement('div'); ti.className = 'djtitle'; ti.textContent = first; body.appendChild(ti); var tx = document.createElement('div'); tx.className = 'djtext'; tx.textContent = rest; body.appendChild(tx); }
+      else if (first) { var t1 = document.createElement('div'); t1.className = 'djtext one'; t1.textContent = first; body.appendChild(t1); }
+      if (body.childNodes.length) card.appendChild(body);
+      var foot = document.createElement('div'); foot.className = 'djfoot';
+      var dt = document.createElement('span'); dt.textContent = djDate(k, e); foot.appendChild(dt);
+      var more = document.createElement('button'); more.type = 'button'; more.className = 'djdots'; more.setAttribute('aria-label', 'Azioni'); more.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+      more.onclick = function (ev) {
+        ev.stopPropagation();
+        djSheet([['Modifica', function () { diaOpenDay(k); }], ['Elimina questa voce', function () {
+          if (!confirm('Eliminare la voce del ' + dayLabel(k) + ' con tutte le sue foto?')) return;
+          (e.photos || []).forEach(function (id) { delPhoto('dia_' + id); }); delete st.diary[k]; persist(); renderDiary();
+        }, true]]);
+      };
+      foot.appendChild(more); card.appendChild(foot);
+      card.onclick = function () { diaOpenDay(k); }; box.appendChild(card);
     });
   }
+  $('djSearchBtn').onclick = function () { var i = $('djSearch'); i.hidden = !i.hidden; if (i.hidden) { diaQuery = ''; i.value = ''; renderDiaList(); } else i.focus(); };
+  $('djSearch').addEventListener('input', function () { diaQuery = $('djSearch').value; renderDiaList(); });
+  $('djMoreBtn').onclick = function () {
+    djSheet([['Tutte le voci' + (diaFilter === 'all' ? ' ✓' : ''), function () { diaFilter = 'all'; renderDiaList(); }], ['Solo con foto' + (diaFilter === 'photo' ? ' ✓' : ''), function () { diaFilter = 'photo'; renderDiaList(); }], ['Solo con posizione' + (diaFilter === 'loc' ? ' ✓' : ''), function () { diaFilter = 'loc'; renderDiaList(); }]]);
+  };
   function renderDiaEdit() {
     $('diaDate').textContent = dayLabel(diaDay) + (diaDay === dayKey() ? ' · oggi' : ''); $('diaPick').value = diaDay;
     var e = diaGet(false); if (document.activeElement !== $('diaText')) $('diaText').value = e ? e.text || '' : '';
@@ -2397,13 +2505,14 @@ var APP_VER = 'v58';
   }
   function groupMarker(layer, g, color, build, sheet) {
     var n = g.items.length, ll = [g.la, g.lo], m;
+    var shake = !!(mapFocus && g.items.some(function (p) { return p.x && p.x.id === mapFocus.id; }));       // il punto della spesa scelta nel Registro trema
     if (layer && layer.apple) {                          // mappa Apple (app iOS): il punto lo disegna la pagina nel riquadro, il tocco torna qui
-      var id = 'p' + layer.pts.length; layer.pts.push({ id: id, la: g.la, lo: g.lo, color: color, text: n > 1 ? String(n) : '' });
+      var id = 'p' + layer.pts.length; layer.pts.push({ id: id, la: g.la, lo: g.lo, color: color, text: n > 1 ? String(n) : '', shake: shake });
       layer.tap[id] = function () { if (sheet) sheet(g); else amPop(build(g)); };
       return null;
     }
-    if (n === 1) m = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
-    else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn" style="background:' + color + '">' + n + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
+    if (n === 1 && !shake) m = L.circleMarker(ll, { radius: 12, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
+    else m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="mkn' + (shake ? ' shake' : '') + '" style="background:' + color + '">' + (n > 1 ? n : '') + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(layer);
     m.on('click', function () { if (sheet) { sheet(g); return; } m.bindPopup(build(g), { minWidth: 200, maxWidth: 240, keepInView: true, autoPanPadding: [24, 24] }).openPopup(); });
     return m;
   }
@@ -2631,9 +2740,15 @@ var APP_VER = 'v58';
   }
   /* ---------- mappa unica: programma, spese, foto e diario, tutto il viaggio o un giorno solo ---------- */
   var MAP_KINDS = [['prog', 'Programma', '#1a7fc4'], ['exp', 'Spese', '#d70015'], ['pho', 'Foto', '#d6246e'], ['dia', 'Diario', '#e07b00']];
-  var map = null, mapLayer = null, mapSel = { prog: true, exp: true, pho: true, dia: true }, mapDay = '', mapFrom = '', mapUrls = [];
+  var map = null, mapLayer = null, mapSel = { prog: true, exp: true, pho: true, dia: true }, mapDay = '', mapFrom = '', mapUrls = [], mapFocus = null;
+  /* dal Registro: tocchi una spesa e la mappa si apre su quel punto, che trema */
+  function openMapAt(e) {
+    if (!e.loc || e.loc.la == null) { toast('Questa spesa non ha una posizione'); return; }
+    mapFrom = 'log'; mapDay = ''; mapSel = { exp: true }; mapFocus = { id: e.id, la: e.loc.la, lo: e.loc.lo };
+    go('map');
+  }
   function openMap(from) {                               // dalla home: tutto; dal Programma: solo le tappe
-    mapFrom = from || ''; mapDay = '';
+    mapFrom = from || ''; mapDay = ''; mapFocus = null;
     mapSel = from === 'cal' ? { prog: true } : { prog: true, exp: true, pho: true, dia: true };
     go('map');
   }
@@ -2650,7 +2765,7 @@ var APP_VER = 'v58';
   function mapRow(sc, title, sub) { var it = document.createElement('div'), t = document.createElement('b'), d = document.createElement('div'); it.className = 'it'; t.textContent = title; d.textContent = sub; it.appendChild(t); it.appendChild(d); sc.appendChild(it); return it; }
   /* Mappa Apple dentro l'app iOS: una pagina del sito (l'unico indirizzo da cui Apple accetta il token) mostrata in un riquadro.
      Se non si carica entro pochi secondi si torna a OpenStreetMap. Nella PWA non si usa mai. */
-  var AM_URL = 'https://tarragona2026.github.io/texas-cash/mappa-apple.html?v=3', AM_ORIGIN = 'https://tarragona2026.github.io';
+  var AM_URL = 'https://tarragona2026.github.io/texas-cash/mappa-apple.html?v=4', AM_ORIGIN = 'https://tarragona2026.github.io';
   var am = { frame: null, ready: false, failed: false, timer: null, last: null, tap: {} };
   function amWanted() { try { return !am.failed && !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) && navigator.onLine !== false; } catch (e) { return false; } }
   function amFail() {
@@ -2766,10 +2881,10 @@ var APP_VER = 'v58';
     info.textContent = (mapDay ? calDayLabel(mapDay) : 'Tutto il viaggio') + ' · ' + (parts.length ? parts.join(' · ') : 'scegli in alto cosa vedere') + '.'
       + (parts.length && !bounds.length ? ' Nessun punto da mostrare.' : '') + (bounds.length ? ' Tocca un punto per i dettagli.' : '')
       + (missing ? ' ' + missing + (missing === 1 ? ' luogo del programma non è ancora sulla mappa.' : ' luoghi del programma non sono ancora sulla mappa.') : '');
-    if (apple) { am.tap = aLayer.tap; am.last = { src: 'app', t: 'set', pts: aLayer.pts }; amPost(); return; }
+    if (apple) { am.tap = aLayer.tap; am.last = { src: 'app', t: 'set', pts: aLayer.pts }; if (mapFocus) { am.last.center = { la: mapFocus.la, lo: mapFocus.lo }; am.last.span = 0.012; } amPost(); return; }
     setTimeout(function () {
       map.invalidateSize();
-      if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      if (mapFocus) map.setView([mapFocus.la, mapFocus.lo], 16); else if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }, 50);
   }
 
