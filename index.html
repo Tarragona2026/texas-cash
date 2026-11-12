@@ -402,6 +402,32 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 .sheethd { background: var(--bg); top: -22px; padding-top: 12px; }
 .toast { background: rgba(60,60,67,.92); color: #fff; border: 0; font-weight: 600; font-size: .92rem; }
 @media (prefers-reduced-motion: reduce) { .sheet, .sheetin { animation: none; } }
+
+/* ===== Stile iOS, secondo giro: tasti piu' piccoli, icone tinta su tinta, filtri della mappa ===== */
+.btn { min-height: 44px; border-radius: 999px; padding: 0 20px; font-size: .96rem; font-weight: 600; }
+.btn.small { min-height: 34px; padding: 0 14px; font-size: .88rem; border-radius: 999px; }
+.btnrow { gap: 8px; }
+.btnrow .btn { flex: 1 1 0; }
+.chkbar { min-height: 40px; font-size: .92rem; }
+.chkact, .calpin { border-radius: 999px; }
+.docrow, .chkperson, .phr button { border-radius: 12px; }
+/* icone della home: tinta leggera con il simbolo a colori, niente sfumature */
+.apps { gap: 20px 8px; }
+.apps .app .ic { width: 64px; height: 64px; border-radius: 18px; background: color-mix(in srgb, var(--c) 16%, var(--card)); color: var(--c); box-shadow: none; }
+.apps .app .ic svg { width: 30px; height: 30px; stroke-width: 2; }
+.app .ic.red { --c: #ff375f; } .app .ic.blue { --c: #0a84ff; } .app .ic.indigo { --c: #6e6af0; } .app .ic.sky { --c: #27a9e8; }
+.app .ic.lime { --c: #2fb457; } .app .ic.amber { --c: #f59a0c; } .app .ic.pink { --c: #ec4899; } .app .ic.teal { --c: #14a9be; }
+.app .ic.green { --c: #34c759; } .app .ic.purple { --c: #a24ee0; } .app .ic.mint { --c: #00b8a9; } .app .ic.coral { --c: #ff6a3d; } .app .ic.grey { --c: #8e8e93; }
+.app { font-size: .76rem; gap: 7px; }
+/* mappa: cosa mostrare = pastiglie colorate in una riga; giorno = striscia di date */
+#mapKinds, #mapDays { background: none; padding: 0; border-radius: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0; gap: 6px; max-width: none; }
+#mapKinds::-webkit-scrollbar, #mapDays::-webkit-scrollbar { display: none; }
+#mapKinds .chip { flex: 0 0 auto; min-height: 30px; padding: 0 9px 0 8px; border-radius: 999px; font-size: .8rem; font-weight: 600; background: var(--field); color: var(--ink-soft); box-shadow: inset 0 0 0 1.5px transparent; }
+#mapKinds .chip .kdot { border: 0; opacity: .45; margin-right: 5px; width: 8px; height: 8px; }
+#mapKinds .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--k) 16%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--k); }
+#mapKinds .chip[aria-pressed="true"] .kdot { opacity: 1; }
+#mapDays .chip { flex: 0 0 auto; min-width: 0; min-height: 30px; padding: 0 12px; border-radius: 999px; font-size: .86rem; font-weight: 500; background: transparent; color: var(--ink-soft); box-shadow: none; }
+#mapDays .chip[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; box-shadow: none; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -2455,7 +2481,7 @@ var APP_VER = 'v57';
     /* filtri: cosa mostrare */
     kinds.innerHTML = '';
     MAP_KINDS.forEach(function (K) {
-      var b = document.createElement('button'), dot = document.createElement('span'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:1 1 40%;padding:0 8px';
+      var b = document.createElement('button'), dot = document.createElement('span'); b.type = 'button'; b.className = 'chip'; b.style.setProperty('--k', K[2]);
       dot.className = 'kdot'; dot.style.background = K[2]; b.appendChild(dot); b.appendChild(document.createTextNode(K[1]));
       b.setAttribute('aria-pressed', String(!!mapSel[K[0]])); b.onclick = function () { mapSel[K[0]] = !mapSel[K[0]]; renderMap(); }; kinds.appendChild(b);
     });
