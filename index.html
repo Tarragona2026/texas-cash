@@ -420,14 +420,37 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 .app .ic.green { --c: #34c759; } .app .ic.purple { --c: #a24ee0; } .app .ic.mint { --c: #00b8a9; } .app .ic.coral { --c: #ff6a3d; } .app .ic.grey { --c: #8e8e93; }
 .app { font-size: .76rem; gap: 7px; }
 /* mappa: cosa mostrare = pastiglie colorate in una riga; giorno = striscia di date */
-#mapKinds, #mapDays { background: none; padding: 0; border-radius: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0; gap: 6px; max-width: none; }
+#mapKinds, #mapDays { background: none; padding: 0; border-radius: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0; gap: 5px; max-width: none; }
 #mapKinds::-webkit-scrollbar, #mapDays::-webkit-scrollbar { display: none; }
-#mapKinds .chip { flex: 0 0 auto; min-height: 30px; padding: 0 9px 0 8px; border-radius: 999px; font-size: .8rem; font-weight: 600; background: var(--field); color: var(--ink-soft); box-shadow: inset 0 0 0 1.5px transparent; }
+#mapKinds .chip { flex: 0 0 auto; min-height: 30px; padding: 0 8px 0 6px; border-radius: 999px; font-size: .78rem; font-weight: 600; background: var(--field); color: var(--ink-soft); box-shadow: inset 0 0 0 1.5px transparent; }
 #mapKinds .chip .kdot { border: 0; opacity: .45; margin-right: 5px; width: 8px; height: 8px; }
 #mapKinds .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--k) 16%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--k); }
 #mapKinds .chip[aria-pressed="true"] .kdot { opacity: 1; }
 #mapDays .chip { flex: 0 0 auto; min-width: 0; min-height: 30px; padding: 0 12px; border-radius: 999px; font-size: .86rem; font-weight: 500; background: transparent; color: var(--ink-soft); box-shadow: none; }
 #mapDays .chip[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; box-shadow: none; }
+
+/* ===== mappa: scritta accanto al titolo, spunta verde; icone piu' grandi; Foto a album ===== */
+.h2sub { font-size: .85rem; font-weight: 500; color: var(--ink-soft); letter-spacing: 0; margin-left: 8px; }
+#mapKinds .chip[aria-pressed="true"] .kdot { opacity: 1; background: #34c759 !important; width: 13px; height: 13px; margin-right: 4px; position: relative; }
+#mapKinds .chip[aria-pressed="true"] .kdot::after { content: ""; position: absolute; left: 3.5px; top: 1.5px; width: 3.5px; height: 6.5px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.apps .app .ic svg { width: 40px; height: 40px; }
+.albums { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 14px; }
+.albtile { border: 0; background: none; padding: 0; text-align: left; color: var(--ink); display: flex; flex-direction: column; gap: 3px; }
+.albcov { aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--field); display: grid; place-items: center; font-size: 3rem; font-weight: 700; margin-bottom: 4px; }
+.albcov img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.albname { font-weight: 600; font-size: 1rem; }
+.albcnt { color: var(--ink-soft); font-size: .85rem; }
+.albrow { margin-top: 6px; width: 100%; min-height: 48px; border: 0; border-radius: 12px; background: var(--card); color: var(--accent); font-weight: 600; font-size: .98rem; text-align: left; padding: 0 16px; }
+#alAlbums { display: flex; flex-direction: column; gap: 10px; }
+#alDetail { display: flex; flex-direction: column; gap: 10px; }
+#alDetail[hidden], #alAlbums[hidden] { display: none; }
+.alhead { display: flex; align-items: baseline; gap: 10px; }
+.alhead b { font-family: var(--font-display); font-size: 1.3rem; }
+.alhead .hint { margin-left: auto; }
+.alback { border: 0; background: none; color: var(--accent); font-size: 1.04rem; padding: 0; }
+.agrid.solo { gap: 2px; }
+.agrid.solo .atile { border-radius: 0; }
+.agrid.solo .atag { display: none; }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
@@ -571,7 +594,7 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 
   <!-- MAPPA -->
   <section id="v-map" class="wrap" aria-label="Mappa del viaggio" hidden>
-    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa</h2><span></span></div>
+    <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa <small class="h2sub">Scegli cosa vedere</small></h2><span></span></div>
     <section class="card" style="gap:10px">
       <div class="chips" id="mapKinds" aria-label="Cosa mostrare"></div>
       <div class="chips scroll" id="mapDays" aria-label="Giorno"></div>
@@ -663,8 +686,14 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
       <div class="hint" id="alHint">Le foto vanno nell'album comune: le vedete tutti e tre.</div>
       <button class="btn ghost small" id="alSaveRoll" type="button" hidden>Salva l'ultima foto anche nel rullino</button>
     </section>
-    <div class="agrid" id="alGrid"></div>
-    <div class="hint" id="alCount"></div>
+    <div id="alAlbums">
+      <div class="label">Album</div>
+      <div class="albums" id="alTiles"></div>
+    </div>
+    <div id="alDetail" hidden>
+      <div class="alhead"><button class="alback" id="alBack" type="button">‹ Album</button><b id="alTitle"></b><span class="hint" id="alCount"></span></div>
+      <div class="agrid" id="alGrid"></div>
+    </div>
   </section>
 
   <!-- TRADUTTORE -->
@@ -2204,7 +2233,7 @@ var APP_VER = 'v57';
   }
 
   /* ---------- album foto condiviso ---------- */
-  var albUnsub = null, albRemote = [], albLast = null, albUrls = [];
+  var albUnsub = null, albRemote = [], albLast = null, albUrls = [], albSel = null;      /* albSel: null = elenco album, 'matteo'/'leslie'/'leo' = un album, '*' = tutte */
   function resizeJpeg(file, max, q) {
     return new Promise(function (res, rej) {
       var u = URL.createObjectURL(file), im = new Image();
@@ -2252,7 +2281,7 @@ var APP_VER = 'v57';
     }, function () { $('alHint').textContent = 'Non riesco a leggere questa foto.'; });
   }
   function openAlbum() {
-    renderAlbum();
+    albSel = null; renderAlbum();
     if (albUnsub) { albUnsub(); albUnsub = null; }
     fbReady().then(function (d) {
       albUnsub = d.collection('trips').doc(st.trip).collection('album').orderBy('ts', 'desc').limit(200).onSnapshot(function (snap) {
@@ -2271,17 +2300,35 @@ var APP_VER = 'v57';
     Promise.all(locals.map(function (a) { return getPhoto('albt_' + a.id).then(function (b) { if (!b) return null; var u = URL.createObjectURL(b); albUrls.push(u); return { id: a.id, user: a.user, ts: a.ts, loc: a.loc, thumbUrl: u, pending: !a.up }; }); })).then(function (ls) {
       ls.forEach(function (x) { if (x) items.push(x); });
       items.sort(function (a, b) { return b.ts - a.ts; });
-      items.forEach(function (x, ix) {
+      var AL = [['matteo', 'Matteo', '#0a84ff'], ['leslie', 'Leslie', '#ec4899'], ['leo', 'Leo', '#34c759']], key = function (u) { return String(u || '').trim().toLowerCase(); };
+      $('alAlbums').hidden = albSel !== null; $('alDetail').hidden = albSel === null;
+      if (albSel === null) {
+        var tiles = $('alTiles'); tiles.innerHTML = '';
+        AL.concat([['*', 'Tutte le foto', '#8e8e93']]).forEach(function (a) {
+          var mine = a[0] === '*' ? items : items.filter(function (x) { return key(x.user) === a[0]; }), b = document.createElement('button'); b.type = 'button'; b.className = 'albtile';
+          var cov = document.createElement('span'); cov.className = 'albcov';
+          if (mine.length) { var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = mine[0].thumbUrl || mine[0].thumb; cov.appendChild(im); }
+          else { cov.textContent = a[1].charAt(0); cov.style.color = a[2]; cov.style.background = 'color-mix(in srgb, ' + a[2] + ' 16%, var(--card))'; cov.classList.add('empty0'); }
+          var n = document.createElement('span'); n.className = 'albname'; n.textContent = a[1];
+          var c = document.createElement('span'); c.className = 'albcnt'; c.textContent = mine.length + (mine.length === 1 ? ' foto' : ' foto');
+          b.appendChild(cov); b.appendChild(n); b.appendChild(c); b.onclick = function () { albSel = a[0]; renderAlbum(); window.scrollTo(0, 0); }; tiles.appendChild(b);
+        });
+        return;
+      }
+      var shown = albSel === '*' ? items : items.filter(function (x) { return key(x.user) === albSel; });
+      $('alTitle').textContent = albSel === '*' ? 'Tutte le foto' : (AL.filter(function (a) { return a[0] === albSel; })[0] || [0, albSel])[1];
+      $('alGrid').classList.toggle('solo', albSel !== '*');
+      shown.forEach(function (x, ix) {
         var b = document.createElement('button'); b.type = 'button'; b.className = 'atile'; b.setAttribute('aria-label', 'Foto di ' + (x.user || ''));
         var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.loading = 'lazy'; im.src = x.thumbUrl || x.thumb; b.appendChild(im);
         var t = document.createElement('span'); t.className = 'atag'; t.textContent = x.user || '?'; b.appendChild(t);
         if (x.pending) { var p = document.createElement('span'); p.className = 'apend'; p.textContent = 'in coda'; b.appendChild(p); }
-        b.onclick = function () { viewAlbumPhoto(items.slice(), ix); }; grid.appendChild(b);
+        b.onclick = function () { viewAlbumPhoto(shown.slice(), ix); }; grid.appendChild(b);
       });
-      var users = {}; items.forEach(function (x) { users[x.user] = 1; });
-      $('alCount').textContent = items.length ? items.length + (items.length === 1 ? ' foto' : ' foto') + ' · ' + Object.keys(users).length + (Object.keys(users).length === 1 ? ' persona' : ' persone') : 'Ancora nessuna foto.';
+      $('alCount').textContent = shown.length ? shown.length + ' foto' : 'Ancora nessuna foto.';
     });
   }
+  $('alBack').onclick = function () { albSel = null; renderAlbum(); window.scrollTo(0, 0); };
   function viewAlbumPhoto(list, idx) {
     var host = $('viewerHost'), v = document.createElement('div'), mini = null, cur = -1, gen = 0, busy = false;
     v.className = 'viewer alb'; v.style.overflowY = 'auto'; v.style.justifyContent = 'flex-start';
