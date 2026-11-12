@@ -38,5 +38,13 @@ const now = new Date(2026, 11, 28, 10).getTime();
   const r = parseReceiptDate(c[0], now);
   try { assert.strictEqual(r && r.date, c[1]); assert.strictEqual(r.time, c[2]); } catch (e) { bad++; console.log('FAIL data', c[0]); }
 });
+// motore Apple: pezzi di testo con posizione -> righe (origine in basso a sinistra; etichetta a sinistra e importo a destra sulla stessa riga)
+{ const { linesFromBoxes, isConsistent } = require('../ocr.js');
+  const B = (text, x, y) => ({ text, x, y, w: 0.2, h: 0.02 });
+  const t = linesFromBoxes([B('3.61', 0.8, 0.401), B('Total', 0.1, 0.35), B('H-E-B', 0.4, 0.9), B('Subtotal', 0.1, 0.45), B('43.70', 0.8, 0.452), B('Sales Tax', 0.1, 0.4), B('47.31', 0.8, 0.349), { text: '', x: 0, y: 0, w: 1, h: 1 }]);
+  assert.strictEqual(t, 'H-E-B\nSubtotal  43.70\nSales Tax  3.61\nTotal  47.31');
+  const r = parseReceipt(t); assert.strictEqual(r.subtotal, 43.7); assert.strictEqual(r.tax, 3.61); assert.strictEqual(r.total, 47.31); assert.ok(isConsistent(r));
+  assert.strictEqual(linesFromBoxes([]), ''); assert.strictEqual(linesFromBoxes(null), '');
+  console.log('ok motore Apple: righe ricostruite dalle posizioni'); }
 console.log(bad ? bad + ' errori' : 'tutti i test passano (' + cases.length + ')');
 process.exit(bad ? 1 : 0);

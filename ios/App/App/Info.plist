@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Serve per fotografare scontrini, documenti e le foto del viaggio.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Serve per aprire la cartella Personali dei Documenti senza scrivere il PIN.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Serve per segnare dove hai fatto una spesa, una foto o una pagina di diario, e per il tasto Sono qui.</string>
 	<key>NSMicrophoneUsageDescription</key>

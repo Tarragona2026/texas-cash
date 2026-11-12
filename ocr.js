@@ -195,7 +195,22 @@
     return { y: best.y, m: best.m, d: best.d, fmt: best.fmt, ambiguous: best.amb, date: best.y + '-' + p2(best.m) + '-' + p2(best.d), time: t ? p2(t.h) + ':' + p2(t.mi) : '', ts: new Date(best.y, best.m - 1, best.d, t ? t.h : 12, t ? t.mi : 0).getTime() };
   }
 
-  var api = { parseReceiptDate: parseReceiptDate, parseReceipt: parseReceipt, mergeResults: mergeResults, isConsistent: isConsistent };
+  /* Motore Apple (app iOS): riceve pezzi di testo con la posizione (x, y, w, h tra 0 e 1, origine in basso a sinistra) e li rimette in righe,
+     dall'alto in basso e da sinistra a destra, cosi' "Subtotal" e il suo importo dall'altra parte dello scontrino tornano sulla stessa riga. */
+  function linesFromBoxes(boxes) {
+    var it = (boxes || []).filter(function (b) { return b && b.text && isFinite(b.x) && isFinite(b.y) && b.h > 0; })
+      .map(function (b) { return { t: String(b.text).trim(), x: +b.x, yc: +b.y + b.h / 2, h: +b.h }; }).filter(function (b) { return b.t; });
+    it.sort(function (a, b) { return b.yc - a.yc; });
+    var rows = [];
+    it.forEach(function (b) {
+      var r = rows[rows.length - 1];
+      if (r && Math.abs(r.yc - b.yc) < 0.55 * Math.min(r.h, b.h)) { r.items.push(b); r.yc = (r.yc * (r.items.length - 1) + b.yc) / r.items.length; r.h = Math.min(r.h, b.h); }
+      else rows.push({ yc: b.yc, h: b.h, items: [b] });
+    });
+    return rows.map(function (r) { return r.items.sort(function (a, b) { return a.x - b.x; }).map(function (b) { return b.t; }).join('  '); }).join('\n');
+  }
+
+  var api = { parseReceiptDate: parseReceiptDate, parseReceipt: parseReceipt, mergeResults: mergeResults, isConsistent: isConsistent, linesFromBoxes: linesFromBoxes };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else { root.parseReceiptDate = parseReceiptDate; root.parseReceipt = parseReceipt; root.mergeResults = mergeResults; root.isConsistent = isConsistent; }
+  else { root.parseReceiptDate = parseReceiptDate; root.parseReceipt = parseReceipt; root.mergeResults = mergeResults; root.isConsistent = isConsistent; root.linesFromBoxes = linesFromBoxes; }
 })(typeof self !== 'undefined' ? self : this);

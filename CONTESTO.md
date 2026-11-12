@@ -67,3 +67,4 @@ Matteo ha detto sì a entrambe (Cloudflare + codice segreto). L'app è ancora v5
 - Documenti: provati solo nel browser del Mac con file finti. Da provare su iPhone: foto dalla fotocamera, PDF veri (biglietti, assicurazione), PIN.
 - Scontrini veri: la lettura di indirizzo, negozio e data è stata provata solo con scontrini finti.
 - Itinerario: mancano indirizzi di steak house del 23, colazione del 24, Airbnb di Galveston, BBQ del 28.
+- Build 8 su TestFlight (12 nov 2026): lettura scontrini con Apple Vision (plugin `TexasOcrPlugin.swift`, `linesFromBoxes` in `ocr.js`; se i conti non tornano si ripiega sul motore di sempre) e Face ID per la cartella Personali (`@capgo/capacitor-native-biometric`, il PIN resta valido). NON ancora provati sull'iPhone: confrontare con scontrini veri e provare Face ID prima di dichiararli finiti.

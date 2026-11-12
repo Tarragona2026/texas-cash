@@ -630,9 +630,11 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
         <div class="label" id="docLockT"></div>
         <input type="password" id="docPin" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN" aria-label="PIN">
         <input type="password" id="docPin2" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Ripeti il PIN" aria-label="Ripeti il PIN">
+        <button class="btn" id="docBio" type="button" hidden>Apri con Face ID</button>
         <button class="btn" id="docUnlock" type="button">Apri</button>
         <div class="hint" id="docLockHint"></div>
         <button class="btn ghost small" id="docForgot" type="button">Ho dimenticato il PIN</button>
+        <button class="btn ghost small" id="docBioOff" type="button" hidden>Non usare più Face ID</button>
       </section>
       <section class="card" id="docOpenP" hidden>
         <button class="btn" id="docAddP" type="button">Aggiungi foto</button>
@@ -1068,14 +1070,33 @@ var APP_VER = 'v55';
     $('dtScan').value = dtLocal(r.ts);
     h.textContent = 'Data letta dallo scontrino' + (r.time ? '' : ' (ora non trovata)') + (r.ambiguous ? ' · controlla giorno e mese' : '') + '.';
   }
+  /* App iOS: prima il motore di Apple (piu' veloce e preciso). Se non legge o i conti non tornano, si passa al motore di sempre,
+     che resta l'unico nella PWA. `pre` e' la lettura di Apple da unire a quelle del motore di sempre. */
+  function visionRead(run) {
+    var V = natPlugin('TexasOcr'); if (!V || !ocrFile) return Promise.resolve(null);
+    return shrinkImage(ocrFile, 2600).then(blobToData).then(function (u) { return u ? V.detectText({ base64: u }) : null; }).then(function (r) {
+      var text = r && r.lines ? linesFromBoxes(r.lines) : '';
+      return text && text.replace(/\s/g, '').length >= 12 ? text : null;
+    }).catch(function () { return null; });
+  }
   function readReceipt(run) {
     if (!ocrSource) return;
     ocrStatus('Preparo la lettura…');
+    visionRead(run).then(function (text) {
+      if (run !== ocrRun) return;
+      if (!text) { tessRead(run, null); return; }
+      var v = parseReceipt(text); setFields(v); fillDate(text); suggestStores(text, 'storeScan', 'descScan');
+      if (isConsistent(v)) { finishRead(v, run); return; }
+      tessRead(run, v);
+    });
+  }
+  function tessRead(run, pre) {
     var first = null, w0 = null;
     getWorker().then(function (w) { w0 = w; return w.recognize(ocrSource); }).then(function (res) {
       if (run !== ocrRun) return null;
-      first = parseReceipt(res.data.text); setFields(first);
+      first = parseReceipt(res.data.text); if (pre) first = mergeResults([pre, first]) || first; setFields(first);
       var full = res.data.text;
+      if (pre) return afterFirst(first, run, w0);        // data e negozio li ha gia' letti il motore di Apple
       return headerText(w0).then(function (ht) {
         if (run !== ocrRun) return null;
         fillDate(full + '\n' + (ht || ''));
@@ -1090,6 +1111,14 @@ var APP_VER = 'v55';
       if (run === ocrRun) { scanning(false); ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.'); }
     });
   }
+  function finishRead(r, run) {
+    if (!r || run !== ocrRun) return;
+    setTimeout(function () { if (run === ocrRun) scanning(false); }, Math.max(0, 1800 - (Date.now() - scanStart)));   // l'animazione dura almeno un paio di secondi
+    setFields(r);
+    var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length, notes = (r.notes || []).slice();
+    if (found && !isConsistent(r) && !notes.length) notes.push('Controlla gli importi: subtotale + tasse non fa il totale.');
+    ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (notes.length ? ' ' + notes.join(' ') : '') : 'Non ho trovato importi: scrivili a mano.');
+  }
   function afterFirst(first, run, w0) {
     return Promise.resolve().then(function () {
       if (isConsistent(first)) return first;                                    // subtotale + tasse = totale: lettura affidabile
@@ -1098,14 +1127,7 @@ var APP_VER = 'v55';
         if (run !== ocrRun) return null;
         return mergeResults([first, parseReceipt(res2.data.text)]);
       });
-    }).then(function (r) {
-      if (!r || run !== ocrRun) return;
-      setTimeout(function () { if (run === ocrRun) scanning(false); }, Math.max(0, 1800 - (Date.now() - scanStart)));   // l'animazione dura almeno un paio di secondi
-      setFields(r);
-      var found = [r.subtotal, r.tax, r.tip, r.total].filter(function (x) { return x != null; }).length, notes = (r.notes || []).slice();
-      if (found && !isConsistent(r) && !notes.length) notes.push('Controlla gli importi: subtotale + tasse non fa il totale.');
-      ocrStatus(found ? 'Controlla gli importi e correggili se serve.' + (notes.length ? ' ' + notes.join(' ') : '') : 'Non ho trovato importi: scrivili a mano.');
-    }).catch(function (e) {
+    }).then(function (r) { finishRead(r, run); }).catch(function (e) {
       console.error('ocr', e);
       if (run === ocrRun) { scanning(false); ocrStatus('Lettura non riuscita. Inserisci gli importi a mano.'); }
     });
@@ -2902,6 +2924,7 @@ var APP_VER = 'v55';
     if (!open) {
       $('docLockT').textContent = setup ? 'Scegli un PIN per questa cartella' : 'Cartella protetta';
       $('docPin2').hidden = !setup; $('docForgot').hidden = setup;
+      var bio = !setup && !!dm.bio && !!natPlugin('NativeBiometric'); $('docBio').hidden = !bio; $('docBioOff').hidden = !bio; $('docUnlock').className = bio ? 'btn ghost' : 'btn';
       $('docUnlock').textContent = setup ? 'Crea PIN' : 'Apri';
       $('docLockHint').textContent = setup ? 'Almeno 4 cifre, e non lo stesso del telefono. Attenzione: se lo dimentichi le foto di questa cartella non si recuperano.' : 'Scrivi il tuo PIN per vedere carta d\'identità e passaporto.';
       return;
@@ -2925,13 +2948,33 @@ var APP_VER = 'v55';
       });
     });
   }
+  /* Face ID (solo app iOS): una comodita' in piu', il PIN resta valido. Il PIN viene custodito nel portachiavi dell'iPhone,
+     che lo restituisce solo dopo il riconoscimento del volto (o dell'impronta). Non esce mai dal telefono. */
+  var BIO_SRV = 'xmastexas.documenti';
+  function bioOffer(pin) {
+    var B = natPlugin('NativeBiometric'); if (!B || dm.bio || dm.bioNo) return;
+    B.isAvailable().then(function (r) {
+      if (!r || !r.isAvailable) return;
+      if (!confirm('Vuoi aprire questa cartella con Face ID le prossime volte?\n\nIl PIN resta valido e serve comunque ricordarlo.')) { dm.bioNo = 1; docMeta(); return; }
+      return B.setCredentials({ username: 'pin', password: pin, server: BIO_SRV, accessControl: 2 }).then(function () { dm.bio = 1; docMeta(); toast('Face ID attivato per questa cartella'); });
+    }).catch(function () {});
+  }
+  function bioForget() { var B = natPlugin('NativeBiometric'); delete dm.bio; delete dm.bioNo; docMeta(); if (B) B.deleteCredentials({ server: BIO_SRV }).catch(function () {}); }
+  $('docBio').onclick = function () {
+    var B = natPlugin('NativeBiometric'); if (!B) return;
+    B.getSecureCredentials({ server: BIO_SRV, reason: 'Apri la cartella Personali' }).then(function (c) { return pinCheck(String((c && c.password) || '')); }).then(function (k) {
+      if (!k) { bioForget(); renderDocP(); toast('Face ID non è più valido per questa cartella: usa il PIN'); return; }
+      dm.fail = 0; dm.wait = 0; docMeta(); docKey = k; renderDocP();
+    }, function () { toast('Face ID non riuscito: usa il PIN'); });
+  };
+  $('docBioOff').onclick = function () { bioForget(); renderDocP(); toast('Face ID tolto: la cartella si apre solo con il PIN'); };
   $('docUnlock').onclick = function () {
     if (!window.crypto || !crypto.subtle) { toast('Su questo telefono la cartella protetta non funziona'); return; }
     var p = $('docPin').value.trim();
     if (!pinOk(p)) return;
     if (!dm.pin) {
       if (p !== $('docPin2').value.trim()) { toast('I due PIN non sono uguali'); return; }
-      pinNew(p).then(function (r) { dm.pin = r.pin; dm.fail = 0; dm.wait = 0; docMeta(); docKey = r.key; $('docPin').value = ''; $('docPin2').value = ''; renderDocP(); toast('PIN creato'); });
+      pinNew(p).then(function (r) { dm.pin = r.pin; dm.fail = 0; dm.wait = 0; docMeta(); docKey = r.key; $('docPin').value = ''; $('docPin2').value = ''; renderDocP(); toast('PIN creato'); bioOffer(p); });
       return;
     }
     var w = (dm.wait || 0) - Date.now();
@@ -2939,13 +2982,13 @@ var APP_VER = 'v55';
     pinCheck(p).then(function (k) {
       $('docPin').value = '';
       if (!k) { dm.fail = (dm.fail || 0) + 1; if (dm.fail >= 5) dm.wait = Date.now() + 60000; docMeta(); toast('PIN sbagliato'); return; }
-      dm.fail = 0; dm.wait = 0; docMeta(); docKey = k; renderDocP();
+      dm.fail = 0; dm.wait = 0; docMeta(); docKey = k; renderDocP(); bioOffer(p);
     });
   };
   $('docPin').addEventListener('keydown', function (e) { if (e.key === 'Enter' && dm.pin) $('docUnlock').click(); });
   $('docForgot').onclick = function () {
     if (!confirm('Senza PIN le foto di questa cartella non si possono aprire.\n\nVuoi cancellarle tutte e scegliere un PIN nuovo?')) return;
-    docAll('p').then(function (l) { return docDelMany(l.map(function (x) { return x.id; })); }).then(function () { delete dm.pin; dm.fail = 0; dm.wait = 0; docMeta(); docLock(); renderDocP(); toast('Cartella svuotata: scegli un PIN nuovo'); });
+    docAll('p').then(function (l) { return docDelMany(l.map(function (x) { return x.id; })); }).then(function () { delete dm.pin; dm.fail = 0; dm.wait = 0; bioForget(); docMeta(); docLock(); renderDocP(); toast('Cartella svuotata: scegli un PIN nuovo'); });
   };
   $('docClose').onclick = function () { docLock(); renderDocP(); };
   $('docChPin').onclick = function () {
