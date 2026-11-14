@@ -1223,7 +1223,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v88';
+var APP_VER = 'v89';
 var ES = window.APP_LANG === 'es', LOC = ES ? 'es-ES' : 'it-IT';
 function LT(it, es) { return ES ? es : it; }
 (function () {
@@ -3486,6 +3486,8 @@ function LT(it, es) { return ES ? es : it; }
       try {
         P.addListener('registration', function (t) { if (t && t.value) { st.pushTok = String(t.value); pnSave(); } });
         P.addListener('registrationError', function () {});
+        P.addListener('pushNotificationActionPerformed', function (a) { var k = a && a.notification && a.notification.data && a.notification.data.kind; if (k === 'posizione') { posAutoAt = Date.now(); posSendNow(); } });
+        P.addListener('pushNotificationReceived', function (n) { var k = n && n.data && n.data.kind; if (k === 'posizione') { posAutoAt = Date.now(); posSendNow(); } });
       } catch (e) {}
     }
     if (!st.notifOn) { pnSave(); return; }
@@ -3514,7 +3516,7 @@ function LT(it, es) { return ES ? es : it; }
     pnPush({ title: st.user + ' ha speso ' + money(e), body: body, kind: 'spesa' }, function (id) { return PN_NOT.indexOf(id) < 0; });
   }
   function pnAsk() {                                     // "Chiedi dove sono": avviso a tutti gli altri; aprendo l'app la posizione si aggiorna da sola
-    pnPush({ title: st.user + ' ti chiede dove sei', body: 'Apri l\'app: la tua posizione si invia da sola.', kind: 'posizione' }, function () { return true; });
+    pnPush({ title: st.user + ' ti chiede dove sei', body: 'Tocca per inviare subito la tua posizione.', kind: 'posizione' }, function () { return true; });
   }
   setTimeout(function () { try { ntInfo(); if (st.notifOn) ntPlan(); pnRegister(); } catch (e) {} }, 1500);
 
@@ -4084,6 +4086,15 @@ function LT(it, es) { return ES ? es : it; }
   }
   /* ogni volta che si apre l'app (o si torna all'app) un solo rilevamento: gli altri vedono l'ultima posizione e quando e' stata presa.
      Niente tracciamento in background, quindi la batteria non ne risente. */
+  var posNowBusy = false;
+  function posSendNow() {                                // un tocco sull'avviso "ti chiede dove sei" (o l'avviso arrivato ad app aperta): la posizione parte subito
+    if (posNowBusy || !st.user) return; posNowBusy = true;
+    getFix(12000).then(function (f) {
+      posNowBusy = false;
+      if (!f) { posAskBanner(); toast('Non trovo la posizione: controlla che sia attiva per questa app'); return; }
+      posSet(f); sync(true); toast('Posizione inviata');
+    }, function () { posNowBusy = false; });
+  }
   var posAutoAt = 0;
   function posAuto() {
     if (!st.user || document.hidden || Date.now() - posAutoAt < 90000) return;
@@ -4178,7 +4189,7 @@ function LT(it, es) { return ES ? es : it; }
     var me = chkMe(), info = $('posAskInfo'), wa = $('posAskWa'), msg = 'Dove sei? Apri la app Xmas in Texa$ e tocca "Sono qui".';
     fbReady().then(function (d) { return d.collection('trips').doc(st.trip).collection('posreq').doc(me).set({ from: st.user, ts: Date.now() }); }).catch(function () {});
     try { pnAsk(); } catch (e) {}
-    info.hidden = false; info.textContent = (navigator.onLine === false ? 'Richiesta in coda: parte quando torna la rete. ' : 'Richiesta inviata. ') + 'Chi ha le notifiche attive riceve un avviso e, aprendo l\'app, la sua posizione si aggiorna da sola. Per avvisare anche gli altri scrivi su WhatsApp:';
+    info.hidden = false; info.textContent = (navigator.onLine === false ? 'Richiesta in coda: parte quando torna la rete. ' : 'Richiesta inviata. ') + 'Chi ha le notifiche attive riceve un avviso: toccandolo la sua posizione parte subito. Per avvisare anche gli altri scrivi su WhatsApp:';
     wa.innerHTML = '';
     (st.contacts || []).filter(function (c) { return c.wa && slug(c.name) !== 'flavia' && slug(String(c.name).split(/\s+/)[0]) !== me; }).forEach(function (c) {
       var a = document.createElement('a'); a.className = 'btn ghost small'; a.target = '_blank'; a.rel = 'noopener'; a.href = callHref(c) + '?text=' + encodeURIComponent(msg); a.textContent = 'Scrivi a ' + c.name; wa.appendChild(a);
