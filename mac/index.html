@@ -279,6 +279,20 @@ body { padding: 0; }
 .content.nb .dcard .tx { line-height: 1.4; }
 .djrow { max-width: 460px; }
 .djrow.one { max-width: 300px; }
+/* ===== mappa: selezioni chiare (Persone, Cosa mostrare, Giorno), acceso = spunta verde ===== */
+.fbox { display: flex; flex-direction: column; gap: 10px; }
+.fnote { color: var(--ink-soft); font-size: .85rem; }
+.fgrp { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.flab { flex: none; width: 112px; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; color: var(--ink-soft); }
+.fwrap { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fchip.who { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 14px 0 9px; font-weight: 600; font-size: .92rem; color: var(--ink-soft); background: var(--field); box-shadow: inset 0 0 0 1.5px transparent; }
+.fchip.who .ck { flex: none; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--sep); position: relative; }
+.fchip.who .n { font-weight: 500; font-size: .78rem; opacity: .7; }
+.fchip.who[aria-pressed="true"] { color: var(--ink); background: color-mix(in srgb, var(--k) 14%, var(--card)); box-shadow: inset 0 0 0 1.5px var(--k); }
+.fchip.who[aria-pressed="true"] .ck { background: var(--k); box-shadow: none; }
+.fchip.who[aria-pressed="true"] .ck::after { content: ""; position: absolute; left: 6px; top: 2.5px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.flink { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 6px 8px; }
+select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
 </style>
 </head>
 <body>
@@ -762,46 +776,105 @@ body { padding: 0; }
   var flt = { who: {}, types: { spesa: true, foto: true, diario: true }, day: '' };
   function whoChips(box, onChange) {
     allNames().forEach(function (n) {
-      var b = el('button', 'fchip', '<span class="dot" style="background:' + personColor(n) + '"></span>' + esc(n)); b.type = 'button';
+      var b = el('button', 'fchip who', '<span class="ck"></span>' + esc(n)); b.type = 'button'; b.style.setProperty('--k', personColor(n));
       b.setAttribute('aria-pressed', String(flt.who[n] !== false)); b.onclick = function () { flt.who[n] = flt.who[n] === false; b.setAttribute('aria-pressed', String(flt.who[n] !== false)); onChange(); }; box.appendChild(b);
     });
   }
-  var mapObj = null, mapLayer = null;
+  var mapObj = null, mapLayer = null, mapUI = null;
   function placeDist(a, b) { var R = 6371000, r = Math.PI / 180, dl = (b.la - a.la) * r, dn = (b.lo - a.lo) * r, h = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a.la * r) * Math.cos(b.la * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.sqrt(h)); }
-  function mapPoints() {
+  function mapPoints(ignoreWho) {
     var pts = [];
     if (flt.types.spesa) Object.keys(st.people).forEach(function (u) { st.people[u].expenses.forEach(function (e) { if (e.loc) pts.push({ t: 'spesa', u: u, loc: e.loc, day: e.data, ts: e.ts, e: e }); }); });
     if (flt.types.foto) cloud.album.forEach(function (a) { if (a.loc) pts.push({ t: 'foto', u: a.user, loc: a.loc, day: dkey(a.ts), ts: a.ts, a: a }); });
     if (flt.types.diario) cloud.diary.forEach(function (d) { if (d.loc) pts.push({ t: 'diario', u: d.user, loc: d.loc, day: d.day, ts: d.ts, d: d }); });
-    return pts.filter(function (p) { return flt.who[p.u] !== false && (!flt.day || p.day === flt.day); });
+    return pts.filter(function (p) { return (ignoreWho || flt.who[p.u] !== false) && (!flt.day || p.day === flt.day); });
   }
+  /* Mappa Apple (MapKit JS) dentro un riquadro: e' la stessa pagina `mappa-apple.html` dell'app iOS. Apple accetta il token solo dal sito
+     tarragona2026.github.io, quindi qui funziona solo online: da qualunque altro indirizzo (o se non si carica entro 9 secondi) si usa OpenStreetMap. */
+  var AM_URL = '../mappa-apple.html?v=4', AM_ORIGIN = 'https://tarragona2026.github.io', amFailed = false, amBoxes = [];
+  function amWanted() { return !amFailed && navigator.onLine !== false && (location.origin === AM_ORIGIN || location.search.indexOf('am=1') >= 0); }
+  function amOrigin() { try { return new URL(AM_URL, location.href).origin; } catch (e) { return AM_ORIGIN; } }
+  function amFail() {
+    if (amFailed) return; amFailed = true;
+    var bx = amBoxes; amBoxes = [];
+    bx.forEach(function (o) { clearTimeout(o.timer); if (o.frame.parentNode) o.frame.parentNode.removeChild(o.frame); o.box._am = null; });
+    bx.forEach(function (o) { try { if (document.body.contains(o.box) && o.onFail) o.onFail(); } catch (e) {} });
+  }
+  function amSet(box, pts, onTap, onFail, span) {
+    if (!amWanted()) return false;
+    var o = box._am;
+    if (!o) {
+      amBoxes = amBoxes.filter(function (z) { return document.body.contains(z.box); });
+      o = box._am = { box: box, frame: document.createElement('iframe'), ready: false, last: null, tap: null, onFail: null, timer: null };
+      o.frame.title = 'Mappa'; o.frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0'; o.frame.src = AM_URL; box.appendChild(o.frame);
+      o.timer = setTimeout(function () { if (!o.ready) amFail(); }, 9000); amBoxes.push(o);
+    }
+    o.onFail = onFail; o.tap = onTap;
+    o.last = { src: 'app', t: 'set', pts: pts, span: span || 0 };
+    if (o.ready) o.frame.contentWindow.postMessage(o.last, amOrigin());
+    return true;
+  }
+  window.addEventListener('message', function (ev) {
+    var d = ev.data; if (ev.origin !== amOrigin() || !d || d.src !== 'amap') return;
+    var o = amBoxes.filter(function (z) { return z.frame.contentWindow === ev.source; })[0]; if (!o) return;
+    if (d.t === 'ready') { o.ready = true; clearTimeout(o.timer); if (o.last) o.frame.contentWindow.postMessage(o.last, amOrigin()); }
+    else if (d.t === 'err') amFail();
+    else if (d.t === 'tap' && o.tap) o.tap(d.id);
+  });
+  function fgroup(label, hint) { var g = el('div', 'fgrp'); g.appendChild(el('div', 'flab', esc(label))); var w = el('div', 'fwrap'); g.appendChild(w); if (hint) g.appendChild(el('div', 'fhint', esc(hint))); return { g: g, w: w }; }
   function renderMapView() {
-    var v = $('mapView'); v.innerHTML = '';
-    var panel = el('div', 'panel glass'), f = el('div', 'filters'); panel.appendChild(f);
-    whoChips(f, renderMapView);
-    [['spesa', '$ Spese'], ['foto', 'Foto'], ['diario', 'Diario']].forEach(function (t) {
-      var b = el('button', 'fchip', t[1]); b.type = 'button'; b.setAttribute('aria-pressed', String(flt.types[t[0]])); b.onclick = function () { flt.types[t[0]] = !flt.types[t[0]]; renderMapView(); }; f.appendChild(b);
+    var v = $('mapView');
+    if (!mapUI || !v.contains(mapUI.panel)) {                       // lo scheletro si costruisce una volta sola: la mappa non si ricarica a ogni scelta
+      v.innerHTML = ''; mapObj = null; mapLayer = null;
+      var panel = el('div', 'panel glass'), fw = el('div', 'fbox'), box = el('div', 'mapbox'), info = el('div', 'sub2');
+      panel.appendChild(fw); panel.appendChild(box); panel.appendChild(info); v.appendChild(panel);
+      mapUI = { panel: panel, fw: fw, box: box, info: info, groups: [] };
+    }
+    var fw = mapUI.fw, box = mapUI.box, info = mapUI.info; fw.innerHTML = '';
+    fw.appendChild(el('div', 'fnote', 'Tocca per accendere o spegnere: sulla mappa resta solo quello che è acceso.'));
+    var all = mapPoints(true), cnt = {}; all.forEach(function (p) { cnt[p.u] = (cnt[p.u] || 0) + 1; });
+    var gw = fgroup('Persone');
+    allNames().forEach(function (n) {
+      var b = el('button', 'fchip who', '<span class="ck"></span>' + esc(n) + '<span class="n">' + (cnt[n] || 0) + '</span>'); b.type = 'button'; b.style.setProperty('--k', personColor(n));
+      b.setAttribute('aria-pressed', String(flt.who[n] !== false)); b.onclick = function () { flt.who[n] = flt.who[n] === false; renderMapView(); }; gw.w.appendChild(b);
     });
+    var allOn = el('button', 'flink', 'Tutti'); allOn.type = 'button'; allOn.onclick = function () { flt.who = {}; renderMapView(); }; gw.w.appendChild(allOn);
+    fw.appendChild(gw.g);
+    var tg = fgroup('Cosa mostrare');
+    var tcnt = { spesa: 0, foto: 0, diario: 0 }, saveT = flt.types; flt.types = { spesa: true, foto: true, diario: true }; mapPoints(false).forEach(function (p) { tcnt[p.t]++; }); flt.types = saveT;
+    [['spesa', '$ Spese', '#d70015'], ['foto', 'Foto', '#d6246e'], ['diario', 'Diario', '#e07b00']].forEach(function (t) {
+      var b = el('button', 'fchip who', '<span class="ck"></span>' + t[1] + '<span class="n">' + tcnt[t[0]] + '</span>'); b.type = 'button'; b.style.setProperty('--k', t[2]);
+      b.setAttribute('aria-pressed', String(flt.types[t[0]])); b.onclick = function () { flt.types[t[0]] = !flt.types[t[0]]; renderMapView(); }; tg.w.appendChild(b);
+    });
+    fw.appendChild(tg.g);
+    var dg = fgroup('Giorno');
     var daysSet = {}; Object.keys(st.people).forEach(function (u) { st.people[u].expenses.forEach(function (e) { daysSet[e.data] = 1; }); }); cloud.album.forEach(function (a) { daysSet[dkey(a.ts)] = 1; }); cloud.diary.forEach(function (d) { if (d.day) daysSet[d.day] = 1; });
-    var sel = el('select', 'sel'); sel.setAttribute('aria-label', 'Giorno'); sel.appendChild(new Option('Tutti i giorni', ''));
-    Object.keys(daysSet).sort().forEach(function (k) { sel.appendChild(new Option(dayLabel(k), k)); }); sel.value = flt.day; sel.onchange = function () { flt.day = sel.value; renderMapView(); }; f.appendChild(sel);
-    var box = el('div', 'mapbox'); panel.appendChild(box); var info = el('div', 'sub2'); panel.appendChild(info); v.appendChild(panel);
-    if (!window.L) { box.remove(); info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
-    if (mapObj) { try { mapObj.remove(); } catch (e) {} mapObj = null; }
-    mapObj = L.map(box).setView([29.76, -95.37], 9);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mapObj);
-    mapLayer = L.layerGroup().addTo(mapObj);
-    var pts = mapPoints(), groups = [];
+    var sel = el('select', 'sel'); sel.setAttribute('aria-label', 'Giorno'); sel.appendChild(new Option('Tutto il viaggio', ''));
+    Object.keys(daysSet).sort().forEach(function (k) { sel.appendChild(new Option(dayLabel(k), k)); }); sel.value = flt.day; sel.onchange = function () { flt.day = sel.value; renderMapView(); }; dg.w.appendChild(sel);
+    fw.appendChild(dg.g);
+
+    var pts = mapPoints(false), groups = [];
     pts.forEach(function (p) { var g = groups.filter(function (g) { return placeDist(g, p.loc) <= 60; })[0]; if (g) g.items.push(p); else groups.push({ la: p.loc.la, lo: p.loc.lo, items: [p] }); });
-    var bounds = [];
+    mapUI.groups = groups;
+    function colOf(g) { var first = g.items[0], same = g.items.every(function (x) { return x.u === first.u; }); return g.items.length > 1 && !same ? '#333' : personColor(first.u); }
+    function glyphOf(g) { return g.items.length > 1 ? String(g.items.length) : { spesa: '$', foto: '▣', diario: '✎' }[g.items[0].t]; }
+    info.textContent = pts.length + (pts.length === 1 ? ' elemento' : ' elementi') + ' sulla mappa. Il colore è la persona; $ = spesa, ▣ = foto, ✎ = diario, un numero = più elementi nello stesso posto. Tocca un punto per i dettagli.';
+    var bounds = groups.map(function (g) { return [g.la, g.lo]; });
+    if (!mapObj && amSet(box, groups.map(function (g, i) { return { id: i, la: g.la, lo: g.lo, color: colOf(g), text: glyphOf(g) }; }), function (id) { if (mapUI.groups[id]) openPlaceSheet(mapUI.groups[id]); }, function () { renderMapView(); })) return;
+    if (!window.L) { box.hidden = true; info.textContent = 'La mappa non si è caricata: serve la rete.'; return; }
+    box.hidden = false;
+    if (!mapObj) {
+      mapObj = L.map(box).setView([29.76, -95.37], 9);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mapObj);
+      mapLayer = L.layerGroup().addTo(mapObj);
+    }
+    mapLayer.clearLayers();
     groups.forEach(function (g) {
-      var ll = [g.la, g.lo], n = g.items.length, first = g.items[0], same = g.items.every(function (x) { return x.u === first.u; });
-      var cls = n > 1 ? 'mk g' : 'mk ' + { spesa: 's', foto: 'f', diario: 'd' }[first.t], glyph = n > 1 ? String(n) : { spesa: '$', foto: '▣', diario: '✎' }[first.t];
-      var col = n > 1 && !same ? '#333' : personColor(first.u);
-      var m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="' + cls + '" style="background:' + col + '"><span>' + glyph + '</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(mapLayer);
-      m.on('click', function () { openPlaceSheet(g); }); bounds.push(ll);
+      var ll = [g.la, g.lo], n = g.items.length, first = g.items[0];
+      var cls = n > 1 ? 'mk g' : 'mk ' + { spesa: 's', foto: 'f', diario: 'd' }[first.t];
+      var m = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="' + cls + '" style="background:' + colOf(g) + '"><span>' + glyphOf(g) + '</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(mapLayer);
+      m.on('click', function () { openPlaceSheet(g); });
     });
-    info.textContent = pts.length + (pts.length === 1 ? ' elemento' : ' elementi') + ' sulla mappa. Colore = persona; cerchio $ = spesa, quadrato = foto, rombo = diario.';
     setTimeout(function () { mapObj.invalidateSize(); if (bounds.length === 1) mapObj.setView(bounds[0], 15); else if (bounds.length) mapObj.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 }); }, 60);
   }
   function openPlaceSheet(g) {
@@ -876,6 +949,8 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
       var a = el('a', 'cbtn', 'Apri in Mappe'); a.href = mapsLink(p); a.target = '_blank'; a.rel = 'noopener'; b.appendChild(a); r.appendChild(b); panel.appendChild(r);
     });
     v.appendChild(panel);
+    var apts = list.map(function (p) { var nm = p.user || p.key; return { id: nm, la: p.la, lo: p.lo, color: personColor(nm), text: nm.charAt(0).toUpperCase() }; });
+    if (amSet(box, apts, function () {}, function () { if (cloud.view === 'posizioni') renderPosView(); }, 0.03)) return;
     if (!window.L) { box.remove(); return; }
     if (posMapObj) { try { posMapObj.remove(); } catch (e) {} posMapObj = null; }
     posMapObj = L.map(box).setView([29.76, -95.37], 9);

@@ -212,6 +212,7 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .app .ic.pink { background: linear-gradient(180deg, #ff6b9d, #d6246e); }
 .app .ic.amber { background: linear-gradient(180deg, #ffb340, #e07b00); }
 .app .ic.lime { background: linear-gradient(180deg, #7ed957, #2e9e3a); }
+.app .ic.brown { background: linear-gradient(180deg, #c19a6b, #8a6a43); }
 .app .ic.sky { background: linear-gradient(180deg, #5ac8fa, #1a7fc4); }
 .app .ic.teal { background: linear-gradient(180deg, #40c8e0, #0a84a8); }
 .app .ic.purple { background: linear-gradient(180deg, #c07cff, #8a3fd1); }
@@ -350,7 +351,16 @@ details summary { cursor: pointer; font-weight: 700; min-height: 32px; }
 .viewer img { max-width: 100%; max-height: calc(100% - 70px); object-fit: contain; border-radius: 10px; }
 .viewer .btn { background: #fff; color: #111; }
 .viewer.alb { touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-.viewer.alb img { max-height: calc(100vh - 330px); min-height: 38vh; -webkit-user-drag: none; }
+.viewer.alb img { -webkit-user-drag: none; }
+.viewer.alb { padding: 0; gap: 0; background: #000; }
+.vtop { position: absolute; z-index: 3; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 6px) 10px 14px; background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,0)); }
+.vback { border: 0; background: none; color: #5aa9ff; font-size: 1.02rem; font-weight: 500; padding: 6px 4px; min-height: 36px; }
+.vcnt { flex: 1; text-align: center; display: flex; flex-direction: column; line-height: 1.2; }
+.vcnt b { color: #fff; font-size: .85rem; font-weight: 600; } .vcnt i { color: rgba(255,255,255,.6); font-size: .7rem; font-style: normal; }
+.vacts { display: flex; gap: 6px; }
+.vib { width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255,255,255,.16); color: #fff; display: grid; place-items: center; padding: 0; text-decoration: none; }
+.vib svg { width: 19px; height: 19px; }
+.viewer.alb .abox img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; min-height: 0; border-radius: 0; object-fit: contain; }
 .vmaplink { position: absolute; left: 0; right: 0; top: 0; bottom: 20px; z-index: 1000; display: block; color: #fff; font-size: .8rem; text-align: center; padding-top: 40px; text-decoration: none; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-line); padding: 10px 16px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: 90%; text-align: center; box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
@@ -416,7 +426,7 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 .apps .app .ic { width: 64px; height: 64px; border-radius: 18px; background: color-mix(in srgb, var(--c) 16%, var(--card)); color: var(--c); box-shadow: none; }
 .apps .app .ic svg { width: 30px; height: 30px; stroke-width: 2; }
 .app .ic.red { --c: #ff375f; } .app .ic.blue { --c: #0a84ff; } .app .ic.indigo { --c: #6e6af0; } .app .ic.sky { --c: #27a9e8; }
-.app .ic.lime { --c: #2fb457; } .app .ic.amber { --c: #f59a0c; } .app .ic.pink { --c: #ec4899; } .app .ic.teal { --c: #14a9be; }
+.app .ic.lime { --c: #2fb457; } .app .ic.brown { --c: #a47c48; } .app .ic.amber { --c: #f59a0c; } .app .ic.pink { --c: #ec4899; } .app .ic.teal { --c: #14a9be; }
 .app .ic.green { --c: #34c759; } .app .ic.purple { --c: #a24ee0; } .app .ic.mint { --c: #00b8a9; } .app .ic.coral { --c: #ff6a3d; } .app .ic.grey { --c: #8e8e93; }
 .app { font-size: .76rem; gap: 7px; }
 /* mappa: cosa mostrare = pastiglie colorate in una riga; giorno = striscia di date */
@@ -429,7 +439,127 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 #mapDays .chip { flex: 0 0 auto; min-width: 0; min-height: 30px; padding: 0 12px; border-radius: 999px; font-size: .86rem; font-weight: 500; background: transparent; color: var(--ink-soft); box-shadow: none; }
 #mapDays .chip[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; box-shadow: none; }
 
+/* ===== home: meteo e ora in Italia, solo numeri grigi e piccoli; icone con numero ===== */
+.tline { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 0 6px; font-size: .74rem; color: var(--ink-soft); font-weight: 500; line-height: 1.2; }
+.tline b { font-weight: 500; }
+.tline .wxp::before { content: " · "; } .tline .wxp:empty::before { content: ""; }
+.tline .hello { flex: 1; text-align: center; }
+.app .ic .icn { font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; white-space: nowrap; }
+.app .ic .icn.sm { font-size: 1.05rem; } .app .ic .icn.xs { font-size: .88rem; }
+.app .ic.neg .icn { color: var(--bad); }
+#cvCard .row2 { grid-template-columns: 1fr 1fr; }
+
+/* ===== Registro: libro contabile (prima nota) ===== */
+.ledger { position: relative; overflow: hidden; background: #fbfbf4; color: #1d2b22; border-radius: 8px; padding: 0 0 4px; box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 8px 22px rgba(30,70,45,.12); font-family: ui-serif, "New York", Georgia, serif; }
+.ledger .num { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.ledger .r { text-align: right; }
+.ltl { font-variant: small-caps; letter-spacing: .14em; font-size: .86rem; font-weight: 700; color: #35584a; padding: 12px 14px 6px; text-transform: lowercase; }
+.lsum { padding-bottom: 8px; border-bottom: 2px solid #35584a; }
+.lsl { display: flex; align-items: baseline; gap: 6px; padding: 5px 14px; font-size: .95rem; }
+.lsl .dots { flex: 1; border-bottom: 1px dotted rgba(40,80,60,.45); transform: translateY(-3px); }
+.lsl .v { font-size: .98rem; font-weight: 600; }
+.lsl small { color: #6a7a70; font-size: .74rem; margin-left: 8px; }
+.lsl.it .k, .lsl.it .v { color: #6a7a70; font-style: italic; font-weight: 400; }
+.lsl.tot { margin-top: 4px; padding-top: 7px; border-top: 1px solid #35584a; font-weight: 700; }
+.lsl.tot .v { font-size: 1.12rem; border-bottom: 3px double #35584a; }
+.lsl.pos .v { color: #1d7a3e; } .lsl.neg .v { color: #c4262e; }
+.lcols, .lrow { display: grid; grid-template-columns: 46px 1fr 78px 86px; column-gap: 6px; padding: 0 12px; }
+.lcols { font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; color: #5d7468; padding-top: 8px; padding-bottom: 5px; border-bottom: 1px solid #35584a; font-weight: 700; }
+.lday { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 14px 3px; font-size: .78rem; font-weight: 700; color: #35584a; background: rgba(53,88,74,.06); border-bottom: 1px solid rgba(53,88,74,.25); font-variant: small-caps; letter-spacing: .04em; }
+.lday .num { font-weight: 500; color: #7a8a80; font-size: .72rem; }
+.lrow { align-items: start; padding-top: 7px; padding-bottom: 7px; border-bottom: 1px solid rgba(70,140,95,.22); cursor: pointer; }
+.lrow.open { background: rgba(255,230,120,.22); }
+.lrow.focus { background: rgba(255,220,80,.5); }
+.lrow .lo { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .7rem; color: #7a8a80; padding-top: 3px; }
+.lrow .ld b { display: block; font-weight: 600; font-size: .92rem; line-height: 1.2; overflow-wrap: anywhere; }
+.lrow .ld small { display: block; color: #6a7a70; font-size: .7rem; margin-top: 1px; }
+.lrow .ld small i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+.lrow .la { font-size: .86rem; font-weight: 600; padding-top: 1px; }
+.lrow .ls { font-size: .8rem; color: #4d6054; padding-top: 2px; }
+.lrow.out .la { color: #b3262d; } .lrow.in .la { color: #1d7a3e; } .lrow.it .la, .lrow.it .ls { color: #8a948e; font-style: italic; }
+.ldet { padding: 8px 14px 10px 58px; border-bottom: 1px solid rgba(70,140,95,.22); background: rgba(255,230,120,.12); display: flex; flex-direction: column; gap: 6px; font-family: -apple-system, system-ui, sans-serif; }
+.ldet[hidden] { display: none; }
+.ldet .linfo { font-size: .76rem; color: #5d7468; }
+.ldet .lth { max-width: 150px; max-height: 190px; object-fit: cover; border-radius: 3px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.lacts { display: flex; gap: 8px; flex-wrap: wrap; }
+.lfoot { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 14px 8px; font-weight: 700; border-top: 2px solid #35584a; margin-top: 2px; }
+.lfoot b { font-size: 1.12rem; border-bottom: 3px double #35584a; }
+.lfoot.pos b { color: #1d7a3e; } .lfoot.neg b { color: #c4262e; }
+.lempty { padding: 24px 16px; text-align: center; color: #6a7a70; font-size: .9rem; }
+.lcat { display: grid; grid-template-columns: 12px 1fr auto 40px; column-gap: 8px; align-items: center; padding: 6px 14px 2px; font-size: .9rem; }
+.lcat i { width: 9px; height: 9px; border-radius: 50%; }
+.lcat .v { font-size: .86rem; font-weight: 600; } .lcat .p { font-size: .74rem; color: #6a7a70; text-align: right; }
+.lcat .bar { grid-column: 2 / 5; height: 3px; background: rgba(53,88,74,.12); border-radius: 2px; margin-bottom: 4px; overflow: hidden; }
+.lcat .bar u { display: block; height: 100%; }
+@media (prefers-color-scheme: dark) {
+  .ledger { background: #1c211d; color: #e6eee8; box-shadow: none; }
+  .ltl, .lday, .lcols, .lfoot, .lsl.tot { color: #9fd0b2; border-color: rgba(159,208,178,.55); }
+  .lsum { border-bottom-color: rgba(159,208,178,.55); } .lsl.tot .v, .lfoot b { border-bottom-color: #9fd0b2; }
+  .lsl .dots { border-bottom-color: rgba(159,208,178,.4); }
+  .lrow, .lday, .ldet { border-bottom-color: rgba(120,190,140,.2); } .lday { background: rgba(159,208,178,.08); }
+  .lrow .lo, .lrow .ld small, .lsl small, .lcat .p, .ldet .linfo, .lcols, .lempty { color: #8fa597; }
+  .lrow .ls { color: #b5c7bb; } .lrow.open, .ldet { background: rgba(255,230,120,.07); }
+  .lrow.out .la, .lsl.neg .v, .lfoot.neg b { color: #ff7b80; } .lrow.in .la, .lsl.pos .v, .lfoot.pos b { color: #5fd88b; }
+}
+/* ===== tutorial ===== */
+#tut { position: fixed; inset: 0; z-index: 60; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 14px) 22px calc(env(safe-area-inset-bottom, 0px) + 22px); }
+#tut .tskip { align-self: flex-end; border: 0; background: none; color: var(--accent); font-size: 1.02rem; font-weight: 600; padding: 8px 4px; }
+#tut .tskip[hidden] { visibility: hidden; display: block; }
+#tut .tbody { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px; max-width: 420px; }
+#tut .tpic { width: 118px; height: 118px; border-radius: 32px; display: grid; place-items: center; background: color-mix(in srgb, var(--c, #8e8e93) 16%, var(--card)); color: var(--c, #8e8e93); }
+#tut .tpic svg { width: 62px; height: 62px; stroke-width: 1.8; }
+#tut .tpic.app { background: none; } #tut .tpic.app img { width: 118px; height: 118px; border-radius: 27px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+#tut .tt { font-size: 1.55rem; margin: 6px 0 0; }
+#tut .td { color: var(--ink-soft); font-size: 1.02rem; line-height: 1.45; margin: 0; }
+#tut .tdots { display: flex; gap: 7px; margin: 14px 0 16px; }
+#tut .tdots i { width: 7px; height: 7px; border-radius: 50%; background: var(--sep, rgba(120,120,128,.3)); }
+#tut .tdots i.on { background: var(--accent); }
+#tut .tnext { width: 100%; max-width: 420px; }
+/* ===== riquadro Diario sulla Mappa: quaderno ===== */
+.nbin { background-color: #fbf6e4 !important; background-image: linear-gradient(90deg, transparent 0 41px, rgba(214,69,65,.5) 41px 43px, transparent 43px), repeating-linear-gradient(0deg, transparent 0 31px, rgba(80,120,200,.25) 31px 32px) !important; padding-left: 52px !important; color: #2a2418; }
+.nbin .djmonth, .nbin .djtitle, .nbin .djtext, .nbin .sheethd b { font-family: "Bradley Hand", "Noteworthy", "Marker Felt", cursive; }
+.nbin .djmonth { font-size: 1.5rem; font-weight: 700; margin: 6px 0 0; } .nbin .djtitle { font-size: 1.3rem; } .nbin .djtext { font-size: 1.15rem; line-height: 1.35; }
+.nbin .sday { background: transparent !important; box-shadow: none !important; padding: 4px 0 !important; }
+.nbin .djbody { padding: 8px 6px 4px; } .nbin .djrow { padding: 16px 6px 8px; }
+.nbin .nbexp { margin-top: 12px; background: #fffef9; border-radius: 3px; padding: 10px 12px; box-shadow: 0 3px 10px rgba(60,40,10,.2); }
+@media (prefers-color-scheme: dark) { .nbin { background-color: #2b2822 !important; background-image: linear-gradient(90deg, transparent 0 41px, rgba(255,120,110,.4) 41px 43px, transparent 43px), repeating-linear-gradient(0deg, transparent 0 31px, rgba(150,180,255,.15) 31px 32px) !important; color: #f1ead9; } .nbin .nbexp { background: #35312a; } }
+/* ===== Foto: card piccola con due icone ===== */
+.albcard { padding: 10px 12px; gap: 6px; }
+.albacts { display: flex; align-items: center; gap: 10px; }
+.icb { flex: none; width: 66px; border: 0; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--ink); font-size: .72rem; font-weight: 600; }
+.icb .tile { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 16%, var(--card)); color: var(--c); }
+.icb .tile svg { width: 32px; height: 32px; stroke-width: 2; }
+.icb:active .tile { transform: scale(.94); }
+#v-album { padding-bottom: 210px; }
+.albbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 26px 20px calc(env(safe-area-inset-bottom, 0px) + 16px); background: linear-gradient(180deg, transparent, var(--bg) 38%); pointer-events: none; }
+.albbar > * { pointer-events: auto; }
+.shutter { width: 88px; height: 88px; border-radius: 50%; border: 5px solid color-mix(in srgb, #ec4899 35%, transparent); background: linear-gradient(180deg, #f472b6, #ec4899); color: #fff; display: grid; place-items: center; padding: 0; box-shadow: 0 8px 22px rgba(236,72,153,.35); background-clip: padding-box; }
+.shutter svg { width: 40px; height: 40px; stroke-width: 2; }
+.shutter:active { transform: scale(.94); }
+.albroll { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 360px; min-height: 46px; font-weight: 600; }
+.albroll svg { width: 22px; height: 22px; }
+#v-album .albums { grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
+#v-album .albcov.lib { background: color-mix(in srgb, #0a84ff 14%, var(--card)); color: #0a84ff; } #v-album .albcov.lib svg { width: 38%; height: 38%; stroke-width: 1.8; }
+#v-album .albcov { font-size: 2rem; border-radius: 16px; margin-bottom: 2px; }
+#v-album .albname { font-size: .78rem; } #v-album .albcnt { font-size: .68rem; }
+#v-album .hint.sm { padding: 0 4px; }
+.hint.sm:empty { display: none; }
+.albacts .toggle.sm { flex: 1; font-size: .78rem; line-height: 1.2; min-height: 0; padding: 0; }
+.hint.sm { font-size: .72rem; margin: 0; }
+/* ===== dimensione delle icone: piccole (4 per riga), normali (3), grandi (2) ===== */
+.apps.sz-s { grid-template-columns: repeat(4, 1fr); gap: 14px 4px; }
+.apps.sz-s .app { font-size: .66rem; gap: 5px; }
+.apps.sz-s .app .ic { width: 52px; height: 52px; border-radius: 15px; }
+.apps.sz-s .app .ic svg { width: 28px; height: 28px; }
+.apps.sz-s .app .ic .icn { font-size: 1rem; }
+.apps.sz-l { grid-template-columns: repeat(2, 1fr); gap: 22px 12px; }
+.apps.sz-l .app { font-size: .95rem; gap: 9px; }
+.apps.sz-l .app .ic { width: 112px; height: 112px; border-radius: 30px; }
+.apps.sz-l .app .ic svg { width: 58px; height: 58px; }
+.apps.sz-l .app .ic .icn { font-size: 1.9rem; }
 /* ===== mappa: scritta accanto al titolo, spunta verde; icone piu' grandi; Foto a album ===== */
+.mlab { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); margin-bottom: -4px; }
+.mlab small { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: .74rem; margin-left: 6px; }
 .h2sub { font-size: .85rem; font-weight: 500; color: var(--ink-soft); letter-spacing: 0; margin-left: 8px; }
 #mapKinds .chip[aria-pressed="true"] .kdot { opacity: 1; background: #34c759 !important; width: 13px; height: 13px; margin-right: 4px; position: relative; }
 #mapKinds .chip[aria-pressed="true"] .kdot::after { content: ""; position: absolute; left: 3.5px; top: 1.5px; width: 3.5px; height: 6.5px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
@@ -598,6 +728,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 @media (prefers-color-scheme: dark) { body.nb .diatext2 { background-color: #35312a; background-image: repeating-linear-gradient(transparent 0 31px, rgba(150,180,255,.2) 31px 32px); color: #f1ead9; } }
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
+<script src="es.js"></script>
 <script src="vendor/leaflet.js"></script>
 <script src="ocr.js"></script>
 <script src="vendor/firebase-app-compat.js"></script>
@@ -615,25 +746,22 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 
   <!-- HOME -->
   <section id="v-home" class="wrap" aria-label="Home">
-    <section class="hero glass" aria-label="Xmas in Texa$ e plafond rimasto">
-      <div class="hero-top">
-        <div><h1>Xmas in Texa$</h1><div class="hello" id="hello"></div></div>
-        <div class="remain"><div class="label">Plafond rimasto</div><div class="budget-left num" id="left">$0</div></div>
-      </div>
-      <div class="bar" role="progressbar" aria-label="Plafond usato" id="barwrap"><i id="bar"></i></div>
-      <div class="hero-foot"><span class="num" id="spent"></span><span class="num" id="leftEur"></span></div>
-    </section>
+    <div class="tline" aria-label="Meteo e ora in Italia">
+      <span><b id="wxT">&nbsp;</b><span id="wxD" hidden></span><span class="wxp" id="wxP"></span></span>
+      <span class="hello" id="hello" hidden></span>
+      <span><b id="itT">--:--</b> <span id="itL">Italia</span></span>
+    </div>
     <button class="btn chkbar" id="chkBar" type="button" hidden></button>
     <button class="btn chkbar posask" id="posAsk" type="button" hidden></button>
     <button class="btn chkbar posask" id="tripAsk" type="button" hidden>Manca il codice viaggio · tocca per scriverlo</button>
     <nav class="apps" aria-label="Sezioni">
       <button class="app" id="goCalc" type="button"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span>Aggiungi spesa</button>
-      <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Carica scontrino</button>
-      <button class="app" id="goLog" type="button"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span>Registro spese e ricariche <span id="cnt"></span></span></button>
-      <button class="app" id="goCal" type="button"><span class="ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.500" y="5" width="17" height="15" rx="3"/><path d="M3.500 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg></span>Programma di viaggio</button>
-      <button class="app" id="goChk" type="button"><span class="ic lime"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.500l2.800 2.800L16.500 9"/></svg></span><span>Checklist <span id="chkCnt"></span></span></button>
+      <button class="app" id="goScan" type="button"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>Carica scontrino</button>
+      <button class="app" id="goLog" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><b class="icn" hidden></b></span><span>Registro spese e ricariche <span id="cnt"></span></span></button>
+      <button class="app" id="goCal" type="button"><span class="ic sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.500" y="5" width="17" height="15" rx="3"/><path d="M3.500 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg><b class="icn" hidden></b></span>Programma di viaggio</button>
+      <button class="app" id="goChk" type="button"><span class="ic brown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.500l2.800 2.800L16.500 9"/></svg></span><span>Checklist <span id="chkCnt"></span></span></button>
       <button class="app" id="goDia" type="button"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M10 8h6M10 12h6M10 16h4"/></svg></span>Diario</button>
-      <button class="app" id="goAlbum" type="button"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.500" cy="10" r="1.600"/><path d="M21 16l-5-5-8 8"/></svg></span>Foto</button>
+      <button class="app" id="goAlbum" type="button"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></span>Foto</button>
       <button class="app" id="goTr" type="button"><span class="ic teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h9M8.500 3v2M6 5c.5 3 2.500 5.500 5 7M11 5c-.5 3-3 6-6.500 8"/><path d="M12 20l4.500-10L21 20M13.600 16.500h5.800"/></svg></span>Traduttore</button>
       <button class="app" id="goMap" type="button"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span>Mappa</button>
       <button class="app" id="goDocs" type="button"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.500 7.500A2.500 2.500 0 0 1 6 5h3.600l2 2.200H18a2.500 2.500 0 0 1 2.500 2.500v7.300A2.500 2.500 0 0 1 18 19.500H6A2.500 2.500 0 0 1 3.500 17z"/><path d="M8 12.500h8M8 15.500h5"/></svg></span>Documenti</button>
@@ -716,16 +844,16 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
   <!-- REGISTRO -->
   <section id="v-log" class="wrap" aria-label="Registro spese e ricariche" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Registro spese e ricariche</h2><span></span></div>
-    <div class="chips" role="tablist" aria-label="Sezioni del registro"><button type="button" class="chip" id="tabSpese" role="tab" aria-pressed="true">Spese</button><button type="button" class="chip" id="tabRic" role="tab" aria-pressed="false">Ricariche</button></div>
-    <div class="card" style="gap:8px">
-      <div class="sumline"><span class="label" id="logTotLabel">Totale speso</span><b class="num" id="logTot"></b></div>
-      <div class="cats" id="catSum"></div>
-    </div>
-    <div class="card" id="chartCard" hidden>
-      <div class="label">Spese per tipologia</div>
-      <div class="chart"><div class="donut" id="donut" role="img" aria-label="Grafico delle spese per tipologia"></div><div class="legend" id="legend"></div></div>
-    </div>
-    <div class="list" id="list"></div>
+    <div class="chips" role="tablist" aria-label="Sezioni del registro"><button type="button" class="chip" id="tabAll" role="tab" aria-pressed="true">Giornale</button><button type="button" class="chip" id="tabSpese" role="tab" aria-pressed="false">Spese</button><button type="button" class="chip" id="tabRic" role="tab" aria-pressed="false">Ricariche</button></div>
+    <section class="ledger" id="ledger">
+      <div class="lsum" id="lsum"></div>
+      <div class="lcols"><span>Ora</span><span>Descrizione</span><span class="r">Importo $</span><span class="r">Saldo $</span></div>
+      <div id="list"></div>
+    </section>
+    <section class="ledger" id="catLedger" hidden>
+      <div class="ltl">Riepilogo per categoria</div>
+      <div id="catRows"></div>
+    </section>
   </section>
 
   <!-- RICARICA PLAFOND -->
@@ -744,7 +872,9 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
   <section id="v-map" class="wrap" aria-label="Mappa del viaggio" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Mappa <small class="h2sub">Scegli cosa vedere</small></h2><span></span></div>
     <section class="card" style="gap:10px">
+      <div class="mlab">Cosa vedere <small>tocca per accendere o spegnere</small></div>
       <div class="chips" id="mapKinds" aria-label="Cosa mostrare"></div>
+      <div class="mlab">Giorno</div>
       <div class="chips scroll" id="mapDays" aria-label="Giorno"></div>
     </section>
     <div class="mapbox" id="mapbox"></div>
@@ -761,6 +891,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
     </section>
     <section class="card" id="calDayCard">
       <div class="sumline"><b id="tcTitle"></b><button class="btn ghost small" id="calOrder" type="button">Ordina</button></div>
+      <div class="hint" id="tcWx" hidden></div>
       <div id="calList"></div>
       <button class="btn" id="calAdd" type="button">+ Aggiungi una tappa</button>
       <button class="btn ghost small" id="calFind" type="button">Trova sulla mappa i luoghi di questo giorno</button>
@@ -833,17 +964,10 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
   <!-- ALBUM FOTO -->
   <section id="v-album" class="wrap" aria-label="Album foto" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Foto</h2><span></span></div>
-    <section class="card">
-      <div class="btnrow">
-        <button class="btn" id="alCam" type="button">Scatta foto</button>
-        <button class="btn ghost" id="alLib" type="button">Dal rullino</button>
-      </div>
-      <input type="file" id="alCamFile" accept="image/*" capture="environment" hidden>
-      <input type="file" id="alLibFile" accept="image/*" multiple hidden>
-      <label class="toggle"><input type="checkbox" id="alDia" checked> Metti le foto anche nel mio diario di oggi</label>
-      <div class="hint" id="alHint">Le foto vanno nell'album comune: le vedete tutti e tre.</div>
-      <button class="btn ghost small" id="alSaveRoll" type="button" hidden>Salva l'ultima foto anche nel rullino</button>
-    </section>
+    <input type="file" id="alCamFile" accept="image/*" capture="environment" hidden>
+    <input type="file" id="alLibFile" accept="image/*" multiple hidden>
+    <div class="hint sm" id="alHint"></div>
+    <button class="btn ghost small" id="alSaveRoll" type="button" hidden>Salva l'ultima foto anche nel rullino</button>
     <div id="alAlbums">
       <div class="label">Album</div>
       <div class="albums" id="alTiles"></div>
@@ -852,7 +976,11 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
       <div class="alhead"><button class="alback" id="alBack" type="button">‹ Album</button><b id="alTitle"></b><span class="hint" id="alCount"></span></div>
       <div class="agrid" id="alGrid"></div>
     </div>
-  </section>
+  
+    <div class="albbar">
+      <button class="shutter" id="alCam" type="button" aria-label="Scatta foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.6A1.5 1.5 0 0 1 10 3.7h4a1.5 1.5 0 0 1 1.2.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></button>
+    </div>
+</section>
 
   <!-- TRADUTTORE -->
   <section id="v-tr" class="wrap" aria-label="Traduttore" hidden>
@@ -870,6 +998,15 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
       <div class="label">Traduzione</div>
       <div class="trout" id="trOut"></div>
       <div class="btnrow"><button class="btn ghost" id="trSpeak" type="button">Ascolta</button><button class="btn ghost" id="trCopy" type="button">Copia</button></div>
+    </section>
+    <section class="card" id="cvCard">
+      <div class="label">Convertitore</div>
+      <div class="chips" id="cvKinds" aria-label="Cosa convertire"></div>
+      <div class="row2">
+        <div class="field"><label class="label" id="cvLa" for="cvA"></label><input id="cvA" type="text" inputmode="decimal" autocomplete="off"></div>
+        <div class="field"><label class="label" id="cvLb" for="cvB"></label><input id="cvB" type="text" inputmode="decimal" autocomplete="off"></div>
+      </div>
+      <div class="hint" id="cvHint"></div>
     </section>
     <section class="card">
       <div class="label">Frasi pronte (anche senza rete)</div>
@@ -955,6 +1092,11 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
       <a class="btn callsos" href="tel:911">Emergenze · 911</a>
       <div class="hint">Polizia, ambulanza e pompieri negli Stati Uniti. È una chiamata normale: WhatsApp non chiama le emergenze.</div>
     </section>
+    <details class="card acc" id="emCard">
+      <summary>Emergenza lontano da casa</summary>
+      <div class="doclist" id="emList"></div>
+      <div class="hint">I numeri del consolato e della Farnesina sono presi dai siti ufficiali (novembre 2026): prima di partire controllali su conshouston.esteri.it. La polizza e il numero verde dell'assicurazione sono nei Documenti.</div>
+    </details>
   </section>
 
   <!-- DOVE SONO I MIEI -->
@@ -976,6 +1118,15 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
   <!-- IMPOSTAZIONI -->
   <section id="v-settings" class="wrap" aria-label="Impostazioni" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Impostazioni</h2><span></span></div>
+    <section class="card" id="langCard">
+      <div class="label" data-notr>Lingua · Idioma</div>
+      <div class="chips" id="langSeg"><button class="chip" type="button" data-l="it" data-notr>Italiano</button><button class="chip" type="button" data-l="es" data-notr>Español</button></div>
+    </section>
+    <section class="card" id="tutCard"><button class="btn ghost" id="tutOpen" type="button">Rivedi il tutorial</button></section>
+    <section class="card" id="szCard">
+      <div class="label">Dimensione delle icone</div>
+      <div class="chips" id="szSeg"><button class="chip" type="button" data-z="s">Piccole</button><button class="chip" type="button" data-z="m">Normali</button><button class="chip" type="button" data-z="l">Grandi</button></div>
+    </section>
     <details class="card acc">
       <summary>Plafond</summary>
       <div class="budget-top"><div class="budget-left num" id="sLeft"></div><div class="budget-sub" style="flex-direction:column;text-align:right"><span class="num" id="sSpent"></span></div></div>
@@ -1013,10 +1164,14 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
       <button class="btn ghost" id="ctAdd" type="button">+ Aggiungi un contatto</button>
       <div class="hint">I numeri restano solo su questo telefono: vanno scritti su ognuno dei tre. Tocca un contatto per modificarlo.</div>
     </details>
-    <details class="card acc" id="photoCard" hidden>
+    <details class="card acc" id="photoCard">
       <summary>Foto</summary>
-      <label class="toggle"><input type="checkbox" id="rollChk"> Salva nel rullino le foto che scatto con l'app</label>
-      <div class="hint">Vale per le foto di Foto e Diario scattate con la fotocamera. Quelle prese dal rullino ci sono già. La prima volta iOS chiede il permesso di aggiungere foto.</div>
+      <div id="rollBox">
+        <label class="toggle"><input type="checkbox" id="rollChk"> Salva nel rullino iOS le foto che scatto con l'app</label>
+        <div class="hint">Vale per le foto di Foto e Diario scattate con la fotocamera. Quelle prese dal rullino ci sono già. La prima volta iOS chiede il permesso di aggiungere foto.</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="alDia" checked> Salva le foto anche nel mio diario di oggi</label>
+      <div class="hint">Le foto che scatti o scegli in Foto finiscono anche nel diario del giorno.</div>
     </details>
     <details class="card acc" id="secCard" hidden>
       <summary>Sicurezza</summary>
@@ -1062,7 +1217,9 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v62';
+var APP_VER = 'v77';
+var ES = window.APP_LANG === 'es', LOC = ES ? 'es-ES' : 'it-IT';
+function LT(it, es) { return ES ? es : it; }
 (function () {
   var CATS = ['Cibo', 'Vestiti', 'Regali', 'Souvenir', 'Benzina', 'Hotel', 'Attrazioni', 'Altro'];
   var TIPS = [0, 10, 15, 18, 20];
@@ -1089,7 +1246,7 @@ var APP_VER = 'v62';
   function money(e) { return e.cur === 'EUR' ? eur(e.eur) : usd(e.usd); }
   function sumLabel(list) { var u = 0, w = 0; list.forEach(function (z) { if (z.cur === 'EUR') w += z.eur; else u += z.usd; }); return (u || !w ? usd(u) : '') + (u && w ? ' + ' : '') + (w ? eur(w) : ''); }
   function r2(n) { return Math.round(n * 100) / 100; }
-  function dateStr(ts) { return new Date(ts).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  function dateStr(ts) { return new Date(ts).toLocaleString(LOC, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
 
   /* ---------- foto: IndexedDB con copia in memoria ---------- */
   var mem = {}, dbp = null;
@@ -1178,7 +1335,7 @@ var APP_VER = 'v62';
     if (v !== 'home' && appsEdit) appsMode(false);
     if (v === 'docs') renderDocs();
     if (v === 'calc') { storeCalc = ''; suggestStores('', 'storeCalc', 'desc'); }
-    if (v === 'calc' || v === 'scan') getFix(8000);
+    if (v === 'calc' || v === 'scan' || v === 'album' || v === 'dia') getFix(8000);
   }
   function go(v) { if (hashView() === v && !(v === 'home' && location.hash)) { show(v); return; } location.hash = v === 'home' ? '' : v; }
   window.addEventListener('hashchange', function () { show(hashView()); });
@@ -1205,22 +1362,78 @@ var APP_VER = 'v62';
     var first = st.expenses.reduce(function (m, e) { return Math.min(m, e.ts); }, Date.now());
     st.topups.push({ id: newId(), ts: first - 1000, usd: st.plafond, note: 'Plafond iniziale' }); st.plafond = 0; persist();
   }
-  function renderHome() {
-    $('hello').textContent = st.user ? 'Ciao, ' + st.user : 'Scrivi il tuo nome in Impostazioni';
-    $('cnt').textContent = st.expenses.length ? '(' + st.expenses.length + ')' : '';
-    var sp = spentTotal(), pl = topupTotal(), left = pl - sp, bar = $('bar'), lf = $('left');
-    if (pl > 0) {
-      var pct = Math.min(100, sp / pl * 100), cls = pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
-      lf.textContent = (left < 0 ? '-' : '') + usd(Math.abs(left)); lf.className = 'budget-left num ' + cls; lf.style.fontSize = '';
-      bar.style.width = pct + '%'; bar.className = cls === 'good' ? '' : cls;
-      $('spent').textContent = 'Speso ' + usd(sp) + ' di ' + usd(pl);
-      $('leftEur').textContent = (left < 0 ? '-' : '') + eur(Math.abs(left) * st.rate);
-      $('barwrap').setAttribute('aria-valuenow', Math.round(pct));
-    } else {
-      lf.textContent = 'Ricarica il plafond'; lf.className = 'budget-left'; lf.style.fontSize = '1.1rem';
-      bar.style.width = '0'; $('spent').textContent = 'Speso ' + usd(sp); $('leftEur').textContent = '';
-    }
+  /* icona col numero al posto del disegno: Programma = giorni alla partenza (-38, -37 ...), Registro = quanto resta da spendere */
+  function iconNum(btnId, txt, neg) {
+    var ic = $(btnId).querySelector('.ic'), n = ic.querySelector('.icn'), g = ic.querySelector('svg');
+    if (txt == null) { n.hidden = true; g.style.display = ''; ic.classList.remove('neg'); return; }
+    n.hidden = false; g.style.display = 'none'; n.textContent = txt; ic.classList.toggle('neg', !!neg);
+    n.className = 'icn' + (txt.length > 6 ? ' xs' : txt.length > 4 ? ' sm' : '');
   }
+  function tripDays() {                                  // giorni che mancano al primo giorno del programma (0 o meno: si e' partiti)
+    var p = CAL_DAYS[0].split('-'), n = new Date();
+    return Math.round((new Date(+p[0], +p[1] - 1, +p[2]) - new Date(n.getFullYear(), n.getMonth(), n.getDate())) / 86400000);
+  }
+  function renderHome() {
+    $('hello').hidden = !!st.user; $('hello').textContent = st.user ? '' : 'Scrivi il tuo nome in Impostazioni';
+    $('cnt').textContent = st.expenses.length ? '(' + st.expenses.length + ')' : '';
+    var left = topupTotal() - spentTotal(), d = tripDays();
+    iconNum('goCal', d > 0 ? '-' + d : null);
+    if (topupTotal() > 0) { var r = Math.round(left); iconNum('goLog', (r < 0 ? '-' : '') + '$' + Math.abs(r), r < 0); } else iconNum('goLog', null);
+    wxStart(); tutMaybe();
+  }
+
+  /* ---------- meteo di dove siamo e ora italiana (solo testo) ----------
+     Meteo da Open-Meteo (gratis, senza chiave), con la posizione arrotondata a circa 10 km. Ora d'Italia dall'orologio del telefono. */
+  var WX_CODES = { 0: 'Sereno', 1: 'Quasi sereno', 2: 'Poco nuvoloso', 3: 'Coperto', 45: 'Nebbia', 48: 'Nebbia', 51: 'Pioggerella', 53: 'Pioggerella', 55: 'Pioggerella', 56: 'Pioggia gelata', 57: 'Pioggia gelata', 61: 'Pioggia', 63: 'Pioggia', 65: 'Pioggia forte', 66: 'Pioggia gelata', 67: 'Pioggia gelata', 71: 'Neve', 73: 'Neve', 75: 'Neve forte', 77: 'Neve', 80: 'Rovesci', 81: 'Rovesci', 82: 'Rovesci forti', 85: 'Nevischio', 86: 'Nevischio', 95: 'Temporale', 96: 'Temporale con grandine', 99: 'Temporale con grandine' };
+  var WX_KEY = 'texascash.wx.v1', wxBusy = false, wxTick = null;
+  function wxRead() { try { return JSON.parse(localStorage.getItem(WX_KEY) || 'null'); } catch (e) { return null; } }
+  function wxShow(w) {
+    if (!w) { $('wxT').textContent = '\u00a0'; $('wxD').textContent = ''; $('wxP').textContent = ''; return; }
+    $('wxT').textContent = Math.round(w.c) + '° C';
+    $('wxD').textContent = ' · ' + Math.round(w.c * 9 / 5 + 32) + '° F · ' + T(WX_CODES[w.k] || 'Meteo');
+    $('wxP').textContent = w.place || '';
+  }
+  function wxLoc() {
+    var perm = navigator.permissions && navigator.permissions.query ? navigator.permissions.query({ name: 'geolocation' }).then(function (r) { return r.state; }, function () { return 'prompt'; }) : Promise.resolve('prompt');
+    return perm.then(function (s) { return (natPlugin('Geolocation') || s === 'granted') ? getFix(4000) : freshFix(); }).then(function (f) {
+      if (f) return { la: f.la, lo: f.lo, known: true };
+      if (st.pos && st.pos.la != null) return { la: st.pos.la, lo: st.pos.lo, known: true };
+      return { la: 29.76, lo: -95.37, known: false, place: 'Houston' };
+    });
+  }
+  function wxRefresh(force) {
+    var c = wxRead();
+    if (c) wxShow(c);
+    if (wxBusy || (!force && c && Date.now() - c.ts < 20 * 60 * 1000)) return;
+    wxBusy = true;
+    wxLoc().then(function (L) {
+      var la = Math.round(L.la * 10) / 10, lo = Math.round(L.lo * 10) / 10;
+      var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + la + '&longitude=' + lo + '&current=temperature_2m,weather_code&timezone=auto';
+      var place = L.place ? Promise.resolve(L.place) : (c && c.place && c.la === la && c.lo === lo ? Promise.resolve(c.place) :
+        fetchJson('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=it&lat=' + la + '&lon=' + lo, null, 6000).then(function (j) { var a = (j && j.address) || {}; return a.city || a.town || a.village || a.county || ''; }).catch(function () { return ''; }));
+      return Promise.all([fetchJson(url, null, 8000), place]).then(function (r) {
+        var cur = r[0] && r[0].current; if (!cur || cur.temperature_2m == null) return;
+        var w = { c: cur.temperature_2m, k: cur.weather_code, place: r[1] || '', la: la, lo: lo, ts: Date.now() };
+        try { localStorage.setItem(WX_KEY, JSON.stringify(w)); } catch (e) {}
+        wxShow(w);
+      });
+    }).catch(function () {}).then(function () { wxBusy = false; });
+  }
+  var IT_FMT = null, IT_DAY = null;
+  function itClock() {
+    try {
+      IT_FMT = IT_FMT || new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' });
+      IT_DAY = IT_DAY || new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' });
+      var now = new Date(), it = IT_DAY.format(now), here = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      $('itT').textContent = IT_FMT.format(now);
+      $('itL').textContent = 'Italia' + (it > here ? ' · domani' : it < here ? ' · ieri' : '');
+    } catch (e) { $('itT').textContent = ''; }
+  }
+  function wxStart() {
+    itClock(); if (!wxTick) wxTick = setInterval(function () { if (!document.hidden && hashView() === 'home') itClock(); }, 15000);
+    wxRefresh(false);
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && hashView() === 'home') { itClock(); wxRefresh(false); } });
 
   /* ---------- salvataggio spese ---------- */
   function addExpense(e) {
@@ -1466,104 +1679,80 @@ var APP_VER = 'v62';
 
   /* ---------- registro ---------- */
   var CAT_COLORS = { Cibo: '#ff9f0a', Vestiti: '#bf5af2', Regali: '#ff375f', Souvenir: '#ffd60a', Benzina: '#8e8e93', Hotel: '#0a84ff', Attrazioni: '#30d158', Altro: '#64d2ff' };
-  function renderChart() {
-    var by = {}, card = $('chartCard'); st.expenses.forEach(function (e) { if (e.cur !== 'EUR') by[e.cat] = (by[e.cat] || 0) + e.usd; });
-    var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), tot = spentTotal();
-    card.hidden = !keys.length || logTab !== 'spese'; if (card.hidden) return;
-    var off = 0, svg = '<svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(120,130,150,.22)" stroke-width="6.5"></circle>';
-    keys.forEach(function (k) {
-      var p = by[k] / tot * 100, gap = keys.length > 1 ? Math.min(.6, p / 3) : 0;
-      svg += '<circle cx="21" cy="21" r="15.9155" fill="none" stroke="' + (CAT_COLORS[k] || '#8e8e93') + '" stroke-width="6.5" stroke-dasharray="' + (p - gap) + ' ' + (100 - p + gap) + '" stroke-dashoffset="' + (-off) + '"></circle>';
-      off += p;
-    });
-    $('donut').innerHTML = svg + '</svg><div class="mid"><b class="num">' + usd(tot) + '</b><span>' + keys.length + (keys.length === 1 ? ' tipologia' : ' tipologie') + '</span></div>';
-    var lg = $('legend'); lg.innerHTML = '';
-    keys.forEach(function (k) {
-      var d = document.createElement('div');
-      d.innerHTML = '<i></i><span class="n"></span><span class="v num"></span>';
-      d.querySelector('i').style.background = CAT_COLORS[k] || '#8e8e93';
-      d.querySelector('.n').textContent = k;
-      d.querySelector('.v').innerHTML = usd(by[k]) + '<small>' + Math.round(by[k] / tot * 100) + '%</small>';
-      lg.appendChild(d);
-    });
-  }
-  var logTab = 'spese', logFocus = '';
+  var logTab = 'all', logFocus = '', logOpen = '';
   function setTab(t) { logTab = t; renderLog(); }
+  $('tabAll').onclick = function () { setTab('all'); };
   $('tabSpese').onclick = function () { setTab('spese'); };
   $('tabRic').onclick = function () { setTab('ric'); };
-  function renderTopupLog() {
-    var list = $('list'); list.innerHTML = '';
-    $('logTotLabel').textContent = 'Totale ricaricato';
-    $('logTot').innerHTML = usd(topupTotal()) + ' · ' + eur(topupTotal() * st.rate);
-    $('catSum').innerHTML = '<span class="num">Rimasto ' + usd(topupTotal() - spentTotal()) + '</span>';
-    if (!st.topups.length) { list.innerHTML = '<div class="empty">Nessuna ricarica ancora.<br>Si aggiungono da Impostazioni, con Ricarica plafond.</div>'; return; }
-    st.topups.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (t) {
-      var el = document.createElement('div'); el.className = 'item';
-      var body = document.createElement('div'); body.className = 'body';
-      body.innerHTML = '<span class="t"></span><span class="m"></span>';
-      body.firstChild.textContent = t.note || 'Ricarica';
-      body.lastChild.textContent = dateStr(t.ts);
-      var amt = document.createElement('div'); amt.className = 'amt num';
-      amt.innerHTML = '<b>+' + usd(t.usd) + '</b><small>' + eur(t.usd * st.rate) + '</small>';
-      var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost small'; del.textContent = 'Elimina'; del.style.marginTop = '6px'; del.style.alignSelf = 'flex-start';
-      var armed = false;
-      del.onclick = function () {
-        if (!armed) { armed = true; del.textContent = 'Conferma?'; setTimeout(function () { armed = false; del.textContent = 'Elimina'; }, 3000); return; }
-        st.topups = st.topups.filter(function (x) { return x.id !== t.id; }); persist(); renderLog();
-      };
-      body.appendChild(del);
-      el.appendChild(body); el.appendChild(amt); list.appendChild(el);
-    });
-  }
+  function lt(ts) { return new Date(ts).toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' }); }
+  function ldayLabel(ts) { var t = new Date(ts).toLocaleDateString(LOC, { weekday: 'short', day: 'numeric', month: 'short' }); return t.charAt(0).toUpperCase() + t.slice(1); }
+  function lrow(cls, a, b, c, d) { var r = document.createElement('div'); r.className = 'lrow ' + cls; r.innerHTML = '<span class="lo"></span><span class="ld"></span><span class="la num r"></span><span class="ls num r"></span>'; r.children[0].textContent = a || ''; r.children[1].innerHTML = b || ''; r.children[2].textContent = c || ''; r.children[3].textContent = d || ''; return r; }
+  function sumline(label, val, cls, sub) { var d = document.createElement('div'); d.className = 'lsl ' + (cls || ''); d.innerHTML = '<span class="k"></span><span class="dots"></span><span class="v num"></span>'; d.children[0].textContent = label; d.children[2].textContent = val; if (sub) { var sm = document.createElement('small'); sm.className = 'num'; sm.textContent = sub; d.appendChild(sm); } return d; }
   function renderLog() {
-    $('tabSpese').setAttribute('aria-pressed', String(logTab === 'spese')); $('tabRic').setAttribute('aria-pressed', String(logTab === 'ric'));
-    if (logTab === 'ric') { $('chartCard').hidden = true; renderTopupLog(); return; }
-    $('logTotLabel').textContent = 'Totale speso';
-    renderChart();
-    var byCat = {};
-    st.expenses.forEach(function (e) { if (e.cur !== 'EUR') byCat[e.cat] = (byCat[e.cat] || 0) + e.usd; });
-    $('logTot').innerHTML = usd(spentTotal()) + ' · ' + eur(spentTotal() * st.rate);
-    var itTot = st.expenses.reduce(function (a, e) { return a + (e.cur === 'EUR' ? e.eur : 0); }, 0);
-    $('catSum').innerHTML = (Object.keys(byCat).map(function (c) { return '<span class="num">' + c + ' ' + usd(byCat[c]) + '</span>'; }).join('') || (itTot ? '' : '<span>Nessuna spesa</span>')) + (itTot ? '<span class="num">Italia (fuori plafond) ' + eur(itTot) + '</span>' : '');
+    ['All', 'Spese', 'Ric'].forEach(function (n) { $('tab' + n).setAttribute('aria-pressed', String(logTab === n.toLowerCase())); });
+    var ent = [];
+    st.topups.forEach(function (t) { ent.push({ k: 't', ts: t.ts, o: t }); });
+    st.expenses.forEach(function (e) { ent.push({ k: 'e', ts: e.ts, o: e }); });
+    ent.sort(function (a, b) { return a.ts - b.ts; });
+    var bal = 0, itTot = 0;
+    ent.forEach(function (x) { if (x.k === 't') bal += x.o.usd; else if (x.o.cur === 'EUR') itTot += x.o.eur; else bal -= x.o.usd; x.bal = bal; });
+    /* riepilogo in alto, come in un libro contabile */
+    var sm = $('lsum'); sm.innerHTML = '';
+    var hd = document.createElement('div'); hd.className = 'ltl'; hd.textContent = 'Prima nota'; sm.appendChild(hd);
+    sm.appendChild(sumline('Totale ricaricato', usd(topupTotal()))); sm.appendChild(sumline('Totale speso', '− ' + usd(spentTotal())));
+    if (itTot) sm.appendChild(sumline('Spese in Italia (fuori plafond)', eur(itTot), 'it'));
+    sm.appendChild(sumline('Saldo', (bal < 0 ? '− ' : '') + usd(Math.abs(bal)), 'tot ' + (bal < 0 ? 'neg' : 'pos'), eur(Math.abs(bal) * st.rate)));
+    /* righe */
     var list = $('list'); list.innerHTML = '';
-    if (!st.expenses.length) {
-      list.innerHTML = '<div class="empty">Nessuna spesa ancora.<br>Carica uno scontrino o calcola un prezzo e salvalo.</div>';
-      return;
-    }
-    st.expenses.slice().sort(function (a, b) { return b.ts - a.ts; }).forEach(function (e) {
-      var el = document.createElement('div'); el.className = 'item'; if (e.loc) el.classList.add('hasloc');
-      el.addEventListener('click', function (ev) { if (ev.target.closest('button, label, input, a')) return; openMapAt(e); });
-      if (e.id === logFocus) { logFocus = ''; el.classList.add('focus'); setTimeout(function () { el.scrollIntoView({ block: 'center' }); }, 80); setTimeout(function () { el.classList.remove('focus'); }, 3500); }
-      var th = document.createElement('div');
-      if (e.photo) {
-        var pb = document.createElement('button'); pb.type = 'button'; pb.className = 'photo-btn'; pb.setAttribute('aria-label', 'Apri scontrino');
-        var im = document.createElement('img'); im.className = 'thumb'; im.alt = 'Scontrino'; pb.appendChild(im); th.appendChild(pb);
-        getPhoto(e.id).then(function (b) { if (b) im.src = URL.createObjectURL(b); });
-        pb.onclick = function () { openViewer(e.id); };
-      } else { th.className = 'thumb noimg'; th.textContent = 'senza foto'; }
-      var body = document.createElement('div'); body.className = 'body';
-      body.innerHTML = '<span class="t"></span><span class="m"></span>';
-      body.firstChild.textContent = e.desc || e.cat;
-      body.lastChild.textContent = e.cat + ' · ' + dateStr(e.ts) + (e.loc ? ' · 📍' : '');
-      var acts = document.createElement('div'); acts.className = 'acts';
-      if (!e.photo) {
-        var lb = document.createElement('label'); lb.className = 'btn ghost small'; lb.style.cursor = 'pointer'; lb.textContent = 'Aggiungi foto';
-        var fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.hidden = true;
-        fi.onchange = function () { if (fi.files[0]) shrink(fi.files[0]).then(function (b) { return putPhoto(e.id, b); }).then(function () { e.photo = true; persist(); renderLog(); }); };
-        lb.appendChild(fi); acts.appendChild(lb);
+    var show = ent.filter(function (x) { return logTab === 'all' || (logTab === 'spese' ? x.k === 'e' : x.k === 't'); });
+    if (!show.length) { var em = document.createElement('div'); em.className = 'lempty'; em.textContent = logTab === 'ric' ? 'Nessuna ricarica ancora. Si aggiungono da Impostazioni, con Ricarica plafond.' : 'Nessun movimento ancora. Carica uno scontrino o calcola un prezzo e salvalo.'; list.appendChild(em); }
+    var curDay = '', dayTot = 0, dayHead = null;
+    function closeDay() { if (dayHead && dayTot) dayHead.lastChild.textContent = '− ' + usd(dayTot); }
+    show.forEach(function (x) {
+      var dk = dayKey(x.ts);
+      if (dk !== curDay) { closeDay(); curDay = dk; dayTot = 0; dayHead = document.createElement('div'); dayHead.className = 'lday'; dayHead.innerHTML = '<span></span><span class="num"></span>'; dayHead.firstChild.textContent = ldayLabel(x.ts); list.appendChild(dayHead); }
+      var o = x.o, isE = x.k === 'e', eu = isE && o.cur === 'EUR';
+      if (isE && !eu) dayTot += o.usd;
+      var desc = isE ? (o.desc || o.cat) : (o.note || 'Ricarica');
+      var sub = isE ? '<i style="background:' + (CAT_COLORS[o.cat] || '#8e8e93') + '"></i>' + o.cat + (o.loc ? ' · 📍' : '') + (eu ? ' · Italia' : '') : 'Ricarica';
+      var amt = isE ? (eu ? '− ' + eur(o.eur) : '− ' + f(o.usd)) : '+ ' + f(o.usd);
+      var row = lrow('lr ' + (isE ? (eu ? 'it' : 'out') : 'in'), lt(x.ts), '', amt, eu ? '·' : (x.bal < 0 ? '− ' : '') + f(Math.abs(x.bal)));
+      var dd = row.children[1]; dd.innerHTML = '<b></b><small></small>'; dd.firstChild.textContent = desc; dd.lastChild.innerHTML = sub;
+      var det = document.createElement('div'); det.className = 'ldet'; det.hidden = (logOpen !== o.id);
+      row.addEventListener('click', function () { logOpen = logOpen === o.id ? '' : o.id; det.hidden = logOpen !== o.id; row.classList.toggle('open', !det.hidden); });
+      if (!det.hidden) row.classList.add('open');
+      if (isE) {
+        var info = document.createElement('div'); info.className = 'linfo'; info.textContent = eu ? 'Importo in euro, fuori dal plafond.' : eur(o.eur) + ' al cambio di ' + (o.usd ? (o.eur / o.usd).toFixed(4).replace('.', ',') : st.rate); det.appendChild(info);
+      } else { var info2 = document.createElement('div'); info2.className = 'linfo'; info2.textContent = eur(o.usd * st.rate); det.appendChild(info2); }
+      var acts = document.createElement('div'); acts.className = 'lacts'; det.appendChild(acts);
+      function ab(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost small'; b.textContent = label; b.onclick = function (ev) { ev.stopPropagation(); fn(b); }; acts.appendChild(b); return b; }
+      if (isE) {
+        if (o.photo) ab('Apri scontrino', function () { openViewer(o.id); });
+        else { var lb = document.createElement('label'); lb.className = 'btn ghost small'; lb.style.cursor = 'pointer'; lb.textContent = 'Aggiungi foto'; var fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.hidden = true; fi.onclick = function (ev) { ev.stopPropagation(); }; lb.onclick = function (ev) { ev.stopPropagation(); };
+          fi.onchange = function () { if (fi.files[0]) shrink(fi.files[0]).then(function (b) { return putPhoto(o.id, b); }).then(function () { o.photo = true; persist(); renderLog(); }); }; lb.appendChild(fi); acts.appendChild(lb); }
+        if (o.loc) ab('Sulla mappa', function () { openMapAt(o); });
       }
-      var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost small'; del.textContent = 'Elimina';
       var armed = false;
-      del.onclick = function () {
-        if (!armed) { armed = true; del.textContent = 'Conferma?'; setTimeout(function () { armed = false; del.textContent = 'Elimina'; }, 3000); return; }
-        st.expenses = st.expenses.filter(function (x) { return x.id !== e.id; });
-        delPhoto(e.id); persist(); renderLog();
-      };
-      acts.appendChild(del); body.appendChild(acts);
-      var amt = document.createElement('div'); amt.className = 'amt num';
-      amt.innerHTML = e.cur === 'EUR' ? '<b>' + eur(e.eur) + '</b><small>Italia · fuori plafond</small>' : '<b>' + usd(e.usd) + '</b><small>' + eur(e.eur) + '</small>';
-      el.appendChild(th); el.appendChild(body); el.appendChild(amt); list.appendChild(el);
+      ab('Elimina', function (b) {
+        if (!armed) { armed = true; b.textContent = 'Conferma?'; setTimeout(function () { armed = false; b.textContent = 'Elimina'; }, 3000); return; }
+        if (isE) { st.expenses = st.expenses.filter(function (z) { return z.id !== o.id; }); delPhoto(o.id); } else st.topups = st.topups.filter(function (z) { return z.id !== o.id; });
+        persist(); renderLog();
+      });
+      if (isE && o.photo) { var im = document.createElement('img'); im.className = 'lth'; im.alt = 'Scontrino'; det.insertBefore(im, det.firstChild); getPhoto(o.id).then(function (b) { if (b) im.src = URL.createObjectURL(b); }); }
+      list.appendChild(row); list.appendChild(det);
+      if (o.id === logFocus) { logFocus = ''; logOpen = o.id; det.hidden = false; row.classList.add('open', 'focus'); setTimeout(function () { row.scrollIntoView({ block: 'center' }); }, 80); setTimeout(function () { row.classList.remove('focus'); }, 3500); }
     });
+    closeDay();
+    if (show.length) { var foot = document.createElement('div'); foot.className = 'lfoot'; foot.innerHTML = '<span>Saldo attuale</span><b class="num"></b>'; foot.lastChild.textContent = (bal < 0 ? '− ' : '') + usd(Math.abs(bal)); foot.className += bal < 0 ? ' neg' : ' pos'; list.appendChild(foot); }
+    /* riepilogo per categoria */
+    var by = {}, tot = 0; st.expenses.forEach(function (e) { if (e.cur !== 'EUR') { by[e.cat] = (by[e.cat] || 0) + e.usd; tot += e.usd; } });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), cr = $('catRows'); cr.innerHTML = '';
+    $('catLedger').hidden = !keys.length || logTab === 'ric';
+    keys.forEach(function (k) {
+      var r = document.createElement('div'); r.className = 'lcat'; r.innerHTML = '<i></i><span class="n"></span><span class="v num"></span><span class="p num"></span><span class="bar"><u></u></span>';
+      r.children[0].style.background = CAT_COLORS[k] || '#8e8e93'; r.children[1].textContent = k; r.children[2].textContent = usd(by[k]); r.children[3].textContent = Math.round(by[k] / tot * 100) + '%'; r.querySelector('u').style.width = Math.round(by[k] / tot * 100) + '%'; r.querySelector('u').style.background = CAT_COLORS[k] || '#8e8e93'; cr.appendChild(r);
+    });
+    if (keys.length) cr.appendChild(sumline('Totale', usd(tot), 'tot'));
   }
   function openViewer(id) {
     getPhoto(id).then(function (b) {
@@ -1577,7 +1766,7 @@ var APP_VER = 'v62';
 
   /* ---------- impostazioni ---------- */
   function fillSettings() {
-    (function () {     var B = natPlugin('NativeBiometric'); $('secCard').hidden = !B; $('photoCard').hidden = !natPlugin('TexasPhotos'); $('rollChk').checked = st.rollAuto !== false; $('diaLockChk').checked = st.diaLock !== false; })();
+    (function () {     var B = natPlugin('NativeBiometric'); $('secCard').hidden = !B; $('rollBox').hidden = !natPlugin('TexasPhotos'); $('rollChk').checked = st.rollAuto !== false; $('diaLockChk').checked = st.diaLock !== false; })();
     $('sUser').value = st.user || '';
     $('tax').value = String(st.tax).replace('.', ',');
     $('rate').value = String(Math.round(st.rate * 10000) / 10000).replace('.', ',');
@@ -1959,7 +2148,10 @@ var APP_VER = 'v62';
   /* ---------- traduttore italiano <-> inglese americano ---------- */
   var PHRASES = {"Ristorante": [["Un tavolo per tre, per favore.", "A table for three, please."], ["Possiamo avere il menù?", "Can we see the menu, please?"], ["Cosa ci consiglia?", "What do you recommend?"], ["Sono allergico alle noci.", "I'm allergic to nuts."], ["Non posso mangiare glutine.", "I can't eat gluten."], ["Senza ghiaccio, per favore.", "No ice, please."], ["Acqua del rubinetto, per favore.", "Tap water, please."], ["Possiamo avere una confezione da asporto?", "Can I get a to-go box?"], ["La mancia è inclusa?", "Is the tip included?"], ["Possiamo pagare separatamente?", "Can we pay separately?"], ["Il conto, per favore.", "Check, please."], ["Il cibo è delizioso!", "The food is delicious!"]], "Hotel": [["Ho una prenotazione a nome Fusi.", "I have a reservation under Fusi."], ["A che ora è il check-out?", "What time is check-out?"], ["Possiamo lasciare i bagagli qui?", "Can we leave our luggage here?"], ["Mi serve un asciugamano in più.", "I need an extra towel."], ["Qual è la password del Wi-Fi?", "What's the Wi-Fi password?"], ["Dov'è il bagno?", "Where is the restroom?"]], "Benzina": [["Pieno di benzina normale, per favore.", "Fill it up with regular, please."], ["Posso pagare alla pompa con la carta?", "Can I pay at the pump with a card?"], ["Dov'è il bagno?", "Where is the restroom?"], ["Dove posso gonfiare le gomme?", "Where can I put air in my tires?"]], "Dogana": [["Siamo qui in vacanza.", "We're here on vacation."], ["Restiamo due settimane.", "We're staying for two weeks."], ["Stiamo dalla famiglia a Houston.", "We're staying with family in Houston."], ["Non ho nulla da dichiarare.", "I have nothing to declare."], ["Dove ritiro i bagagli?", "Where is baggage claim?"], ["Dov'è il noleggio auto?", "Where is the car rental?"]], "Negozi": [["Quanto costa?", "How much is this?"], ["Ha una taglia più grande?", "Do you have a bigger size?"], ["Ha una taglia più piccola?", "Do you have a smaller size?"], ["Posso provarlo?", "Can I try this on?"], ["Dov'è il camerino?", "Where is the fitting room?"], ["Accettate carte?", "Do you take credit cards?"], ["Posso avere lo scontrino?", "Can I have the receipt, please?"], ["Vorrei restituire questo.", "I'd like to return this."]], "Aiuto": [["Ho bisogno di aiuto.", "I need help."], ["Chiami un'ambulanza!", "Call an ambulance!"], ["Mi sono perso.", "I'm lost."], ["Dov'è l'ospedale più vicino?", "Where is the nearest hospital?"], ["Parla italiano?", "Do you speak Italian?"], ["Può parlare più lentamente?", "Could you speak more slowly?"], ["Può ripetere, per favore?", "Could you say that again, please?"], ["Non capisco.", "I don't understand."], ["Grazie mille!", "Thank you so much!"]]};
   var trDir = 'it-en', trCat = 'Ristorante', trGoogleOk = true, trViaBackup = false, trBusy = false;
-  function trLang() { return trDir === 'it-en' ? { from: 'it', to: 'en', fromV: 'it-IT', toV: 'en-US', fromN: 'Italiano', toN: 'Inglese (USA)' } : { from: 'en', to: 'it', fromV: 'en-US', toV: 'it-IT', toN: 'Italiano', fromN: 'Inglese (USA)' }; }
+  function trLang() {
+    var me = ES ? { c: 'es', v: 'es-ES', n: 'Español' } : { c: 'it', v: 'it-IT', n: 'Italiano' };
+    return trDir === 'it-en' ? { from: me.c, to: 'en', fromV: me.v, toV: 'en-US', fromN: me.n, toN: 'Inglese (USA)' } : { from: 'en', to: me.c, fromV: 'en-US', toV: me.v, toN: me.n, fromN: 'Inglese (USA)' };
+  }
   function decodeHtml(t) { var e = document.createElement('textarea'); e.innerHTML = t; return e.value; }
   var trApple = false;
   function translateText(text) {
@@ -2005,7 +2197,52 @@ var APP_VER = 'v62';
     }, function () { $('trHint').textContent = 'Non riesco a tradurre ora (rete o limite del servizio). Prova con una frase pronta.'; })
       .then(function () { trBusy = false; });
   }
+  /* ---------- convertitore: unita' americane e europee, anche senza rete ---------- */
+  var CV = [
+    { k: 'mi', a: 'Miglia', b: 'Chilometri', f: function (x) { return x * 1.609344; }, g: function (x) { return x / 1.609344; }, h: 'Es. 100 miglia sono circa 161 km.' },
+    { k: 'mph', a: 'Miglia all\'ora', b: 'Km all\'ora', f: function (x) { return x * 1.609344; }, g: function (x) { return x / 1.609344; }, h: 'Es. il limite di 65 mph sono circa 105 km/h.' },
+    { k: 'f', a: 'Gradi °F', b: 'Gradi °C', f: function (x) { return (x - 32) * 5 / 9; }, g: function (x) { return x * 9 / 5 + 32; }, h: 'Es. 32 °F sono 0 °C; 68 °F sono 20 °C.' },
+    { k: 'gal', a: 'Galloni', b: 'Litri', f: function (x) { return x * 3.785411784; }, g: function (x) { return x / 3.785411784; }, h: 'Un gallone americano sono circa 3,8 litri.' },
+    { k: 'lb', a: 'Libbre (lb)', b: 'Chili', f: function (x) { return x * 0.45359237; }, g: function (x) { return x / 0.45359237; }, h: 'Es. 50 lb sono circa 22,7 kg: il limite di molte valigie.' },
+    { k: 'ft', a: 'Piedi (ft)', b: 'Metri', f: function (x) { return x * 0.3048; }, g: function (x) { return x / 0.3048; }, h: 'Es. 6 ft sono circa 1,83 m.' }
+  ], cvSel = 0, cvInit = false;
+  function cvFmt(v) { return isFinite(v) ? v.toLocaleString('it-IT', { maximumFractionDigits: 2, useGrouping: false }) : ''; }
+  function cvRender() {
+    var c = CV[cvSel]; $('cvLa').textContent = c.a; $('cvLb').textContent = c.b; $('cvHint').textContent = c.h; $('cvA').value = ''; $('cvB').value = '';
+    document.querySelectorAll('#cvKinds .chip').forEach(function (b, i) { b.setAttribute('aria-pressed', String(i === cvSel)); });
+  }
+  function cvStart() {
+    if (cvInit) return; cvInit = true;
+    var box = $('cvKinds'); CV.forEach(function (c, i) { var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = { mi: 'Miglia', mph: 'mph', f: '°F', gal: 'Galloni', lb: 'Libbre', ft: 'Piedi' }[c.k]; b.onclick = function () { cvSel = i; cvRender(); }; box.appendChild(b); });
+    function bind(from, to, fn) { $(from).addEventListener('input', function () { var t = $(from).value.trim(); if (!t) { $(to).value = ''; return; } var v = num(t); $(to).value = isNaN(v) ? '' : cvFmt(fn(v)); }); }
+    bind('cvA', 'cvB', function (x) { return CV[cvSel].f(x); }); bind('cvB', 'cvA', function (x) { return CV[cvSel].g(x); });
+    cvRender();
+  }
+  /* ---------- previsioni del tempo per i giorni del Programma (Open-Meteo, solo da 16 giorni prima) ---------- */
+  var FC_KEY = 'texascash.fc.v1', fcBusy = false;
+  function fcRead() { try { return JSON.parse(localStorage.getItem(FC_KEY) || 'null'); } catch (e) { return null; } }
+  function fcShow() {
+    var box = $('tcWx'), c = fcRead(), d = c && c.days && c.days[calDay];
+    var td = new Date(); var today = td.getFullYear() + '-' + pad(td.getMonth() + 1) + '-' + pad(td.getDate());
+    if (calDay < today) { box.hidden = true; return; }
+    box.hidden = false;
+    if (d) { box.textContent = 'Previsioni (Houston): max ' + Math.round(d.hi) + '° / min ' + Math.round(d.lo) + '° C · ' + Math.round(d.hi * 9 / 5 + 32) + '° / ' + Math.round(d.lo * 9 / 5 + 32) + '° F · ' + T(WX_CODES[d.k] || ''); return; }
+    var p = calDay.split('-'), from = new Date(+p[0], +p[1] - 1, +p[2] - 15);
+    box.textContent = c ? 'Previsioni disponibili dal ' + from.toLocaleDateString(LOC, { day: 'numeric', month: 'long' }) + '.' : '';
+    if (!c) box.hidden = true;
+  }
+  function fcRefresh() {
+    var c = fcRead(); fcShow();
+    if (fcBusy || (c && Date.now() - c.ts < 3 * 3600000)) return; fcBusy = true;
+    fetchJson('https://api.open-meteo.com/v1/forecast?latitude=29.8&longitude=-95.4&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=16&timezone=America%2FChicago', null, 8000).then(function (j) {
+      var d = j && j.daily; if (!d || !d.time) return; var days = {};
+      d.time.forEach(function (t, i) { days[t] = { hi: d.temperature_2m_max[i], lo: d.temperature_2m_min[i], k: d.weather_code[i] }; });
+      try { localStorage.setItem(FC_KEY, JSON.stringify({ ts: Date.now(), days: days })); } catch (e) {}
+      if (hashView() === 'cal') fcShow();
+    }).catch(function () {}).then(function () { fcBusy = false; });
+  }
   function renderTr() {
+    cvStart();
     var L = trLang(); $('trFrom').textContent = L.fromN; $('trTo').textContent = L.toN;
     $('trIn').placeholder = natPlugin('TexasSpeech') ? 'Tocca Parla oppure scrivi qui' : 'Parla con la tastiera o scrivi qui'; if (!trListening) trListenUi(false);
     $('phrCats').innerHTML = '';
@@ -2092,14 +2329,14 @@ var APP_VER = 'v62';
     var q = encodeURIComponent(x.place || x.title);
     return x.loc ? 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + q : 'https://maps.apple.com/?q=' + encodeURIComponent((x.place || x.title) + ' Texas');
   }
-  function calDayLabel(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function calDayLabel(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString(LOC, { weekday: 'long', day: 'numeric', month: 'long' }); }
   function calToday() { var n = new Date(Date.now()), k = n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate()); return CAL_DAYS.indexOf(k) >= 0 ? k : (k < CAL_DAYS[0] ? CAL_DAYS[0] : CAL_DAYS[CAL_DAYS.length - 1]); }
   function calHome() {
     var n = new Date(Date.now() + 86400000), k = n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate()), items = calItems(k), card = $('tomCard');
     if (!items.length || CAL_DAYS.indexOf(k) < 0) { card.hidden = true; return; }
     card.hidden = false; $('tomLabel').textContent = 'Domani · ' + calDayLabel(k); var box = $('tomList'); box.innerHTML = '';
     items.slice(0, 6).forEach(function (x) { var r = document.createElement('div'); r.className = 'tomitem'; var t = document.createElement('span'); t.className = 't'; t.textContent = x.time || '•'; var b = document.createElement('span'); b.textContent = x.title + (x.place ? ' 📍' : ''); r.appendChild(t); r.appendChild(b); box.appendChild(r); });
-    if (items.length > 6) { var m = document.createElement('div'); m.className = 'hint'; m.textContent = '…e altre ' + (items.length - 6) + ' tappe'; box.appendChild(m); }
+    if (items.length > 6) { var m = document.createElement('div'); m.className = 'hint'; m.textContent = LT('…e altre ' + (items.length - 6) + ' tappe', '…y ' + (items.length - 6) + ' paradas más'); box.appendChild(m); }
     card.onclick = function () { calDay = k; go('cal'); };
   }
   function openCal() { calSeed(); if (!calDay) calDay = calToday(); renderTripCal(); }
@@ -2109,13 +2346,13 @@ var APP_VER = 'v62';
       var p = d.split('-'), b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 10px;min-width:3.6rem';
       b.textContent = Number(p[2]) + '/' + Number(p[1]); b.setAttribute('aria-pressed', String(d === calDay)); b.onclick = function () { calDay = d; calOrder = false; renderTripCal(); }; dayChips.appendChild(b);
     });
-    $('tcTitle').textContent = calDayLabel(calDay); $('calOrder').textContent = calOrder ? 'Fine' : 'Ordina';
+    $('tcTitle').textContent = calDayLabel(calDay); fcRefresh(); $('calOrder').textContent = calOrder ? 'Fine' : 'Ordina';
     var items = calItems(calDay), box = $('calList'); box.innerHTML = '';
     items.forEach(function (x, i) {
       var r = document.createElement('div'); r.className = 'calday';
       var t = document.createElement('div'); t.className = 'tm'; t.textContent = x.time || '•'; r.appendChild(t);
       var bd = document.createElement('button'); bd.type = 'button'; bd.className = 'bd'; var b = document.createElement('b'); b.textContent = x.title; bd.appendChild(b);
-      if (x.place) { var sm = document.createElement('small'); sm.textContent = '📍 ' + x.place + (x.loc ? '' : ' (non ancora sulla mappa)'); bd.appendChild(sm); }
+      if (x.place) { var sm = document.createElement('small'); sm.textContent = '📍 ' + x.place + (x.loc ? '' : LT(' (non ancora sulla mappa)', ' (aún no está en el mapa)')); bd.appendChild(sm); }
       bd.onclick = function () { calForm(x); }; r.appendChild(bd);
       if (calOrder) {
         function act(label, aria, fn, dis) { var a = document.createElement('button'); a.type = 'button'; a.className = 'chkact'; a.textContent = label; a.setAttribute('aria-label', aria); a.disabled = !!dis; if (dis) a.style.opacity = '.35'; a.onclick = fn; r.appendChild(a); }
@@ -2227,7 +2464,7 @@ var APP_VER = 'v62';
   function chkBanner() {
     var c = chkMine(), left = c.tot - c.done, days = Math.ceil((CHK_DEPART - Date.now()) / 86400000), b = $('chkBar'), cnt = $('chkCnt');
     cnt.textContent = c.tot ? '(' + c.done + '/' + c.tot + ')' : '';
-    if (c.tot && left > 0 && days <= 8 && days >= 0) { b.hidden = false; b.textContent = (days === 0 ? 'Si parte oggi' : days === 1 ? 'Si parte domani' : 'Mancano ' + days + ' giorni alla partenza') + ': ' + left + (left === 1 ? ' voce' : ' voci') + ' della tua checklist da fare'; }
+    if (c.tot && left > 0 && days <= 8 && days >= 0) { b.hidden = false; b.textContent = LT((days === 0 ? 'Si parte oggi' : days === 1 ? 'Si parte domani' : 'Mancano ' + days + ' giorni alla partenza') + ': ' + left + (left === 1 ? ' voce' : ' voci') + ' della tua checklist da fare', (days === 0 ? 'Salimos hoy' : days === 1 ? 'Salimos mañana' : 'Faltan ' + days + ' días para la salida') + ': ' + left + (left === 1 ? ' elemento' : ' elementos') + ' de tu lista por hacer'); }
     else b.hidden = true;
   }
   function renderChk() {
@@ -2238,11 +2475,11 @@ var APP_VER = 'v62';
     vis.slice().sort(function (a, b) { return (a === me ? -1 : 0) - (b === me ? -1 : 0); }).forEach(function (w) {
       var c = chkCounts(w), r = document.createElement('button'); r.type = 'button'; r.className = 'chkperson'; r.setAttribute('aria-pressed', String(w === chkWho));
       var pct = c.tot ? Math.round(c.done / c.tot * 100) : 0;
-      r.innerHTML = '<span class="pn"></span><span class="pb"><i></i></span><span class="pc num"></span>'; r.querySelector('.pn').textContent = chkName(w) + (w === me ? ' (tu)' : ''); r.querySelector('.pb i').style.width = pct + '%'; r.querySelector('.pc').textContent = c.done + '/' + c.tot;
+      r.innerHTML = '<span class="pn"></span><span class="pb"><i></i></span><span class="pc num"></span>'; r.querySelector('.pn').textContent = chkName(w) + (w === me ? LT(' (tu)', ' (tú)') : ''); r.querySelector('.pb i').style.width = pct + '%'; r.querySelector('.pc').textContent = c.done + '/' + c.tot;
       r.onclick = function () { chkWho = w; chkEdit = false; renderChk(); }; over.appendChild(r);
     });
     var cs = chkCounts(chkWho);
-    $('chkTot').textContent = (chkWho === me ? 'La tua checklist' : chkName(chkWho)) + ': ' + cs.done + ' di ' + cs.tot + ' fatte'; $('chkBarFill').style.width = (cs.tot ? cs.done / cs.tot * 100 : 0) + '%';
+    $('chkTot').textContent = (chkWho === me ? LT('La tua checklist', 'Tu lista') : chkName(chkWho)) + ': ' + LT(cs.done + ' di ' + cs.tot + ' fatte', cs.done + ' de ' + cs.tot + ' hechas'); $('chkBarFill').style.width = (cs.tot ? cs.done / cs.tot * 100 : 0) + '%';
     var tabs = $('chkTabs'); tabs.innerHTML = '';
     CHK_LISTS.forEach(function (L) {
       var it = chkItems(L[0], chkWho), d = it.filter(function (x) { return x.done; }).length, b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'flex:0 0 auto;padding:0 12px';
@@ -2284,7 +2521,7 @@ var APP_VER = 'v62';
   /* ---------- diario privato (cifrato) ---------- */
   var diaDay = '', diaUrls = [], diaTimer = null;
   function dayKey(ts) { var d = new Date(ts || Date.now()); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
-  function dayLabel(k) { k = String(k).slice(0, 10); var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function dayLabel(k) { k = String(k).slice(0, 10); var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString(LOC, { weekday: 'long', day: 'numeric', month: 'long' }); }
   function slug(x) { return String(x || 'utente').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'utente'; }
   function diaryActive() { return !!(window.DIARY_PUBKEY && window.DiaryCrypto && window.crypto && window.crypto.subtle); }
   function diaryDoc(day) { var e = st.diary[day]; return { day: e.day || String(day).slice(0, 10), text: e.text || '', photos: e.photos || [], loc: e.loc || null, pl: e.pl || {}, ts: e.ts, upd: e.upd || e.ts }; }
@@ -2371,7 +2608,7 @@ var APP_VER = 'v62';
   function diaOpenDay(k) { diaDay = k; diaMode = 'edit'; renderDiary(); window.scrollTo(0, 0); }
   function diaFlush() { clearTimeout(diaTimer); var t = $('diaText'); if (!t || diaMode !== 'edit') return; var txt = t.value, e = diaGet(!!txt.trim()); if (e && e.text !== txt) { e.text = txt; e.upd = Date.now(); diaTouchLoc(e); persist(); } }
   function diaFit() { var t = $('diaText'); t.style.height = 'auto'; t.style.height = Math.max(160, t.scrollHeight + 4) + 'px'; }
-  function monthLabel(k) { var p = k.split('-'), m = new Date(+p[0], +p[1] - 1, 1).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }); return m.charAt(0).toUpperCase() + m.slice(1); }
+  function monthLabel(k) { var p = k.split('-'), m = new Date(+p[0], +p[1] - 1, 1).toLocaleDateString(LOC, { month: 'long', year: 'numeric' }); return m.charAt(0).toUpperCase() + m.slice(1); }
   function renderDiary() {
     $('diaListV').hidden = diaMode !== 'list'; $('diaEditV').hidden = diaMode !== 'edit';
     diaUrls.forEach(function (u) { URL.revokeObjectURL(u); }); diaUrls = [];
@@ -2390,7 +2627,7 @@ var APP_VER = 'v62';
   }
   function djDate(k, e) {
     k = String(e.day || k).slice(0, 10); var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]), t = e.ts ? new Date(e.ts) : null;
-    var s = d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); s = s.charAt(0).toUpperCase() + s.slice(1);
+    var s = d.toLocaleDateString(LOC, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); s = s.charAt(0).toUpperCase() + s.slice(1);
     if (t && dayKey(e.ts) === k) s += ', ' + pad(t.getHours()) + ':' + pad(t.getMinutes());
     return s;
   }
@@ -2409,7 +2646,7 @@ var APP_VER = 'v62';
   function renderDiaList() {
     var box = $('diaList'); box.innerHTML = '';
     var all = Object.keys(st.diary || {}).filter(hasEntry).sort().reverse();
-    $('djCount').textContent = all.length + (all.length === 1 ? ' annotazione' : ' annotazioni');
+    $('djCount').textContent = all.length + (all.length === 1 ? LT(' annotazione', ' anotación') : LT(' annotazioni', ' anotaciones'));
     var q = diaQuery.trim().toLowerCase();
     var days = all.filter(function (k) {
       var e = st.diary[k];
@@ -2510,7 +2747,7 @@ var APP_VER = 'v62';
     var save = diaDay; diaDay = latestKeyOfDay(dayKey()); var e = diaGet(true), id = newId();
     return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (fix) { (e.pl = e.pl || {})[id] = { la: fix.la, lo: fix.lo }; if (!e.loc) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; } diaDay = save || diaDay; });
   }
-  $('diaCam').onclick = function () { diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
+  $('diaCam').onclick = function () { getFix(15000); diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
   $('diaLib').onclick = function () { diaGrace = Date.now() + 90000; $('diaLibFile').value = ''; $('diaLibFile').click(); };
   $('diaCamFile').addEventListener('change', function () { rollSave($('diaCamFile').files); diaAddFiles($('diaCamFile').files); });
   $('diaLibFile').addEventListener('change', function () { diaAddFiles($('diaLibFile').files); });
@@ -2544,28 +2781,43 @@ var APP_VER = 'v62';
     list.forEach(function (e) { var l = expLine(e), r = document.createElement('div'); r.className = 'line'; var a = document.createElement('span'), b = document.createElement('span'); a.className = 'k'; b.className = 'v num'; a.textContent = l.k; b.textContent = l.v; r.appendChild(a); r.appendChild(b); box.appendChild(r); });
   }
   function dayLoc(k) { var e = st.diary && st.diary[k]; if (e && e.loc) return e.loc; var x = dayExpenses(k).filter(function (z) { return z.loc; })[0]; return x ? x.loc : null; }
-  function openDaySheet(keys) { var go0 = go;                       // riquadro grande: foto in primo piano, testo sotto, poi le spese
+  function openDaySheet(keys) { var go0 = go;                       // stesso aspetto del Diario: carta a righe, foto con chiodino e mappa accanto, Post-it
     var host = $('viewerHost'), urls = [], sh = document.createElement('div'); sh.className = 'sheet';
     function close() { urls.forEach(function (u) { URL.revokeObjectURL(u); }); sh.remove(); }
     sh.addEventListener('click', function (ev) { if (ev.target === sh) close(); });
-    var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
+    var inn = document.createElement('div'); inn.className = 'sheetin nbin'; sh.appendChild(inn);
     var hd = document.createElement('div'); hd.className = 'sheethd'; var tt = document.createElement('b'); tt.textContent = keys.length === 1 ? 'Diario' : keys.length + ' giorni in questo posto';
     var cb = document.createElement('button'); cb.type = 'button'; cb.className = 'btn ghost small'; cb.textContent = 'Chiudi'; cb.onclick = close; hd.appendChild(tt); hd.appendChild(cb); inn.appendChild(hd);
     keys.forEach(function (k) {
-      var e = st.diary && st.diary[k], day = document.createElement('div'); day.className = 'sday';
-      var h = document.createElement('h3'); h.textContent = dayLabel(k); day.appendChild(h);
-      if (e && (e.photos || []).length) {
-        var car = document.createElement('div'); car.className = 'car'; day.appendChild(car);
-        e.photos.forEach(function (id) { getPhoto('dia_' + id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); urls.push(u); var im = document.createElement('img'); im.alt = 'Foto del diario'; im.src = u; car.appendChild(im); }); });
+      var e = (st.diary && st.diary[k]) || {}, day = document.createElement('div'); day.className = 'sday dje';
+      var h = document.createElement('div'); h.className = 'djmonth'; h.textContent = dayLabel(k); day.appendChild(h);
+      var ph = e.photos || [], txt = (e.text || '').trim();
+      function rowOf(tiles) { var row = document.createElement('div'); row.className = 'djrow' + (tiles.length === 1 ? ' one' : ''); tiles.forEach(function (x) { row.appendChild(x); }); return row; }
+      var body = document.createElement('div'); body.className = 'djbody';
+      if (ph.length) {
+        ph.slice(0, 3).forEach(function (id, ix) {
+          var t = document.createElement('div'); t.className = 'djph';
+          getPhoto('dia_' + id).then(function (bl) { if (!bl) { t.remove(); return; } var u = URL.createObjectURL(bl); urls.push(u); var im = document.createElement('img'); im.alt = ''; im.src = u; t.appendChild(im); });
+          var lc = diaPhotoLoc(e, id), tl = [t]; if (lc) tl.push(djTile(lc.la, lc.lo));
+          var r = rowOf(tl); if (ix) r.style.marginTop = '8px'; day.appendChild(r);
+        });
+        if (ph.length > 3) { var mo = document.createElement('div'); mo.className = 'djmeta'; mo.style.padding = '6px 8px 0'; mo.textContent = '+ ' + (ph.length - 3) + ' altre foto'; day.appendChild(mo); }
+        var lines = txt.split('\n'), first = lines[0] || '', rest = lines.slice(1).join('\n').trim();
+        if (rest) { var ti = document.createElement('div'); ti.className = 'djtitle'; ti.textContent = first; body.appendChild(ti); var tx = document.createElement('div'); tx.className = 'djtext'; tx.textContent = rest; body.appendChild(tx); }
+        else if (first) { var t1 = document.createElement('div'); t1.className = 'djtext one'; t1.textContent = first; body.appendChild(t1); }
+      } else if (txt) {
+        var post = document.createElement('div'); post.className = 'djpost'; var pt = document.createElement('span'); pt.textContent = txt; post.appendChild(pt);
+        var tl2 = [post]; if (e.loc) tl2.push(djTile(e.loc.la, e.loc.lo)); day.appendChild(rowOf(tl2));
       }
-      if (e && (e.text || '').trim()) { var p = document.createElement('div'); p.className = 'stext'; p.textContent = e.text.trim(); day.appendChild(p); }
+      if (body.childNodes.length) day.appendChild(body);
       var ex = dayExpenses(k);
       if (ex.length) {
-        var lb = document.createElement('div'); lb.className = 'label'; lb.textContent = 'Spese'; day.appendChild(lb);
-        var bx = document.createElement('div'); day.appendChild(bx); fillExpenses(bx, ex);
-        var tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = sumLabel(ex); day.appendChild(tl);
+        var nt = document.createElement('div'); nt.className = 'nbexp';
+        var lb = document.createElement('div'); lb.className = 'label'; lb.textContent = 'Spese'; nt.appendChild(lb);
+        var bx = document.createElement('div'); nt.appendChild(bx); fillExpenses(bx, ex);
+        var tl = document.createElement('div'); tl.className = 'line total'; tl.innerHTML = '<span class="k">Totale del giorno</span><span class="v num"></span>'; tl.lastChild.textContent = sumLabel(ex); nt.appendChild(tl); day.appendChild(nt);
       }
-      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.onclick = function () { close(); diaDay = k; diaJump = true; go0('dia'); }; day.appendChild(go);
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Apri il giorno'; go.style.marginTop = '12px'; go.onclick = function () { close(); diaDay = k; diaJump = true; go0('dia'); }; day.appendChild(go);
       inn.appendChild(day);
     });
     host.appendChild(sh);
@@ -2618,12 +2870,13 @@ var APP_VER = 'v62';
       }).then(function () { a.up = true; });
     });
   }
-  function addAlbumFiles(files) {
+  function addAlbumFiles(files, fromLib) {
     if (!files || !files.length) return;
     if (!st.user) { toast('Scrivi prima il tuo nome in Impostazioni'); return; }
     $('alHint').textContent = 'Preparo ' + files.length + (files.length > 1 ? ' foto…' : ' foto…');
-    var list = [].slice.call(files), fixP = getFix(6000).catch(function () { return null; });
+    var list = [].slice.call(files), fixP = (fromLib ? Promise.resolve(null) : getFix(12000)).catch(function () { return null; }), noLoc = false;
     fixP.then(function (fix) {
+      noLoc = !fix && !fromLib;
       return list.reduce(function (p, f) {
         return p.then(function () {
           var id = newId(), ts = Date.now();
@@ -2637,7 +2890,7 @@ var APP_VER = 'v62';
         });
       }, Promise.resolve());
     }).then(function () {
-      $('alHint').textContent = 'Foto salvata. Parte nell\'album comune appena c\'è rete.';
+      $('alHint').textContent = noLoc ? 'Foto salvata senza posizione: il GPS non ha risposto. Controlla che la posizione sia attiva per l\'app.' : 'Foto salvata. Parte nell\'album comune appena c\'è rete.';
       $('alSaveRoll').hidden = !albLast || (!!natPlugin('TexasPhotos') && st.rollAuto !== false); renderAlbum();
     }, function () { $('alHint').textContent = 'Non riesco a leggere questa foto.'; });
   }
@@ -2671,9 +2924,12 @@ var APP_VER = 'v62';
           if (mine.length) { var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.src = mine[0].thumbUrl || mine[0].thumb; cov.appendChild(im); }
           else { cov.textContent = a[1].charAt(0); cov.style.color = a[2]; cov.style.background = 'color-mix(in srgb, ' + a[2] + ' 16%, var(--card))'; cov.classList.add('empty0'); }
           var n = document.createElement('span'); n.className = 'albname'; n.textContent = a[1];
-          var c = document.createElement('span'); c.className = 'albcnt'; c.textContent = mine.length + (mine.length === 1 ? ' foto' : ' foto');
+          var c = document.createElement('span'); c.className = 'albcnt'; c.textContent = mine.length + LT(' foto', mine.length === 1 ? ' foto' : ' fotos');
           b.appendChild(cov); b.appendChild(n); b.appendChild(c); b.onclick = function () { albSel = a[0]; renderAlbum(); window.scrollTo(0, 0); }; tiles.appendChild(b);
         });
+        var lb = document.createElement('button'); lb.type = 'button'; lb.className = 'albtile'; lb.id = 'alLib';
+        lb.innerHTML = '<span class="albcov lib">'+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3.500" width="14" height="12" rx="2.500"/><path d="M3 8v9a3 3 0 0 0 3 3h10"/><circle cx="12" cy="8" r="1.300"/><path d="M21 12.500l-3.500-3.200-6.500 6"/></svg>'+'</span><span class="albname">Carica dal rullino iOS</span><span class="albcnt">Dal telefono</span>';
+        lb.onclick = function () { $('alLibFile').value = ''; $('alLibFile').click(); }; tiles.appendChild(lb);
         return;
       }
       var shown = albSel === '*' ? items : items.filter(function (x) { return key(x.user) === albSel; });
@@ -2686,18 +2942,18 @@ var APP_VER = 'v62';
         if (x.pending) { var p = document.createElement('span'); p.className = 'apend'; p.textContent = 'in coda'; b.appendChild(p); }
         b.onclick = function () { viewAlbumPhoto(shown.slice(), ix); }; grid.appendChild(b);
       });
-      $('alCount').textContent = shown.length ? shown.length + ' foto' : 'Ancora nessuna foto.';
+      $('alCount').textContent = shown.length ? shown.length + LT(' foto', shown.length === 1 ? ' foto' : ' fotos') : 'Ancora nessuna foto.';
     });
   }
   $('alBack').onclick = function () { albSel = null; renderAlbum(); window.scrollTo(0, 0); };
   function viewAlbumPhoto(list, idx) {
-    var host = $('viewerHost'), v = document.createElement('div'), mini = null, cur = -1, gen = 0, busy = false;
-    v.className = 'viewer alb'; v.style.overflowY = 'auto'; v.style.justifyContent = 'flex-start';
+    var host = $('viewerHost'), v = document.createElement('div'), cur = -1, gen = 0, busy = false;
+    v.className = 'viewer alb'; v.style.overflow = 'hidden';
     host.appendChild(v);
-    function closeV() { if (mini) { try { mini.remove(); } catch (e) {} mini = null; } document.removeEventListener('keydown', onKey); v.remove(); }
+    function closeV() { document.removeEventListener('keydown', onKey); v.remove(); }
     function onKey(e) { if (e.key === 'ArrowLeft') slide(-1); else if (e.key === 'ArrowRight') slide(1); else if (e.key === 'Escape') closeV(); }
     document.addEventListener('keydown', onKey);
-    function curBox() { return v.firstChild; }
+    function curBox() { return v.querySelector('.abox'); }
     function slide(d) {                                   // d = +1: foto successiva (la box esce a sinistra)
       var n = cur + d, b = curBox(); if (busy || !b) return;
       if (n < 0 || n >= list.length) { b.style.transition = 'transform .2s ease-out'; b.style.transform = 'translateX(0)'; return; }
@@ -2723,40 +2979,21 @@ var APP_VER = 'v62';
     v.addEventListener('touchend', endDrag, { passive: true }); v.addEventListener('touchcancel', endDrag, { passive: true });
     function showAt(n, enter) {
       cur = n; var x = list[n], my = ++gen;
-      if (mini) { try { mini.remove(); } catch (e) {} mini = null; }
       v.innerHTML = '';
-      var box = document.createElement('div'); box.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;margin:auto 0;will-change:transform';
-      v.appendChild(box);
-      var cnt = document.createElement('div'); cnt.className = 'vcap'; cnt.textContent = (n + 1) + ' / ' + list.length; box.appendChild(cnt);
-      var im = document.createElement('img'); im.alt = 'Foto'; im.draggable = false; im.src = x.thumbUrl || x.thumb; box.appendChild(im);
-      var cap = document.createElement('div'); cap.className = 'vcap';
-      cap.textContent = (x.user || '') + ' · ' + dateStr(x.ts) + (x.loc ? '' : ' · posizione non disponibile'); box.appendChild(cap);
+      /* barra in alto, piccola: Indietro a sinistra; mappa, condividi, cestino a destra */
+      var top = document.createElement('div'); top.className = 'vtop';
+      var bk = document.createElement('button'); bk.type = 'button'; bk.className = 'vback'; bk.textContent = '‹ Indietro'; bk.onclick = closeV; top.appendChild(bk);
+      var cn = document.createElement('span'); cn.className = 'vcnt'; cn.innerHTML = '<b></b><i></i>'; cn.firstChild.textContent = x.user || ''; cn.lastChild.textContent = dateStr(x.ts) + ' · ' + (n + 1) + '/' + list.length; top.appendChild(cn);
+      var acts = document.createElement('div'); acts.className = 'vacts'; top.appendChild(acts);
+      var SV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+      function ib(label, svg, fn) { var b = document.createElement(fn ? 'button' : 'a'); b.className = 'vib'; b.setAttribute('aria-label', label); b.innerHTML = SV + svg + '</svg>'; if (fn) { b.type = 'button'; b.onclick = fn; } acts.appendChild(b); return b; }
+      ib('Mostra sulla mappa', '<path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/>', function () {
+        if (!x.loc || x.loc.la == null) { toast('Questa foto non ha una posizione'); return; }
+        closeV(); mapFrom = 'alb'; mapDay = ''; mapSel = { pho: true }; mapFocus = { id: x.id, la: x.loc.la, lo: x.loc.lo }; go('map');
+      }).style.opacity = x.loc ? '' : '.4';
       var full = null;
-      if (x.loc) {
-        var md = document.createElement('div'); md.className = 'vmap'; box.appendChild(md);
-        var link = document.createElement('a'); link.className = 'vmaplink'; link.target = '_blank'; link.rel = 'noopener'; link.setAttribute('aria-label', 'Apri in Mappe');
-        link.href = 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + encodeURIComponent('Foto di ' + (x.user || '')); md.appendChild(link);
-        if (!window.L && !amWanted()) { md.style.cssText += ';color:#fff;text-align:center;padding:50px 10px;font-size:.85rem'; link.textContent = 'La mappa non si è caricata: tocca per aprire Mappe'; }
-        else {
-          var build = function () {
-            if (my !== gen) return;
-            if (amBox(md, [{ id: 'p0', la: x.loc.la, lo: x.loc.lo, color: '#d6246e' }], { fixed: true, span: 0.012, before: link }, build)) return;
-            try {
-              if (mini) { mini.remove(); mini = null; }
-              mini = L.map(md, { zoomControl: false, attributionControl: true, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false }).setView([x.loc.la, x.loc.lo], 15);
-              L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mini);
-              L.circleMarker([x.loc.la, x.loc.lo], { radius: 10, color: '#fff', weight: 3, fillColor: '#d6246e', fillOpacity: 1 }).addTo(mini);
-              mini.invalidateSize();
-            } catch (e) { md.textContent = 'Mappa non disponibile'; md.appendChild(link); }
-          };
-          setTimeout(build, 80); setTimeout(function () { if (my === gen && mini) mini.invalidateSize(); }, 400);
-        }
-      }
-      var row = document.createElement('div'); row.className = 'btnrow'; row.style.cssText = 'width:100%;max-width:520px;flex-wrap:nowrap;gap:8px';
-      function mk(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.style.cssText = 'flex:1 1 0;min-width:0;padding:0 8px;font-size:.92rem'; b.textContent = label; b.onclick = fn; row.appendChild(b); }
-      mk('Chiudi', closeV);
-      mk('Salva foto', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
-      if (x.user === st.user) mk('Elimina', function () {
+      ib('Condividi', '<path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/>', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
+      if (x.user === st.user) ib('Elimina', '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', function () {
         if (!confirm('Eliminare questa foto dall\'album di tutti?')) return;
         st.album = (st.album || []).filter(function (a) { return a.id !== x.id; }); delPhoto('alb_' + x.id); delPhoto('albt_' + x.id); persist();
         albRemote = albRemote.filter(function (r) { return r.id !== x.id; }); renderAlbum();
@@ -2764,7 +3001,12 @@ var APP_VER = 'v62';
         fbReady().then(function (d) { var tr = d.collection('trips').doc(st.trip); return Promise.all([tr.collection('album').doc(x.id).delete(), tr.collection('albumFull').doc(x.id).delete()]); }).catch(function () { toast('Cancellata qui, ma non online: riprova con la rete'); });
         if (!list.length) closeV(); else showAt(Math.min(n, list.length - 1));
       });
-      box.appendChild(row);
+      v.appendChild(top);
+      /* la foto a schermo intero, come nell'app Foto di iOS */
+      var box = document.createElement('div'); box.className = 'abox'; box.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;will-change:transform';
+      v.appendChild(box);
+      var im = document.createElement('img'); im.alt = 'Foto'; im.draggable = false; im.src = x.thumbUrl || x.thumb; box.appendChild(im);
+      var cap = document.createElement('span');
       if (enter) {                                        // entra scivolando dal lato opposto
         box.style.transition = 'none'; box.style.transform = 'translateX(' + (enter * 100) + '%)'; box.style.opacity = '0'; void box.offsetWidth;
         box.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; box.style.transform = 'translateX(0)'; box.style.opacity = '1';
@@ -2781,36 +3023,35 @@ var APP_VER = 'v62';
     if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file] }).catch(function () {});
     else download(file);
   }
-  $('alCam').onclick = function () { $('alCamFile').value = ''; $('alCamFile').click(); };
-  $('alLib').onclick = function () { $('alLibFile').value = ''; $('alLibFile').click(); };
+  $('alLibFile').addEventListener('change', function () { addAlbumFiles($('alLibFile').files, true); });
+  $('alCam').onclick = function () { getFix(15000); $('alCamFile').value = ''; $('alCamFile').click(); };
   /* app iOS: le foto scattate con la fotocamera finiscono anche nel rullino, con un solo gesto (plugin TexasPhotos) */
   function rollSave(files) {
     var P = natPlugin('TexasPhotos'); if (!P || st.rollAuto === false || !files || !files.length) return;
     [].slice.call(files).forEach(function (fl) { blobToData(fl).then(function (u) { return u ? P.saveImage({ base64: u }) : null; }).then(function (r) { if (r) toast('Foto salvata anche nel rullino'); }, function () { toast('Rullino: serve il permesso in Impostazioni di iOS'); }); });
   }
   $('alCamFile').addEventListener('change', function () { rollSave($('alCamFile').files); addAlbumFiles($('alCamFile').files); });
-  $('alLibFile').addEventListener('change', function () { addAlbumFiles($('alLibFile').files); });
   $('alSaveRoll').onclick = function () { if (albLast) sharePhoto(albLast.blob); };
 
   /* ---------- posizione e mappa ---------- */
   var lastFix = null;
-  function freshFix() { return lastFix && Date.now() - lastFix.ts < 5 * 60 * 1000 ? { la: lastFix.la, lo: lastFix.lo, ac: lastFix.ac } : null; }
+  function freshFix(maxAge) { return lastFix && Date.now() - lastFix.ts < (maxAge || 5 * 60 * 1000) ? { la: lastFix.la, lo: lastFix.lo, ac: lastFix.ac } : null; }
   function getFix(maxWait) {
     var G = natPlugin('Geolocation');
     if (G) return new Promise(function (res) {            // app iOS: posizione nativa, senza il secondo avviso "localhost vuole usare la posizione"
-      var done = false, end = function () { if (!done) { done = true; clearTimeout(to); res(freshFix()); } }, to = setTimeout(end, maxWait + 500);
+      var done = false, end = function () { if (!done) { done = true; clearTimeout(to); res(freshFix(20 * 60 * 1000)); } }, to = setTimeout(end, maxWait + 500);
       G.getCurrentPosition({ enableHighAccuracy: true, timeout: maxWait, maximumAge: 120000 }).then(function (p) {
         lastFix = { la: Math.round(p.coords.latitude * 1e5) / 1e5, lo: Math.round(p.coords.longitude * 1e5) / 1e5, ac: Math.round(p.coords.accuracy || 0), ts: Date.now() };
       }, function () {}).then(end);
     });
     return new Promise(function (res) {
       if (!navigator.geolocation) { res(null); return; }
-      var done = false, to = setTimeout(function () { if (!done) { done = true; res(freshFix()); } }, maxWait + 500);
+      var done = false, to = setTimeout(function () { if (!done) { done = true; res(freshFix(20 * 60 * 1000)); } }, maxWait + 500);
       try {
         navigator.geolocation.getCurrentPosition(function (p) {
           lastFix = { la: Math.round(p.coords.latitude * 1e5) / 1e5, lo: Math.round(p.coords.longitude * 1e5) / 1e5, ac: Math.round(p.coords.accuracy || 0), ts: Date.now() };
-          if (!done) { done = true; clearTimeout(to); res(freshFix()); }
-        }, function () { if (!done) { done = true; clearTimeout(to); res(freshFix()); } }, { enableHighAccuracy: true, timeout: maxWait, maximumAge: 120000 });
+          if (!done) { done = true; clearTimeout(to); res(freshFix(20 * 60 * 1000)); }
+        }, function () { if (!done) { done = true; clearTimeout(to); res(freshFix(20 * 60 * 1000)); } }, { enableHighAccuracy: true, timeout: maxWait, maximumAge: 120000 });
       } catch (e) { if (!done) { done = true; clearTimeout(to); res(null); } }
     });
   }
@@ -2947,7 +3188,7 @@ var APP_VER = 'v62';
       return pop;
     });
     draw('pho', 40, '#d6246e', function (g) {
-      var pop = mapPop(), n = g.items.length, it = mapRow(pop.firstChild, n === 1 ? 'Foto' : n + ' foto', dateStr(g.items[0].x.ts)), th = document.createElement('div'); th.className = 'pthumbs'; it.appendChild(th);
+      var pop = mapPop(), n = g.items.length, it = mapRow(pop.firstChild, n === 1 ? 'Foto' : n + LT(' foto', ' fotos'), dateStr(g.items[0].x.ts)), th = document.createElement('div'); th.className = 'pthumbs'; it.appendChild(th);
       g.items.slice(0, 6).forEach(function (p) { getPhoto('albt_' + p.x.id).then(function (b) { if (!b) return; var u = URL.createObjectURL(b); mapUrls.push(u); var im = document.createElement('img'); im.alt = 'Foto'; im.src = u; th.appendChild(im); }); });
       return pop;
     });
@@ -2971,6 +3212,59 @@ var APP_VER = 'v62';
       if (mapFocus) map.setView([mapFocus.la, mapFocus.lo], 16); else if (bounds.length === 1) map.setView(bounds[0], 14); else if (bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }, 50);
   }
+
+  /* ---------- lingua: italiano / spagnolo (la traduzione sta in es.js) ---------- */
+  document.querySelectorAll('#langSeg .chip').forEach(function (b) {
+    b.setAttribute('aria-pressed', String(b.dataset.l === (ES ? 'es' : 'it')));
+    b.onclick = function () { if (b.dataset.l !== (ES ? 'es' : 'it')) window.setAppLang(b.dataset.l); };
+  });
+
+
+  /* ---------- tutorial: al primo avvio (si puo' saltare) e sempre disponibile da Impostazioni ---------- */
+  var TUT_KEY = 'texascash.tut.v1';
+  var TUT = [
+    { img: 'apple-touch-icon.png', t: 'Benvenuti in Xmas in Texa$', d: 'L\'app del vostro viaggio di Natale in Texas: spese, programma, foto, diario e mappa, tutto in un posto solo. Questa guida dura un minuto.' },
+    { ic: 'goCalc', c: '#ff375f', t: 'Registra le spese', d: 'Tocca Aggiungi spesa per calcolare tasse e mancia, oppure Carica scontrino: l\'app legge importo, data e negozio dalla foto.' },
+    { ic: 'goLog', c: '#34c759', t: 'Il registro', d: 'L\'icona mostra quanto ti resta da spendere: verde se va bene, rossa se hai superato il plafond. Toccala per vedere il libro delle spese e delle ricariche.' },
+    { ic: 'goCal', c: '#27a9e8', t: 'Il programma', d: 'Prima della partenza l\'icona conta i giorni che mancano. Dal 22 dicembre diventa il calendario con le tappe di ogni giorno, il meteo e la mappa.' },
+    { ic: 'goAlbum', c: '#ec4899', t: 'Foto e diario', d: 'Le foto vanno nell\'album che vedete tutti e tre. Il diario è privato: si apre con Face ID e dal Mac lo legge solo Matteo.' },
+    { ic: 'goMap', c: '#34c759', t: 'Mappa e posizioni', d: 'La Mappa mostra tappe, spese, foto e diario. Con Dove sono i miei vedi l\'ultima posizione degli altri.' },
+    { ic: 'goTr', c: '#14a9be', t: 'Traduttore e convertitore', d: 'Parla o scrivi e l\'app traduce in inglese, anche con le frasi pronte senza rete. Sotto trovi il convertitore di miglia, gradi, galloni e libbre.' },
+    { ic: 'goCall', c: '#00b8a9', t: 'In caso di bisogno', d: 'Chiama ha i contatti rapidi, il 911 e i numeri del consolato e della Farnesina nel menu Emergenza.' },
+    { ic: 'goSettings', c: '#8e8e93', t: 'Impostazioni', d: 'Qui scrivi il tuo nome e il codice del viaggio, scegli la lingua e la dimensione delle icone. Puoi rivedere questa guida quando vuoi.' }
+  ];
+  function tutOpen() {
+    if ($('tut')) return;
+    var i = 0, ov = document.createElement('div'); ov.id = 'tut'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Tutorial');
+    ov.innerHTML = '<button class="tskip" type="button">Salta</button><div class="tbody"><div class="tpic"></div><h2 class="tt"></h2><p class="td"></p></div><div class="tdots"></div><button class="btn tnext" type="button"></button>';
+    function done() { try { localStorage.setItem(TUT_KEY, '1'); } catch (e) {} ov.remove(); }
+    function draw() {
+      var x = TUT[i], pic = ov.querySelector('.tpic');
+      pic.innerHTML = ''; pic.className = 'tpic' + (x.img ? ' app' : '');
+      if (x.img) { var im = document.createElement('img'); im.src = x.img; im.alt = ''; pic.appendChild(im); } else { var sv = $(x.ic).querySelector('svg'); pic.style.setProperty('--c', x.c); pic.innerHTML = sv ? sv.outerHTML : ''; }
+      ov.querySelector('.tt').textContent = x.t; ov.querySelector('.td').textContent = x.d;
+      var dots = ov.querySelector('.tdots'); dots.innerHTML = ''; TUT.forEach(function (z, k) { var d = document.createElement('i'); if (k === i) d.className = 'on'; dots.appendChild(d); });
+      ov.querySelector('.tnext').textContent = i === TUT.length - 1 ? 'Inizia' : 'Avanti';
+      ov.querySelector('.tskip').hidden = i === TUT.length - 1;
+    }
+    ov.querySelector('.tskip').onclick = done;
+    ov.querySelector('.tnext').onclick = function () { if (i >= TUT.length - 1) done(); else { i++; draw(); } };
+    var tx0 = null;
+    ov.addEventListener('touchstart', function (e) { tx0 = e.touches[0].clientX; }, { passive: true });
+    ov.addEventListener('touchend', function (e) { if (tx0 == null) return; var dx = e.changedTouches[0].clientX - tx0; tx0 = null; if (dx < -50 && i < TUT.length - 1) { i++; draw(); } else if (dx > 50 && i > 0) { i--; draw(); } }, { passive: true });
+    document.body.appendChild(ov); draw();
+  }
+  function tutMaybe() { var d = '1'; try { d = localStorage.getItem(TUT_KEY); } catch (e) {} if (!d && hashView() === 'home') setTimeout(function () { if (!$('tut') && hashView() === 'home') tutOpen(); }, 700); }
+  $('tutOpen').onclick = tutOpen;
+
+  /* ---------- dimensione delle icone della home ---------- */
+  function applyIconSize() {
+    var z = st.iconSize || 'm', ap = document.querySelector('.apps'); if (!ap) return;
+    ap.classList.remove('sz-s', 'sz-l'); if (z !== 'm') ap.classList.add('sz-' + z);
+    document.querySelectorAll('#szSeg .chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.z === z)); });
+  }
+  document.querySelectorAll('#szSeg .chip').forEach(function (b) { b.onclick = function () { st.iconSize = b.dataset.z; persist(); applyIconSize(); }; });
+  applyIconSize();
 
   /* ---------- sfondo ---------- */
   var DEFAULT_BG = 'img/bandiera-usa.svg', bgUrl = null;
@@ -3023,15 +3317,15 @@ var APP_VER = 'v62';
       var items = calItems(day); if (!items.length) return;
       var p = day.split('-'), eve = new Date(+p[0], +p[1] - 1, +p[2] - 1, NT_HOUR, 0, 0);
       if (eve.getTime() <= now) return;
-      var body = items.slice(0, 4).map(function (x) { return (x.time ? x.time + ' ' : '') + x.title; }).join(' · ') + (items.length > 4 ? ' · e altre ' + (items.length - 4) : '');
-      out.push({ id: 1000 + i, title: 'Domani · ' + calDayLabel(day), body: body, schedule: { on: { year: eve.getFullYear(), month: eve.getMonth() + 1, day: eve.getDate(), hour: NT_HOUR, minute: 0, second: 0 }, allowWhileIdle: true } });
+      var body = items.slice(0, 4).map(function (x) { return (x.time ? x.time + ' ' : '') + T(x.title); }).join(' · ') + (items.length > 4 ? T(' · e altre ') + (items.length - 4) : '');
+      out.push({ id: 1000 + i, title: T('Domani · ') + calDayLabel(day), body: body, schedule: { on: { year: eve.getFullYear(), month: eve.getMonth() + 1, day: eve.getDate(), hour: NT_HOUR, minute: 0, second: 0 }, allowWhileIdle: true } });
     });
     if (st.user) {
       var m = chkMine(), left = m.tot - m.done;
       if (left > 0) NT_CHK.forEach(function (d, i) {
         var when = new Date(d[0], d[1] - 1, d[2], NT_CHK_HOUR, 0, 0); if (when.getTime() <= now) return;
         var days = Math.round((CHK_DEPART - new Date(d[0], d[1] - 1, d[2]).getTime()) / 86400000);
-        out.push({ id: 2000 + i, title: 'Checklist di viaggio', body: (left === 1 ? 'Ti manca ancora 1 voce' : 'Ti mancano ancora ' + left + ' voci') + (days === 1 ? ': si parte domani.' : ': mancano ' + days + ' giorni alla partenza.'),
+        out.push({ id: 2000 + i, title: T('Checklist di viaggio'), body: LT((left === 1 ? 'Ti manca ancora 1 voce' : 'Ti mancano ancora ' + left + ' voci') + (days === 1 ? ': si parte domani.' : ': mancano ' + days + ' giorni alla partenza.'), (left === 1 ? 'Te falta 1 elemento' : 'Te faltan ' + left + ' elementos') + (days === 1 ? ': salimos mañana.' : ': faltan ' + days + ' días para la salida.')),
           schedule: { on: { year: d[0], month: d[1], day: d[2], hour: NT_CHK_HOUR, minute: 0, second: 0 }, allowWhileIdle: true } });
       });
     }
@@ -3304,7 +3598,7 @@ var APP_VER = 'v62';
       t.oncomplete = res; t.onerror = t.onabort = res;
     }); }).catch(function () {});
   }
-  function docDay(ts) { return new Date(ts).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  function docDay(ts) { return new Date(ts).toLocaleDateString(LOC, { day: '2-digit', month: 'short', year: 'numeric' }); }
 
   /* cifratura della cartella Personali */
   function b64(buf) { var b = new Uint8Array(buf), s = '', i; for (i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s); }
@@ -3498,7 +3792,7 @@ var APP_VER = 'v62';
       return;
     }
     var w = (dm.wait || 0) - Date.now();
-    if (w > 0) { toast('Troppi tentativi: riprova tra ' + Math.ceil(w / 1000) + ' secondi'); return; }
+    if (w > 0) { toast(LT('Troppi tentativi: riprova tra ' + Math.ceil(w / 1000) + ' secondi', 'Demasiados intentos: vuelve a probar dentro de ' + Math.ceil(w / 1000) + ' segundos')); return; }
     pinCheck(p).then(function (k) {
       $('docPin').value = '';
       if (!k) { dm.fail = (dm.fail || 0) + 1; if (dm.fail >= 5) dm.wait = Date.now() + 60000; docMeta(); toast('PIN sbagliato'); return; }
@@ -3569,10 +3863,24 @@ var APP_VER = 'v62';
     var r = document.createElement(onTap ? 'button' : 'a'), ic = document.createElement('span'), tx = document.createElement('span'), nm = document.createElement('b'), sm = document.createElement('small');
     r.className = 'docrow'; if (onTap) { r.type = 'button'; r.onclick = onTap; } else { r.href = callHref(c); if (c.wa) { r.target = '_blank'; r.rel = 'noopener'; } }
     ic.className = 'docico'; ic.style.background = c.wa ? '#25a244' : '#007aff'; ic.textContent = c.wa ? 'WA' : 'TEL';
-    nm.textContent = c.name; sm.textContent = (c.wa ? 'WhatsApp' : 'Chiamata normale') + ' · ' + c.tel + (c.auto ? ' · dalla scheda in Documenti' : '');
+    nm.textContent = c.name; sm.textContent = (c.sub ? c.sub + ' · ' : c.wa ? 'WhatsApp · ' : 'Chiamata normale · ') + c.tel + (c.auto ? ' · dalla scheda in Documenti' : '');
     tx.appendChild(nm); tx.appendChild(sm); r.appendChild(ic); r.appendChild(tx); return r;
   }
+  var EM_NUMS = [
+    { name: 'Consolato d\'Italia a Houston · emergenze', tel: '+1 713 459 2110', sub: 'solo cittadini italiani · 16–22, nel weekend 8–22' },
+    { name: 'Ministero degli Esteri, Roma · di notte', tel: '+39 06 36912666', sub: 'dalle 22 alle 8 ora di Houston' },
+    { name: 'Unità di Crisi della Farnesina', tel: '+39 06 36225', sub: 'sempre attiva, 24 ore su 24' },
+    { name: 'Centro antiveleni (USA)', tel: '+1 800 222 1222', sub: 'gratis, 24 ore su 24' }
+  ];
+  function renderEmergency() {
+    var box = $('emList'); box.innerHTML = '';
+    EM_NUMS.forEach(function (c) { box.appendChild(callRow({ name: c.name, tel: c.tel, sub: c.sub, wa: false }, null)); });
+    var ins = (st.contacts || []).filter(function (c) { return /assicur/i.test(c.name); });
+    ins.forEach(function (c) { box.appendChild(callRow(c, null)); });
+    if (!ins.length) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost small'; b.textContent = 'Aggiungi il numero dell\'assicurazione'; b.onclick = function () { contactForm(null, { name: 'Assicurazione di viaggio', wa: false }); }; box.appendChild(b); }
+  }
   function renderCall() {
+    renderEmergency();
     var box = $('callList'), list = callAll(); box.innerHTML = '';
     list.forEach(function (c) { box.appendChild(callRow(c, null)); });
     $('callHint').textContent = list.length ? 'WhatsApp apre la chat: per chiamare tocca la cornetta in alto. I numeri "TEL" partono come chiamata normale.' : 'Ancora nessun contatto. Aggiungi Leslie, Leo, l\'hotel e il noleggio auto: i numeri restano solo su questo telefono.';
@@ -3582,8 +3890,8 @@ var APP_VER = 'v62';
     (st.contacts || []).forEach(function (c) { box.appendChild(callRow(c, function () { contactForm(c); })); });
     if (!(st.contacts || []).length) { var e = document.createElement('div'); e.className = 'hint'; e.textContent = 'Ancora nessun contatto.'; box.appendChild(e); }
   }
-  function contactForm(c) {
-    var isNew = !c, it = c || { id: newId(), name: '', tel: '', wa: true }, wa = it.wa;
+  function contactForm(c, pre) {
+    var isNew = !c, it = c || { id: newId(), name: pre ? pre.name : '', tel: '', wa: pre ? pre.wa : true }, wa = it.wa;
     var sh = document.createElement('div'); sh.className = 'sheet'; var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
     function close() { sh.remove(); }
     sh.addEventListener('click', function (e) { if (e.target === sh) close(); });
@@ -3600,7 +3908,7 @@ var APP_VER = 'v62';
       if (wa && t.charAt(0) !== '+' && t.indexOf('00') !== 0) { $$('ctInfo').textContent = 'Per WhatsApp serve il prefisso internazionale: +39 per l\'Italia, +1 per gli Stati Uniti.'; return; }
       it.name = name; it.tel = tel; it.wa = wa;
       if (isNew) { st.contacts = st.contacts || []; st.contacts.push(it); }
-      persist(); close(); renderContacts(); toast('Contatto salvato');
+      persist(); close(); renderContacts(); if (hashView() === 'call') renderCall(); toast('Contatto salvato');
     };
     if (!isNew) { var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost'; del.textContent = 'Elimina il contatto'; del.onclick = function () { if (!confirm('Eliminare ' + it.name + '?')) return; st.contacts = (st.contacts || []).filter(function (x) { return x.id !== it.id; }); persist(); close(); renderContacts(); }; inn.querySelector('.calform').appendChild(del); }
     $('viewerHost').appendChild(sh);
@@ -3623,7 +3931,7 @@ var APP_VER = 'v62';
   function posAgo(ts) {
     var m = Math.round((Date.now() - ts) / 60000), d = new Date(ts), hm = pad(d.getHours()) + ':' + pad(d.getMinutes());
     if (m < 1) return 'adesso'; if (m < 60) return m + ' min fa'; if (m < 600) return Math.floor(m / 60) + ' h ' + (m % 60) + ' min fa';
-    return (dayKey(ts) === dayKey() ? 'oggi' : dayKey(ts) === dayKey(Date.now() - 86400000) ? 'ieri' : d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })) + ' alle ' + hm;
+    return (dayKey(ts) === dayKey() ? LT('oggi', 'hoy') : dayKey(ts) === dayKey(Date.now() - 86400000) ? LT('ieri', 'ayer') : d.toLocaleDateString(LOC, { day: 'numeric', month: 'short' })) + LT(' alle ', ' a las ') + hm;
   }
   function posDist(a, b) { var m = meters(a, b); return m < 950 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(m < 20000 ? 1 : 0).replace('.', ',') + ' km'; }
   function openPos() {
