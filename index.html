@@ -1030,7 +1030,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
         <button class="btn" id="docAddV" type="button">Aggiungi foto o PDF</button>
         <input type="file" id="docFileV" accept="image/*,application/pdf" hidden>
         <div class="doclist" id="docListV"></div>
-        <div class="hint">ESTA, assicurazione, biglietti, prenotazioni. Restano solo su questo telefono: non vanno online, non entrano nel backup e si aprono anche senza rete.</div>
+        <div class="hint">ESTA, assicurazione, biglietti, prenotazioni. Quelli che aggiungi tu restano solo su questo telefono: non vanno online, non entrano nel backup e si aprono anche senza rete. Quelli caricati dal Mac arrivano da soli e si aprono allo stesso modo.</div>
       </section>
     </div>
     <div id="docP" class="wrap" hidden>
@@ -1219,7 +1219,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v85';
+var APP_VER = 'v86';
 var ES = window.APP_LANG === 'es', LOC = ES ? 'es-ES' : 'it-IT';
 function LT(it, es) { return ES ? es : it; }
 (function () {
@@ -3737,7 +3737,41 @@ function LT(it, es) { return ES ? es : it; }
   Array.prototype.forEach.call($('docTabs').children, function (b) { b.onclick = function () { if (docTab === 'p' && b.dataset.tab !== 'p') docLock(); docTab = b.dataset.tab; flaEditing = false; renderDocs(); }; });
 
   /* cartella Viaggio */
+  /* documenti caricati dal Mac: arrivano da Firestore (`mdocs` + pezzi in `mdocchunks`) e si salvano qui nella cartella Viaggio.
+     Il Mac sceglie per chi sono: tutti, oppure una persona sola. Se il Mac li toglie spariscono anche qui. */
+  var macDocBusy = false;
+  function macDocSync() {
+    if (macDocBusy || !st.trip || !st.user || navigator.onLine === false) return Promise.resolve(0);
+    macDocBusy = true; var me = chkMe(), got = 0;
+    return fbReady().then(function (d) {
+      var tr = d.collection('trips').doc(st.trip);
+      return tr.collection('mdocs').get().then(function (snap) {
+        var remote = {}; snap.forEach(function (x) { var v = x.data() || {}; if (v.for === 'all' || v.for === me) remote[x.id] = v; });
+        return docAll('v').then(function (loc) {
+          var have = {}, gone = dm.macGone || [], old = [];
+          loc.forEach(function (r) { have[r.id] = 1; if (/^m_/.test(r.id) && !remote[r.id.slice(2)]) old.push(r.id); });
+          var todo = Object.keys(remote).filter(function (id) { return !have['m_' + id] && gone.indexOf('m_' + id) < 0; });
+          return docDelMany(old).then(function () {
+            return todo.reduce(function (p, id) {
+              return p.then(function () {
+                var v = remote[id], n = v.chunks || 0, jobs = [], i;
+                for (i = 0; i < n; i++) jobs.push(tr.collection('mdocchunks').doc(id + '_' + i).get());
+                return Promise.all(jobs).then(function (parts) {
+                  var b64s = parts.map(function (z) { return (z.data() || {}).d || ''; }).join('');
+                  if (!b64s) return;
+                  return docPut({ id: 'm_' + id, f: 'v', name: v.name || 'Documento', kind: v.kind === 'pdf' ? 'pdf' : 'img', ts: v.ts || Date.now(), type: v.type || (v.kind === 'pdf' ? 'application/pdf' : 'image/jpeg'), buf: unb64(b64s).buffer, thumb: v.thumb || '', mac: true }).then(function () { got++; });
+                });
+              });
+            }, Promise.resolve());
+          });
+        });
+      });
+    }).then(function () { macDocBusy = false; if (got) { toast(got === 1 ? 'Nuovo documento dal Mac' : got + ' nuovi documenti dal Mac'); if (hashView() === 'docs') renderDocV(); } return got; }, function () { macDocBusy = false; return 0; });
+  }
+  setTimeout(function () { macDocSync(); }, 4000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) macDocSync(); });
   function renderDocV() {
+    macDocSync();
     docAll('v').then(function (list) {
       var h = $('docListV'); h.innerHTML = '';
       if (!list.length) { var e = document.createElement('div'); e.className = 'hint'; e.textContent = 'Ancora nessun documento.'; h.appendChild(e); return; }
@@ -3745,7 +3779,7 @@ function LT(it, es) { return ES ? es : it; }
         var r = document.createElement('button'), ic, tx = document.createElement('span'), nm = document.createElement('b'), sm = document.createElement('small');
         r.type = 'button'; r.className = 'docrow';
         if (rec.kind === 'img' && rec.thumb) { ic = document.createElement('img'); ic.alt = ''; ic.src = rec.thumb; } else { ic = document.createElement('span'); ic.className = 'docico'; ic.textContent = rec.kind === 'pdf' ? 'PDF' : 'FOTO'; }
-        nm.textContent = rec.name; sm.textContent = (rec.kind === 'pdf' ? 'PDF' : 'Foto') + ' · ' + docDay(rec.ts);
+        nm.textContent = rec.name; sm.textContent = (rec.kind === 'pdf' ? 'PDF' : 'Foto') + ' · ' + docDay(rec.ts) + (rec.mac ? ' · dal Mac' : '');
         tx.appendChild(nm); tx.appendChild(sm); r.appendChild(ic); r.appendChild(tx);
         r.onclick = function () { docView(rec, rec.buf, renderDocV); };
         h.appendChild(r);
@@ -3819,6 +3853,7 @@ function LT(it, es) { return ES ? es : it; }
     });
     btn('Elimina', function () {
       if (!confirm('Eliminare "' + rec.name + '" da questo telefono?')) return;
+      if (/^m_/.test(rec.id)) { dm.macGone = (dm.macGone || []).concat(rec.id); docMeta(); }
       docDelMany([rec.id]).then(function () { close(); after(); });
     });
     v.appendChild(body); v.appendChild(cap); v.appendChild(row); host.appendChild(v);
