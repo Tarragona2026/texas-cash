@@ -723,6 +723,7 @@
   Object.assign(D, {"Salva nel rullino iOS le foto che scatto con l'app": "Guardar en la galería de iOS las fotos que hago con la app", "Salva le foto anche nel mio diario di oggi": "Guardar las fotos también en mi diario de hoy", "Le foto che scatti o scegli in Foto finiscono anche nel diario del giorno.": "Las fotos que haces o eliges en Fotos van también al diario del día."});
   Object.assign(D, {"Carica dal rullino iOS": "Subir desde la galería de iOS"});
   Object.assign(D, {"Dal telefono": "Del teléfono"});
+  Object.assign(D, {"Registra video": "Grabar vídeo", "Video salvato su questo telefono. Per mandarlo agli altri aprilo e tocca Condividi.": "Vídeo guardado en este teléfono. Para enviarlo a los demás ábrelo y toca Compartir.", "Preparo il video…": "Preparando el vídeo…", "Non riesco a salvare questo video.": "No puedo guardar este vídeo."});
   var WORDS = ['Cibo', 'Vestiti', 'Regali', 'Benzina', 'Attrazioni', 'Altro', 'Documenti', 'Valigia', 'Sereno', 'Quasi sereno', 'Coperto', 'Nebbia', 'Pioggerella', 'Pioggia', 'Pioggia forte', 'Pioggia gelata', 'Neve', 'Neve forte', 'Rovesci', 'Rovesci forti', 'Nevischio', 'Temporale', 'Poco nuvoloso'];
   var frag = Object.keys(D).filter(function (k) { return WORDS.indexOf(k) >= 0 || /\s/.test(k.trim()) || /^\s|\s$|[:·…(]$/.test(k) || k.length >= 14; }).sort(function (a, b) { return b.length - a.length; });
   function esc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }

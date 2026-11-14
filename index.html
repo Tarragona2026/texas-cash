@@ -530,6 +530,11 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 .icb .tile { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 16%, var(--card)); color: var(--c); }
 .icb .tile svg { width: 32px; height: 32px; stroke-width: 2; }
 .icb:active .tile { transform: scale(.94); }
+#albMenu { display: flex; gap: 8px; margin-bottom: 4px; }
+#albMenu button { border: 0; border-radius: 999px; padding: 0 18px; min-height: 42px; font-weight: 600; font-size: .95rem; background: var(--card); color: var(--ink); box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+.aplay { position: absolute; left: 6px; bottom: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; }
+.aplay svg { width: 13px; height: 13px; margin-left: 1px; }
+.viewer.alb .abox video { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; background: #000; }
 #v-album { padding-bottom: 210px; }
 .albbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 26px 20px calc(env(safe-area-inset-bottom, 0px) + 16px); background: linear-gradient(180deg, transparent, var(--bg) 38%); pointer-events: none; }
 .albbar > * { pointer-events: auto; }
@@ -546,17 +551,14 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 .hint.sm:empty { display: none; }
 .albacts .toggle.sm { flex: 1; font-size: .78rem; line-height: 1.2; min-height: 0; padding: 0; }
 .hint.sm { font-size: .72rem; margin: 0; }
-/* ===== dimensione delle icone: piccole (4 per riga), normali (3), grandi (2) ===== */
-.apps.sz-s { grid-template-columns: repeat(4, 1fr); gap: 14px 4px; }
-.apps.sz-s .app { font-size: .66rem; gap: 5px; }
-.apps.sz-s .app .ic { width: 52px; height: 52px; border-radius: 15px; }
-.apps.sz-s .app .ic svg { width: 28px; height: 28px; }
-.apps.sz-s .app .ic .icn { font-size: 1rem; }
-.apps.sz-l { grid-template-columns: repeat(2, 1fr); gap: 22px 12px; }
-.apps.sz-l .app { font-size: .95rem; gap: 9px; }
-.apps.sz-l .app .ic { width: 112px; height: 112px; border-radius: 30px; }
-.apps.sz-l .app .ic svg { width: 58px; height: 58px; }
-.apps.sz-l .app .ic .icn { font-size: 1.9rem; }
+/* ===== dimensione delle icone: normali e grandi, sempre 3 per riga ===== */
+.apps .app .ic { width: 58px; height: 58px; border-radius: 17px; }
+.apps .app .ic svg { width: 31px; height: 31px; }
+.apps .app .ic .icn { font-size: 1.2rem; } .apps .app .ic .icn.sm { font-size: .95rem; } .apps .app .ic .icn.xs { font-size: .8rem; }
+.apps.sz-l .app { font-size: .84rem; }
+.apps.sz-l .app .ic { width: 76px; height: 76px; border-radius: 22px; }
+.apps.sz-l .app .ic svg { width: 40px; height: 40px; }
+.apps.sz-l .app .ic .icn { font-size: 1.55rem; } .apps.sz-l .app .ic .icn.sm { font-size: 1.2rem; } .apps.sz-l .app .ic .icn.xs { font-size: 1rem; }
 /* ===== mappa: scritta accanto al titolo, spunta verde; icone piu' grandi; Foto a album ===== */
 .mlab { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); margin-bottom: -4px; }
 .mlab small { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: .74rem; margin-left: 6px; }
@@ -844,7 +846,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
   <!-- REGISTRO -->
   <section id="v-log" class="wrap" aria-label="Registro spese e ricariche" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Registro spese e ricariche</h2><span></span></div>
-    <div class="chips" role="tablist" aria-label="Sezioni del registro"><button type="button" class="chip" id="tabAll" role="tab" aria-pressed="true">Giornale</button><button type="button" class="chip" id="tabSpese" role="tab" aria-pressed="false">Spese</button><button type="button" class="chip" id="tabRic" role="tab" aria-pressed="false">Ricariche</button></div>
+    <div class="chips" role="tablist" aria-label="Sezioni del registro"><button type="button" class="chip" id="tabSpese" role="tab" aria-pressed="true">Spese</button><button type="button" class="chip" id="tabRic" role="tab" aria-pressed="false">Ricariche</button></div>
     <section class="ledger" id="ledger">
       <div class="lsum" id="lsum"></div>
       <div class="lcols"><span>Ora</span><span>Descrizione</span><span class="r">Importo $</span><span class="r">Saldo $</span></div>
@@ -964,7 +966,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
   <!-- ALBUM FOTO -->
   <section id="v-album" class="wrap" aria-label="Album foto" hidden>
     <div class="topbar"><button class="back" data-back type="button">‹ Indietro</button><h2>Foto</h2><span></span></div>
-    <input type="file" id="alCamFile" accept="image/*" capture="environment" hidden>
+    <input type="file" id="alCamFile" accept="image/*,video/*" capture="environment" hidden>
     <input type="file" id="alLibFile" accept="image/*" multiple hidden>
     <div class="hint sm" id="alHint"></div>
     <button class="btn ghost small" id="alSaveRoll" type="button" hidden>Salva l'ultima foto anche nel rullino</button>
@@ -1125,7 +1127,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
     <section class="card" id="tutCard"><button class="btn ghost" id="tutOpen" type="button">Rivedi il tutorial</button></section>
     <section class="card" id="szCard">
       <div class="label">Dimensione delle icone</div>
-      <div class="chips" id="szSeg"><button class="chip" type="button" data-z="s">Piccole</button><button class="chip" type="button" data-z="m">Normali</button><button class="chip" type="button" data-z="l">Grandi</button></div>
+      <div class="chips" id="szSeg"><button class="chip" type="button" data-z="m">Normali</button><button class="chip" type="button" data-z="l">Grandi</button></div>
     </section>
     <details class="card acc">
       <summary>Plafond</summary>
@@ -1217,7 +1219,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v77';
+var APP_VER = 'v80';
 var ES = window.APP_LANG === 'es', LOC = ES ? 'es-ES' : 'it-IT';
 function LT(it, es) { return ES ? es : it; }
 (function () {
@@ -1378,7 +1380,7 @@ function LT(it, es) { return ES ? es : it; }
     $('cnt').textContent = st.expenses.length ? '(' + st.expenses.length + ')' : '';
     var left = topupTotal() - spentTotal(), d = tripDays();
     iconNum('goCal', d > 0 ? '-' + d : null);
-    if (topupTotal() > 0) { var r = Math.round(left); iconNum('goLog', (r < 0 ? '-' : '') + '$' + Math.abs(r), r < 0); } else iconNum('goLog', null);
+    var r = Math.round(left); iconNum('goLog', (r < 0 ? '-' : '') + '$' + Math.abs(r), r < 0);        // sempre il rimasto: $0 se non c'e' ancora nessuna ricarica
     wxStart(); tutMaybe();
   }
 
@@ -1679,9 +1681,8 @@ function LT(it, es) { return ES ? es : it; }
 
   /* ---------- registro ---------- */
   var CAT_COLORS = { Cibo: '#ff9f0a', Vestiti: '#bf5af2', Regali: '#ff375f', Souvenir: '#ffd60a', Benzina: '#8e8e93', Hotel: '#0a84ff', Attrazioni: '#30d158', Altro: '#64d2ff' };
-  var logTab = 'all', logFocus = '', logOpen = '';
+  var logTab = 'spese', logFocus = '', logOpen = '';
   function setTab(t) { logTab = t; renderLog(); }
-  $('tabAll').onclick = function () { setTab('all'); };
   $('tabSpese').onclick = function () { setTab('spese'); };
   $('tabRic').onclick = function () { setTab('ric'); };
   function lt(ts) { return new Date(ts).toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' }); }
@@ -1689,7 +1690,7 @@ function LT(it, es) { return ES ? es : it; }
   function lrow(cls, a, b, c, d) { var r = document.createElement('div'); r.className = 'lrow ' + cls; r.innerHTML = '<span class="lo"></span><span class="ld"></span><span class="la num r"></span><span class="ls num r"></span>'; r.children[0].textContent = a || ''; r.children[1].innerHTML = b || ''; r.children[2].textContent = c || ''; r.children[3].textContent = d || ''; return r; }
   function sumline(label, val, cls, sub) { var d = document.createElement('div'); d.className = 'lsl ' + (cls || ''); d.innerHTML = '<span class="k"></span><span class="dots"></span><span class="v num"></span>'; d.children[0].textContent = label; d.children[2].textContent = val; if (sub) { var sm = document.createElement('small'); sm.className = 'num'; sm.textContent = sub; d.appendChild(sm); } return d; }
   function renderLog() {
-    ['All', 'Spese', 'Ric'].forEach(function (n) { $('tab' + n).setAttribute('aria-pressed', String(logTab === n.toLowerCase())); });
+    ['Spese', 'Ric'].forEach(function (n) { $('tab' + n).setAttribute('aria-pressed', String(logTab === n.toLowerCase())); });
     var ent = [];
     st.topups.forEach(function (t) { ent.push({ k: 't', ts: t.ts, o: t }); });
     st.expenses.forEach(function (e) { ent.push({ k: 'e', ts: e.ts, o: e }); });
@@ -1704,7 +1705,7 @@ function LT(it, es) { return ES ? es : it; }
     sm.appendChild(sumline('Saldo', (bal < 0 ? '− ' : '') + usd(Math.abs(bal)), 'tot ' + (bal < 0 ? 'neg' : 'pos'), eur(Math.abs(bal) * st.rate)));
     /* righe */
     var list = $('list'); list.innerHTML = '';
-    var show = ent.filter(function (x) { return logTab === 'all' || (logTab === 'spese' ? x.k === 'e' : x.k === 't'); });
+    var show = ent.filter(function (x) { return logTab === 'ric' ? x.k === 't' : x.k === 'e'; });
     if (!show.length) { var em = document.createElement('div'); em.className = 'lempty'; em.textContent = logTab === 'ric' ? 'Nessuna ricarica ancora. Si aggiungono da Impostazioni, con Ricarica plafond.' : 'Nessun movimento ancora. Carica uno scontrino o calcola un prezzo e salvalo.'; list.appendChild(em); }
     var curDay = '', dayTot = 0, dayHead = null;
     function closeDay() { if (dayHead && dayTot) dayHead.lastChild.textContent = '− ' + usd(dayTot); }
@@ -2861,6 +2862,7 @@ function LT(it, es) { return ES ? es : it; }
     });
   }
   function albumUpload(tr, a) {
+    if (a.video) { a.up = true; return Promise.resolve(); }                // i video restano su questo telefono: Firestore non puo' contenerli
     return Promise.all([getPhoto('alb_' + a.id), getPhoto('albt_' + a.id)]).then(function (bs) {
       if (!bs[0] || !bs[1]) { a.up = true; return; }                         // la foto locale non c'e' piu': niente da inviare
       return Promise.all([blobToData(bs[0]), blobToData(bs[1])]).then(function (us) {
@@ -2911,7 +2913,7 @@ function LT(it, es) { return ES ? es : it; }
     var seen = {}, items = albRemote.slice();
     items.forEach(function (x) { seen[x.id] = 1; });
     var locals = (st.album || []).filter(function (a) { return !seen[a.id]; });
-    Promise.all(locals.map(function (a) { return getPhoto('albt_' + a.id).then(function (b) { if (!b) return null; var u = URL.createObjectURL(b); albUrls.push(u); return { id: a.id, user: a.user, ts: a.ts, loc: a.loc, thumbUrl: u, pending: !a.up }; }); })).then(function (ls) {
+    Promise.all(locals.map(function (a) { return getPhoto('albt_' + a.id).then(function (b) { if (!b) return null; var u = URL.createObjectURL(b); albUrls.push(u); return { id: a.id, user: a.user, ts: a.ts, loc: a.loc, thumbUrl: u, pending: !a.up, video: !!a.video }; }); })).then(function (ls) {
       ls.forEach(function (x) { if (x) items.push(x); });
       items.sort(function (a, b) { return b.ts - a.ts; });
       var AL = [['matteo', 'Matteo', '#0a84ff'], ['leslie', 'Leslie', '#ec4899'], ['leo', 'Leo', '#34c759']], key = function (u) { return String(u || '').trim().toLowerCase(); };
@@ -2939,6 +2941,7 @@ function LT(it, es) { return ES ? es : it; }
         var b = document.createElement('button'); b.type = 'button'; b.className = 'atile'; b.setAttribute('aria-label', 'Foto di ' + (x.user || ''));
         var im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.loading = 'lazy'; im.src = x.thumbUrl || x.thumb; b.appendChild(im);
         var t = document.createElement('span'); t.className = 'atag'; t.textContent = x.user || '?'; b.appendChild(t);
+        if (x.video) { var pl = document.createElement('span'); pl.className = 'aplay'; pl.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.500v13l11-6.500z"/></svg>'; b.appendChild(pl); }
         if (x.pending) { var p = document.createElement('span'); p.className = 'apend'; p.textContent = 'in coda'; b.appendChild(p); }
         b.onclick = function () { viewAlbumPhoto(shown.slice(), ix); }; grid.appendChild(b);
       });
@@ -2995,7 +2998,7 @@ function LT(it, es) { return ES ? es : it; }
       ib('Condividi', '<path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/>', function () { if (!full) { toast('Aspetta che la foto si carichi'); return; } sharePhoto(full); });
       if (x.user === st.user) ib('Elimina', '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>', function () {
         if (!confirm('Eliminare questa foto dall\'album di tutti?')) return;
-        st.album = (st.album || []).filter(function (a) { return a.id !== x.id; }); delPhoto('alb_' + x.id); delPhoto('albt_' + x.id); persist();
+        st.album = (st.album || []).filter(function (a) { return a.id !== x.id; }); delPhoto('alb_' + x.id); delPhoto('alv_' + x.id); delPhoto('albt_' + x.id); persist();
         albRemote = albRemote.filter(function (r) { return r.id !== x.id; }); renderAlbum();
         list.splice(n, 1);
         fbReady().then(function (d) { var tr = d.collection('trips').doc(st.trip); return Promise.all([tr.collection('album').doc(x.id).delete(), tr.collection('albumFull').doc(x.id).delete()]); }).catch(function () { toast('Cancellata qui, ma non online: riprova con la rete'); });
@@ -3005,32 +3008,68 @@ function LT(it, es) { return ES ? es : it; }
       /* la foto a schermo intero, come nell'app Foto di iOS */
       var box = document.createElement('div'); box.className = 'abox'; box.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;will-change:transform';
       v.appendChild(box);
-      var im = document.createElement('img'); im.alt = 'Foto'; im.draggable = false; im.src = x.thumbUrl || x.thumb; box.appendChild(im);
+      var im = document.createElement(x.video ? 'video' : 'img'); im.draggable = false;
+      if (x.video) { im.controls = true; im.setAttribute('playsinline', ''); im.preload = 'metadata'; im.poster = x.thumbUrl || x.thumb; } else { im.alt = 'Foto'; im.src = x.thumbUrl || x.thumb; }
+      box.appendChild(im);
       var cap = document.createElement('span');
       if (enter) {                                        // entra scivolando dal lato opposto
         box.style.transition = 'none'; box.style.transform = 'translateX(' + (enter * 100) + '%)'; box.style.opacity = '0'; void box.offsetWidth;
         box.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; box.style.transform = 'translateX(0)'; box.style.opacity = '1';
       }
-      getPhoto('alb_' + x.id).then(function (b) {
-        if (b) return b;
+      getPhoto((x.video ? 'alv_' : 'alb_') + x.id).then(function (b) {
+        if (b || x.video) return b;
         return fbReady().then(function (d) { return d.collection('trips').doc(st.trip).collection('albumFull').doc(x.id).get(); }).then(function (doc) { return doc.exists ? dataToBlob(doc.data().data) : null; });
       }).then(function (b) { if (b && my === gen) { full = b; im.src = URL.createObjectURL(b); } }).catch(function () { if (my === gen) cap.textContent += ' · (foto grande non disponibile)'; });
     }
     showAt(idx);
   }
   function sharePhoto(blob) {
-    var file = new File([blob], 'xmas-texas-' + Date.now() + '.jpg', { type: 'image/jpeg' });
+    var vid = (blob.type || '').indexOf('video') === 0, ext = vid ? ((blob.type || '').indexOf('mp4') > 0 ? 'mp4' : 'mov') : 'jpg';
+    var file = new File([blob], 'xmas-texas-' + Date.now() + '.' + ext, { type: blob.type || (vid ? 'video/quicktime' : 'image/jpeg') });
     if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file] }).catch(function () {});
     else download(file);
   }
-  $('alLibFile').addEventListener('change', function () { addAlbumFiles($('alLibFile').files, true); });
+  /* video: restano su questo telefono (si condividono col tasto Condividi); la copertina e' un fotogramma */
+  function videoPoster(file) {
+    return new Promise(function (res) {
+      var gray = function () { var c = document.createElement('canvas'); c.width = 360; c.height = 360; var g = c.getContext('2d'); g.fillStyle = '#6b7280'; g.fillRect(0, 0, 360, 360); c.toBlob(function (b) { res(b); }, 'image/jpeg', .7); };
+      var u = URL.createObjectURL(file), v = document.createElement('video'), done = false;
+      function fin(ok) { if (done) return; done = true; URL.revokeObjectURL(u); if (!ok) gray(); }
+      v.muted = true; v.setAttribute('playsinline', ''); v.preload = 'auto';
+      v.onloadeddata = function () { try { v.currentTime = Math.min(0.2, (v.duration || 1) / 2); } catch (e) { fin(false); } };
+      v.onseeked = function () {
+        if (done) return; var k = Math.min(1, 360 / Math.max(v.videoWidth || 360, v.videoHeight || 360)), c = document.createElement('canvas'); c.width = Math.round((v.videoWidth || 360) * k); c.height = Math.round((v.videoHeight || 360) * k);
+        try { c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); c.toBlob(function (b) { if (b) { done = true; URL.revokeObjectURL(u); res(b); } else fin(false); }, 'image/jpeg', .7); } catch (e) { fin(false); }
+      };
+      v.onerror = function () { fin(false); }; setTimeout(function () { fin(false); }, 6000); v.src = u;
+    });
+  }
+  function addAlbumVideo(files) {
+    var f = files && files[0]; if (!f) return;
+    if (!st.user) { toast('Scrivi prima il tuo nome in Impostazioni'); return; }
+    $('alHint').textContent = 'Preparo il video…';
+    getFix(12000).catch(function () { return null; }).then(function (fix) {
+      var id = newId(), ts = Date.now();
+      return videoPoster(f).then(function (th) {
+        return Promise.all([putPhoto('alv_' + id, f), putPhoto('albt_' + id, th)]).then(function () {
+          st.album = st.album || []; var a = { id: id, ts: ts, user: st.user, up: true, video: true }; if (fix) { a.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; posSet(fix); }
+          st.album.push(a); persist(); renderAlbum();
+          $('alHint').textContent = 'Video salvato su questo telefono. Per mandarlo agli altri aprilo e tocca Condividi.';
+        });
+      });
+    }).catch(function () { $('alHint').textContent = 'Non riesco a salvare questo video.'; });
+  }
   $('alCam').onclick = function () { getFix(15000); $('alCamFile').value = ''; $('alCamFile').click(); };
   /* app iOS: le foto scattate con la fotocamera finiscono anche nel rullino, con un solo gesto (plugin TexasPhotos) */
   function rollSave(files) {
     var P = natPlugin('TexasPhotos'); if (!P || st.rollAuto === false || !files || !files.length) return;
     [].slice.call(files).forEach(function (fl) { blobToData(fl).then(function (u) { return u ? P.saveImage({ base64: u }) : null; }).then(function (r) { if (r) toast('Foto salvata anche nel rullino'); }, function () { toast('Rullino: serve il permesso in Impostazioni di iOS'); }); });
   }
-  $('alCamFile').addEventListener('change', function () { rollSave($('alCamFile').files); addAlbumFiles($('alCamFile').files); });
+  $('alCamFile').addEventListener('change', function () {
+    var all = [].slice.call($('alCamFile').files), vids = all.filter(function (f) { return /^video\//.test(f.type) || /\.(mov|mp4|m4v)$/i.test(f.name); }), pics = all.filter(function (f) { return vids.indexOf(f) < 0; });
+    if (pics.length) { rollSave(pics); addAlbumFiles(pics); }
+    if (vids.length) addAlbumVideo(vids);
+  });
   $('alSaveRoll').onclick = function () { if (albLast) sharePhoto(albLast.blob); };
 
   /* ---------- posizione e mappa ---------- */
@@ -3259,7 +3298,7 @@ function LT(it, es) { return ES ? es : it; }
 
   /* ---------- dimensione delle icone della home ---------- */
   function applyIconSize() {
-    var z = st.iconSize || 'm', ap = document.querySelector('.apps'); if (!ap) return;
+    var z = st.iconSize === 'l' ? 'l' : 'm', ap = document.querySelector('.apps'); if (!ap) return;
     ap.classList.remove('sz-s', 'sz-l'); if (z !== 'm') ap.classList.add('sz-' + z);
     document.querySelectorAll('#szSeg .chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.z === z)); });
   }
