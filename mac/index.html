@@ -293,6 +293,21 @@ body { padding: 0; }
 .fchip.who[aria-pressed="true"] .ck::after { content: ""; position: absolute; left: 6px; top: 2.5px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .flink { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 6px 8px; }
 select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
+/* ===== Budget viaggio ===== */
+.bhero .left { font-size: 3rem; } .bhero .bar { height: 12px; margin: 8px 0 4px; }
+.btab { display: flex; flex-direction: column; }
+.bth, .btr { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; column-gap: 12px; align-items: baseline; padding: 9px 2px; }
+.bth { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); font-weight: 700; border-bottom: 1px solid var(--sep); }
+.btr { border-bottom: 1px solid var(--sep); row-gap: 5px; }
+.btr .bbar { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: rgba(120,140,170,.2); overflow: hidden; } .btr .bbar i { display: block; height: 100%; background: var(--good); } .btr .bbar i.warn { background: var(--warn); } .btr .bbar i.bad { background: var(--bad); }
+.btr .bn, .brc .bn { display: flex; align-items: center; gap: 8px; font-weight: 600; } .btr .bn i, .brc .bn i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.btr .b { font-weight: 700; } .btr .b.good { color: var(--good); } .btr .b.warn { color: var(--warn); } .btr .b.bad { color: var(--bad); }
+.btr.tot { border-bottom: 0; border-top: 2px solid var(--ink); font-weight: 700; margin-top: 2px; }
+.r { text-align: right; }
+.brc { display: grid; grid-template-columns: 1.6fr 1fr auto; column-gap: 12px; padding: 8px 2px; border-bottom: 1px solid var(--sep); align-items: baseline; }
+.brc .bd { color: var(--ink-soft); font-size: .9rem; } .brc .in { color: var(--good); font-weight: 600; } .brc.tot { border-bottom: 0; border-top: 2px solid var(--ink); font-weight: 700; }
+.bplaf .bset { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; } .bplaf .bset input { flex: 1 1 180px; min-width: 0; min-height: 40px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); color: var(--ink); padding: 0 12px; font-size: 1rem; } .bplaf .bset .cur { font-weight: 700; color: var(--ink-soft); }
+.bplaf .left { font-size: 2.6rem; }
 </style>
 </head>
 <body>
@@ -302,6 +317,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
   <div class="brand"><b>Xmas in Texa$</b><div class="sub" id="sub">Trascina qui i file CSV ricevuti dagli iPhone, oppure usa Importa file.</div></div>
   <nav class="tabs" id="tabs">
   <button class="tab" type="button" data-v="spese" aria-pressed="true"><span class="ic red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M14.5 9.5c-.3-.9-1.200-1.500-2.500-1.500-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1.200 5 3.700 0 1.100-1 1.800-2.500 1.800-1.300 0-2.200-.6-2.600-1.500"/></svg></span><span class="tl">Spese</span></button>
+  <button class="tab" type="button" data-v="budget" aria-pressed="false"><span class="ic indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.500 2.500 0 0 1 5.500 5H18a2 2 0 0 1 2 2v2"/><path d="M3 7.500V17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H5.500A2.500 2.500 0 0 1 3 7.500z"/><path d="M16.500 14h1.500"/></svg></span><span class="tl">Budget viaggio</span></button>
   <button class="tab" type="button" data-v="mappa" aria-pressed="false"><span class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg></span><span class="tl">Mappa</span></button>
   <button class="tab" type="button" data-v="foto" aria-pressed="false"><span class="ic pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.500" cy="10" r="1.600"/><path d="M21 16l-5-5-8 8"/></svg></span><span class="tl">Foto</span></button>
   <button class="tab" type="button" data-v="diario" aria-pressed="false"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M10 8h6M10 12h6M10 16h4"/></svg></span><span class="tl">Diari</span></button>
@@ -335,6 +351,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
 <section class="view" id="chkView" hidden></section>
 <section class="view" id="calView" hidden></section>
 <section class="view" id="posView" hidden></section>
+<section class="view" id="budgetView" hidden></section>
 </div>
 </div>
 <div class="drop" id="drop" hidden>Rilascia i file CSV</div>
@@ -563,6 +580,53 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     return col;
   }
 
+  /* ---------- Budget viaggio: il plafond totale di tutti, a parte ----------
+     Cresce a ogni ricarica di una persona e scala a ogni spesa. */
+  function renderBudgetView() {
+    var v = $('budgetView'); v.innerHTML = '';
+    var names = Object.keys(st.people).sort();
+    if (!names.length) { var em = el('div', 'panel glass'); em.appendChild(el('div', 'sub2', 'Ancora nessun dato: collegati con il codice viaggio per vedere il budget.')); v.appendChild(em); return; }
+    var top = 0, sp = 0, topE = 0, spE = 0, per = [], recs = [];
+    names.forEach(function (n) { var p = st.people[n], t = sum(p.topups, 'usd'), x = sum(p.expenses, 'usd'); top += t; sp += x; topE += sum(p.topups, 'eur'); spE += sum(p.expenses, 'eur'); per.push({ n: n, t: t, x: x, l: t - x }); p.topups.forEach(function (r) { recs.push({ n: n, r: r }); }); });
+    var left = top - sp, pct = top > 0 ? Math.min(100, sp / top * 100) : 0, cls = !top ? '' : pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
+    /* plafond di viaggio: lo imposta Matteo; si scarica a ogni ricarica di Matteo, Leslie o Leo */
+    var P = st.tripBudget || 0, remainP = P - top, pP = P > 0 ? Math.min(100, top / P * 100) : 0, cP = !P ? '' : remainP < 0 ? 'bad' : pP >= 85 ? 'warn' : 'good';
+    var pv = el('section', 'panel glass bhero bplaf');
+    pv.appendChild(el('div', 'label', 'Plafond di viaggio · ancora da ricaricare'));
+    pv.appendChild(el('div', 'left num ' + cP, P ? (remainP < 0 ? '−' : '') + usd(Math.abs(remainP)) : '—'));
+    if (P) {
+      pv.appendChild(el('div', 'bar', '<i class="' + cP + '" style="width:' + pP + '%"></i>'));
+      pv.appendChild(el('div', 'sub2 num', 'Plafond ' + usd(P) + ' · già ricaricato alle persone ' + usd(top) + (remainP < 0 ? ' · oltre il plafond di ' + usd(-remainP) : '')));
+    } else pv.appendChild(el('div', 'sub2', 'Imposta quanto avete a disposizione per il viaggio: scende a ogni ricarica di Matteo, Leslie o Leo.'));
+    var row = el('div', 'bset'), inp = document.createElement('input'), go = el('button', 'btn', P ? 'Cambia' : 'Imposta');
+    inp.type = 'text'; inp.inputMode = 'decimal'; inp.placeholder = 'Importo in dollari, es. 3000'; inp.value = P ? String(P).replace('.', ',') : ''; inp.setAttribute('aria-label', 'Plafond di viaggio in dollari'); go.type = 'button';
+    function save() { var n = parseFloat(String(inp.value).replace(/\s/g, '').replace(',', '.')); if (!isFinite(n) || n < 0) { toast('Scrivi un importo'); return; } st.tripBudget = Math.round(n * 100) / 100; persist(); renderBudgetView(); toast(st.tripBudget ? 'Plafond di viaggio impostato' : 'Plafond di viaggio tolto'); }
+    go.onclick = save; inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') save(); });
+    row.appendChild(el('span', 'cur', '$')); row.appendChild(inp); row.appendChild(go);
+    if (P) { var rm = el('button', 'btn ghost small', 'Togli'); rm.type = 'button'; rm.onclick = function () { st.tripBudget = 0; persist(); renderBudgetView(); toast('Plafond di viaggio tolto'); }; row.appendChild(rm); }
+    pv.appendChild(row); v.appendChild(pv);
+    var hero = el('section', 'panel glass bhero');
+    hero.appendChild(el('div', 'label', 'Rimasto da spendere (ricariche di tutti meno spese)')); hero.appendChild(el('div', 'left num ' + cls, top || sp ? (left < 0 ? '−' : '') + usd(Math.abs(left)) : '—'));
+    hero.appendChild(el('div', 'sub2 num', (topE - spE < 0 ? '−' : '') + eur(Math.abs(topE - spE))));
+    hero.appendChild(el('div', 'bar', '<i class="' + cls + '" style="width:' + pct + '%"></i>'));
+    hero.appendChild(el('div', 'sub2 num', 'Ricaricato ' + usd(top) + ' · speso ' + usd(sp) + (top ? ' · ' + Math.round(pct) + '% usato' : '')));
+    v.appendChild(hero);
+    var tb = el('section', 'panel glass'); tb.appendChild(el('h3', '', 'Per persona'));
+    var t = el('div', 'btab'); t.appendChild(el('div', 'bth', '<span>Persona</span><span class="r">Ricaricato</span><span class="r">Speso</span><span class="r">Rimasto</span>'));
+    per.forEach(function (x) {
+      var pc = x.t > 0 ? Math.min(100, x.x / x.t * 100) : 0, c2 = !x.t ? '' : pc >= 100 ? 'bad' : pc >= 80 ? 'warn' : 'good';
+      t.appendChild(el('div', 'btr', '<span class="bn"><i style="background:' + personColor(x.n) + '"></i>' + esc(x.n) + '</span><span class="r num">' + usd(x.t) + '</span><span class="r num">' + usd(x.x) + '</span><span class="r num b ' + c2 + '">' + (x.l < 0 ? '−' : '') + usd(Math.abs(x.l)) + '</span><span class="bbar"><i class="' + c2 + '" style="width:' + pc + '%"></i></span>'));
+    });
+    t.appendChild(el('div', 'btr tot', '<span class="bn">Totale</span><span class="r num">' + usd(top) + '</span><span class="r num">' + usd(sp) + '</span><span class="r num b ' + cls + '">' + (left < 0 ? '−' : '') + usd(Math.abs(left)) + '</span>'));
+    tb.appendChild(t); v.appendChild(tb);
+    var rc = el('section', 'panel glass'); rc.appendChild(el('h3', '', P ? 'Ricariche (scaricano il plafond di viaggio)' : 'Ricariche'));
+    if (!recs.length) rc.appendChild(el('div', 'sub2', 'Nessuna ricarica ancora.'));
+    recs.sort(function (a, b) { return (b.r.data + b.r.ora).localeCompare(a.r.data + a.r.ora); }).forEach(function (x) {
+      rc.appendChild(el('div', 'brc', '<span class="bd">' + esc(dayLabel(x.r.data)) + ' · ' + esc(x.r.ora || '') + '</span><span class="bn"><i style="background:' + personColor(x.n) + '"></i>' + esc(x.n) + '</span><span class="num r in">+ ' + usd(x.r.usd) + '</span>'));
+    });
+    if (recs.length) rc.appendChild(el('div', 'brc tot', '<span class="bd">Totale ricaricato</span><span></span><span class="num r">' + usd(top) + '</span>'));
+    v.appendChild(rc);
+  }
   function render() {
     var cols = $('cols'); cols.innerHTML = '';
     var names = Object.keys(st.people).sort();
@@ -604,7 +668,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
   $('reset').onclick = function () {
     var b = $('reset');
     if (!rsArmed) { rsArmed = true; b.textContent = 'Conferma azzera'; setTimeout(function () { rsArmed = false; b.textContent = 'Azzera tutto'; }, 3000); return; }
-    st = { people: {}, deleted: [], comments: {} }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
+    st = { people: {}, deleted: [], comments: {}, tripBudget: st.tripBudget || 0 }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
   };
 
   /* ---------- Firebase: il Mac scarica spese, foto e diari dai telefoni ---------- */
@@ -1049,11 +1113,11 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
   }
   function showView(name) {
     cloud.view = name;
-    var TT = { spese: 'Spese', mappa: 'Mappa', foto: 'Foto', diario: 'Diari', checklist: 'Checklist', programma: 'Programma di viaggio', posizioni: 'Dove sono i miei' }; $('viewTitle').textContent = TT[name] || name;
+    var TT = { spese: 'Spese', mappa: 'Mappa', foto: 'Foto', diario: 'Diari', checklist: 'Checklist', programma: 'Programma di viaggio', posizioni: 'Dove sono i miei', budget: 'Budget viaggio' }; $('viewTitle').textContent = TT[name] || name;
     [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === name)); });
     document.querySelector('.content').classList.toggle('nb', name === 'diario');
-        $('cols').hidden = name !== 'spese'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist'; $('calView').hidden = name !== 'programma'; $('posView').hidden = name !== 'posizioni';
-    if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView(); else if (name === 'checklist') renderChkView(); else if (name === 'programma') renderCalView(); else if (name === 'posizioni') renderPosView();
+        $('cols').hidden = name !== 'spese'; $('budgetView').hidden = name !== 'budget'; $('mapView').hidden = name !== 'mappa'; $('photoView').hidden = name !== 'foto'; $('diaryView').hidden = name !== 'diario'; $('chkView').hidden = name !== 'checklist'; $('calView').hidden = name !== 'programma'; $('posView').hidden = name !== 'posizioni';
+    if (name === 'mappa') renderMapView(); else if (name === 'foto') renderPhotoView(); else if (name === 'diario') renderDiaryView(); else if (name === 'checklist') renderChkView(); else if (name === 'programma') renderCalView(); else if (name === 'posizioni') renderPosView(); else if (name === 'budget') renderBudgetView();
   }
   [].forEach.call(document.querySelectorAll('#tabs .tab'), function (b) { b.onclick = function () { showView(b.dataset.v); }; });
   window.fetchReceiptGlobal = fetchReceipt; window.lightboxGlobal = lightbox;

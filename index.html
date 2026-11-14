@@ -1219,7 +1219,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v80';
+var APP_VER = 'v85';
 var ES = window.APP_LANG === 'es', LOC = ES ? 'es-ES' : 'it-IT';
 function LT(it, es) { return ES ? es : it; }
 (function () {
@@ -1544,7 +1544,7 @@ function LT(it, es) { return ES ? es : it; }
 
   var scanStart = 0;
   function scanning(on) { $('frame').classList.toggle('scanning', on); }
-  function resetScan() {
+  function resetScan() { tipAsked = false;
     ocrRun++; scanning(false); ocrSource = null; pendingPhoto = null;
     $('pending').hidden = true; ocrStatus('');
     setFields({}); $('dtScan').value = dtLocal(Date.now()); $('dtHint').textContent = ''; $('descScan').value = ''; storeScan = ''; scanLoc = null; $('storeScan').innerHTML = ''; $('storeHint').textContent = ''; $('storeQ').value = '';
@@ -1660,7 +1660,38 @@ function LT(it, es) { return ES ? es : it; }
   $('camFile').addEventListener('change', function () { handlePhoto($('camFile').files[0]); });
   $('libFile').addEventListener('change', function () { handlePhoto($('libFile').files[0]); });
 
+  /* scontrino senza mancia: prima di salvare chiede se aggiungerla alla spesa (con 10, 15, 20 per cento o un importo a scelta) */
+  var tipAsked = false;
+  function askTip(base, tot, done) {
+    var host = $('viewerHost'), sh = document.createElement('div'); sh.className = 'sheet';
+    var inn = document.createElement('div'); inn.className = 'sheetin'; sh.appendChild(inn);
+    function close() { sh.remove(); }
+    function fin(tip) { close(); tipAsked = true; if (tip > 0) { $('oTip').value = String(r2(tip)).replace('.', ','); $('oTot').value = String(r2(tot + tip)).replace('.', ','); } done(); }
+    var hd = document.createElement('div'); hd.className = 'sheethd'; var t = document.createElement('b'); t.textContent = 'Manca la mancia'; hd.appendChild(t); inn.appendChild(hd);
+    var h = document.createElement('div'); h.className = 'hint'; h.textContent = 'Lo scontrino non ha la mancia. Vuoi aggiungerla alla spesa?'; inn.appendChild(h);
+    var ch = document.createElement('div'); ch.className = 'chips wrapok'; inn.appendChild(ch);
+    [10, 15, 20].forEach(function (p) {
+      var amt = r2(base * p / 100), b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.style.cssText = 'min-height:58px;display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;background:var(--field);border-radius:14px';
+      b.innerHTML = '<b></b><small></small>'; b.firstChild.textContent = p + '%'; b.lastChild.textContent = usd(amt); b.onclick = function () { fin(amt); }; ch.appendChild(b);
+    });
+    var row = document.createElement('div'); row.className = 'row2'; row.style.gridTemplateColumns = '1fr auto'; inn.appendChild(row);
+    var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.placeholder = 'Altro importo in dollari'; inp.autocomplete = 'off'; inp.setAttribute('aria-label', 'Mancia in dollari'); row.appendChild(inp);
+    var add = document.createElement('button'); add.type = 'button'; add.className = 'btn'; add.textContent = 'Aggiungi'; add.onclick = function () { var v = num(inp.value); if (!v) { toast('Scrivi un importo'); return; } fin(v); }; row.appendChild(add);
+    var no = document.createElement('button'); no.type = 'button'; no.className = 'btn ghost'; no.textContent = 'No, salva senza mancia'; no.onclick = function () { fin(0); }; inn.appendChild(no);
+    var cn = document.createElement('button'); cn.type = 'button'; cn.className = 'btn ghost small'; cn.textContent = 'Annulla'; cn.onclick = close; inn.appendChild(cn);
+    sh.addEventListener('click', function (e) { if (e.target === sh) close(); });
+    host.appendChild(sh);
+  }
   $('saveScan').onclick = function () {
+    var tot = num($('oTot').value);
+    if (!tot) { toast('Inserisci il totale pagato'); return; }
+    var sub0 = num($('oSub').value), tax0 = num($('oTax').value);
+    if (!num($('oTip').value) && !$('scanIt').checked && !tipAsked && $('catScan').value !== 'Benzina') {
+      askTip(sub0 || (tax0 ? tot - tax0 : tot), tot, doSaveScan); return;
+    }
+    doSaveScan();
+  };
+  function doSaveScan() {
     var tot = num($('oTot').value);
     if (!tot) { toast('Inserisci il totale pagato'); return; }
     var id = newId(), hasPhoto = !!pendingPhoto;
@@ -1673,11 +1704,11 @@ function LT(it, es) { return ES ? es : it; }
     if (storeScan) e.store = storeScan;
     if (scanLoc) e.loc = { la: scanLoc.la, lo: scanLoc.lo, ac: scanLoc.ac, src: 'indirizzo' };
     (hasPhoto ? putPhoto(id, pendingPhoto) : Promise.resolve()).then(function () {
-      addExpense(e); resetScan();
+      addExpense(e); resetScan(); tipAsked = false;
       $('scanIt').checked = false; toast('Scontrino salvato: ' + money(e));
       go('home');
     });
-  };
+  }
 
   /* ---------- registro ---------- */
   var CAT_COLORS = { Cibo: '#ff9f0a', Vestiti: '#bf5af2', Regali: '#ff375f', Souvenir: '#ffd60a', Benzina: '#8e8e93', Hotel: '#0a84ff', Attrazioni: '#30d158', Altro: '#64d2ff' };
@@ -2416,6 +2447,7 @@ function LT(it, es) { return ES ? es : it; }
   /* ---------- checklist di viaggio: una lista personale a testa, visibile secondo chi sei ---------- */
   var CHK_LISTS = [['documenti', 'Documenti', true], ['valigia', 'Valigia', true], ['prima', 'Prima di partire', true], ['arrivo', 'Arrivo in Texas', false]];
   var CHK_DEF = {"documenti": ["Passaporto (valido almeno 6 mesi dopo il rientro)", "ESTA approvata (salvata o stampata)", "Carta d'identità", "Patente italiana", "Assicurazione di viaggio (polizza)", "Biglietti aerei", "Carta di credito e bancomat", "Contanti in dollari", "Numeri di emergenza salvati"], "valigia": ["Intimo e calzini", "Magliette", "Maglioni e felpe", "Giacca", "Pantaloni e jeans", "Pigiama", "Scarpe comode", "Necessaire", "Medicine personali", "Occhiali", "Caricabatterie del telefono", "Adattatore per le prese USA", "Power bank", "Cuffie", "Regali per la famiglia"], "prima": ["Fare il check-in online", "Avvisare la banca del viaggio", "Attivare la SIM dati o l'eSIM", "Scaricare le mappe offline", "Salvare i documenti sul telefono", "Controllare le scadenze dei documenti", "Pesare la valigia", "Caricare tutti i dispositivi", "Cambiare un po' di dollari", "Controllare il meteo del Texas"], "arrivo": ["Ritirare i bagagli", "Ritirare l'auto a noleggio", "Controllare i danni dell'auto", "Scrivere ai parenti che siamo arrivati", "Impostare il navigatore", "Fare la spesa da H-E-B", "Mettere i caricabatterie in carica"]};
+  var CHK_EDIT = { leslie: ['matteo', 'leslie', 'leo'] };       // chi puo' anche modificare le liste degli altri (le altre persone solo la propria)
   var CHK_VIEW = { leslie: ['matteo', 'leslie', 'leo'], matteo: ['matteo', 'leo'], leo: ['leo'] };       // chi vede quali liste
   var CHK_NAMES = { matteo: 'Matteo', leslie: 'Leslie', leo: 'Leo' };
   var CHK_DEPART = new Date(2026, 11, 22, 0, 0, 0).getTime(), chkTab = 'documenti', chkEdit = false, chkUnsub = null, chkWho = '';
@@ -2487,9 +2519,9 @@ function LT(it, es) { return ES ? es : it; }
       b.textContent = L[1] + ' ' + d + '/' + it.length; b.setAttribute('aria-pressed', String(L[0] === chkTab)); b.onclick = function () { chkTab = L[0]; renderChk(); }; tabs.appendChild(b);
     });
     var L = CHK_LISTS.filter(function (x) { return x[0] === chkTab; })[0], items = chkItems(chkTab, chkWho), box = $('chkList'); box.innerHTML = '';
-    var canEdit = !L[2] || chkWho === me; if (!canEdit) chkEdit = false;
+    var canEdit = !L[2] || chkWho === me || (CHK_EDIT[me] || []).indexOf(chkWho) >= 0; if (!canEdit) chkEdit = false;
     $('chkEdit').hidden = !canEdit; $('chkEdit').textContent = chkEdit ? 'Fine' : 'Modifica'; document.querySelector('.chkadd').hidden = !canEdit;
-    $('chkHint').textContent = !L[2] ? 'Lista di tutti: se qualcuno spunta una voce, la vedete tutti.' : canEdit ? 'Questa lista è tua: gli altri possono solo guardarla.' : 'Sola lettura: la lista di ' + chkName(chkWho) + ' la spunta solo lui o lei.';
+    $('chkHint').textContent = !L[2] ? 'Lista di tutti: se qualcuno spunta una voce, la vedete tutti.' : canEdit ? (chkWho === me ? 'Questa lista è tua: gli altri possono solo guardarla.' : 'Puoi spuntare e modificare anche la lista di ' + chkName(chkWho) + '.') : 'Sola lettura: la lista di ' + chkName(chkWho) + ' la spunta solo lui o lei.';
     items.forEach(function (x, i) {
       var r = document.createElement('div'); r.className = 'chkrow' + (x.done ? ' done' : '');
       var cb = document.createElement('button'); cb.type = 'button'; cb.className = 'chkbox'; cb.setAttribute('aria-label', (x.done ? 'Fatto: ' : 'Da fare: ') + x.text); cb.textContent = x.done ? '✓' : ''; cb.disabled = !canEdit; if (!canEdit) cb.style.opacity = '.7';
@@ -2511,7 +2543,7 @@ function LT(it, es) { return ES ? es : it; }
   }
   function chkAdd() {
     var v = $('chkNew').value.trim(); if (!v || !st.user) return;
-    var L = CHK_LISTS.filter(function (x) { return x[0] === chkTab; })[0], who = chkMe(); if (L[2] && chkWho !== who) return;
+    var L = CHK_LISTS.filter(function (x) { return x[0] === chkTab; })[0], who = L[2] ? chkWho : chkMe(); if (L[2] && chkWho !== chkMe() && (CHK_EDIT[chkMe()] || []).indexOf(chkWho) < 0) return;
     var c = chkState(), items = chkItems(chkTab, who), id = 'x' + newId(), mx = items.length ? items[items.length - 1].order : 0;
     c.items[id] = { id: id, list: chkTab, text: v, done: false, order: mx + 10, owner: L[2] ? who : '', upd: 0 }; chkTouch(c.items[id]); $('chkNew').value = ''; renderChk(); chkBanner();
   }
@@ -2748,7 +2780,7 @@ function LT(it, es) { return ES ? es : it; }
     var save = diaDay; diaDay = latestKeyOfDay(dayKey()); var e = diaGet(true), id = newId();
     return putPhoto('dia_' + id, blob).then(function () { e.photos.push(id); e.upd = Date.now(); if (fix) { (e.pl = e.pl || {})[id] = { la: fix.la, lo: fix.lo }; if (!e.loc) e.loc = { la: fix.la, lo: fix.lo, ac: fix.ac }; } diaDay = save || diaDay; });
   }
-  $('diaCam').onclick = function () { getFix(15000); diaGrace = Date.now() + 90000; $('diaCamFile').value = ''; $('diaCamFile').click(); };
+  $('diaCam').onclick = function () { getFix(15000); diaGrace = Date.now() + 90000; nativeCamera(false, function (f) { diaAddFiles(f); }, function () {}, function () { $('diaCamFile').value = ''; $('diaCamFile').click(); }); };
   $('diaLib').onclick = function () { diaGrace = Date.now() + 90000; $('diaLibFile').value = ''; $('diaLibFile').click(); };
   $('diaCamFile').addEventListener('change', function () { rollSave($('diaCamFile').files); diaAddFiles($('diaCamFile').files); });
   $('diaLibFile').addEventListener('change', function () { diaAddFiles($('diaLibFile').files); });
@@ -2872,6 +2904,21 @@ function LT(it, es) { return ES ? es : it; }
       }).then(function () { a.up = true; });
     });
   }
+
+  /* app iOS: fotocamera nativa (UIImagePickerController) con il flash SPENTO; foto e video si scelgono dentro la fotocamera.
+     Se non c'e' (simulatore, PWA) si ripiega sul selettore del sistema. */
+  function nativeCamera(video, onPhoto, onVideo, fallback) {
+    var P = natPlugin('TexasPhotos');
+    if (!P || !P.capture) { fallback(); return; }
+    P.capture({ video: !!video, saveToRoll: st.rollAuto !== false }).then(function (r) {
+      if (!r || r.cancelled || !r.path) return;
+      var isV = r.kind === 'video';
+      return fetch(window.Capacitor.convertFileSrc(r.path)).then(function (res) { return res.blob(); }).then(function (b) {
+        var f = new File([b], isV ? 'video.mov' : 'foto.jpg', { type: isV ? (b.type || 'video/quicktime') : 'image/jpeg' });
+        if (isV) onVideo([f]); else onPhoto([f]);
+      });
+    }, function () { fallback(); });
+  }
   function addAlbumFiles(files, fromLib) {
     if (!files || !files.length) return;
     if (!st.user) { toast('Scrivi prima il tuo nome in Impostazioni'); return; }
@@ -2916,7 +2963,7 @@ function LT(it, es) { return ES ? es : it; }
     Promise.all(locals.map(function (a) { return getPhoto('albt_' + a.id).then(function (b) { if (!b) return null; var u = URL.createObjectURL(b); albUrls.push(u); return { id: a.id, user: a.user, ts: a.ts, loc: a.loc, thumbUrl: u, pending: !a.up, video: !!a.video }; }); })).then(function (ls) {
       ls.forEach(function (x) { if (x) items.push(x); });
       items.sort(function (a, b) { return b.ts - a.ts; });
-      var AL = [['matteo', 'Matteo', '#0a84ff'], ['leslie', 'Leslie', '#ec4899'], ['leo', 'Leo', '#34c759']], key = function (u) { return String(u || '').trim().toLowerCase(); };
+      var AL = [['matteo', 'Matteo', '#0a84ff'], ['leslie', 'Leslie', '#ec4899'], ['leo', 'Leo', '#34c759']], key = function (u) { return slug(String(u || '').trim().split(/\s+/)[0]); };
       $('alAlbums').hidden = albSel !== null; $('alDetail').hidden = albSel === null;
       if (albSel === null) {
         var tiles = $('alTiles'); tiles.innerHTML = '';
@@ -3059,12 +3106,13 @@ function LT(it, es) { return ES ? es : it; }
       });
     }).catch(function () { $('alHint').textContent = 'Non riesco a salvare questo video.'; });
   }
-  $('alCam').onclick = function () { getFix(15000); $('alCamFile').value = ''; $('alCamFile').click(); };
+  $('alCam').onclick = function () { getFix(15000); nativeCamera(true, function (f) { addAlbumFiles(f); }, addAlbumVideo, function () { $('alCamFile').value = ''; $('alCamFile').click(); }); };
   /* app iOS: le foto scattate con la fotocamera finiscono anche nel rullino, con un solo gesto (plugin TexasPhotos) */
   function rollSave(files) {
     var P = natPlugin('TexasPhotos'); if (!P || st.rollAuto === false || !files || !files.length) return;
     [].slice.call(files).forEach(function (fl) { blobToData(fl).then(function (u) { return u ? P.saveImage({ base64: u }) : null; }).then(function (r) { if (r) toast('Foto salvata anche nel rullino'); }, function () { toast('Rullino: serve il permesso in Impostazioni di iOS'); }); });
   }
+  $('alLibFile').addEventListener('change', function () { addAlbumFiles($('alLibFile').files, true); });       // dal rullino: senza posizione di adesso
   $('alCamFile').addEventListener('change', function () {
     var all = [].slice.call($('alCamFile').files), vids = all.filter(function (f) { return /^video\//.test(f.type) || /\.(mov|mp4|m4v)$/i.test(f.name); }), pics = all.filter(function (f) { return vids.indexOf(f) < 0; });
     if (pics.length) { rollSave(pics); addAlbumFiles(pics); }
@@ -3420,7 +3468,7 @@ function LT(it, es) { return ES ? es : it; }
   function pnMe() { return st.user ? chkMe() : ''; }
   function pnSave() {
     var me = pnMe(); if (!me || !st.trip) return;
-    var want = !!(st.notifOn && st.pushTok && PN_NOT.indexOf(me) < 0), sig = want ? st.pushTok + '|' + st.trip + '|' + me : '';
+    var want = !!(st.notifOn && st.pushTok), sig = want ? st.pushTok + '|' + st.trip + '|' + me : '';
     if ((st.pushSaved || '') === sig) return;
     fbReady().then(function (d) {
       var ref = d.collection('trips').doc(st.trip).collection('push').doc(me);
@@ -3436,27 +3484,33 @@ function LT(it, es) { return ES ? es : it; }
         P.addListener('registrationError', function () {});
       } catch (e) {}
     }
-    if (!st.notifOn || PN_NOT.indexOf(pnMe()) >= 0) { pnSave(); return; }
+    if (!st.notifOn) { pnSave(); return; }
     P.checkPermissions().then(function (r) { if (r && r.receive === 'granted') return P.register(); }).catch(function () {});
     pnSave();
   }
-  function pnExpense(e) {
+  /* manda un avviso agli altri telefoni (tramite il servizio Cloudflare e Apple); include(id) sceglie chi lo riceve */
+  function pnPush(msg, include) {
     var H = natPlugin('CapacitorHttp'), url = (window.PUSH_CONFIG || {}).apns, me = pnMe();
     if (!H || !url || !st.trip || !me || navigator.onLine === false) return;
     fbReady().then(function (d) {
       var col = d.collection('trips').doc(st.trip).collection('push');
       return col.get().then(function (snap) {
         var toks = [], ids = [];
-        snap.forEach(function (doc) { var x = doc.data() || {}; if (doc.id === me || PN_NOT.indexOf(doc.id) >= 0 || !x.token) return; toks.push(x.token); ids.push(doc.id); });
+        snap.forEach(function (doc) { var x = doc.data() || {}; if (doc.id === me || !x.token || !include(doc.id)) return; toks.push(x.token); ids.push(doc.id); });
         if (!toks.length) return;
-        var body = [e.cat, e.desc].filter(function (z) { return !!z; }).join(' · ') || 'Nuova spesa';
-        return H.request({ url: url, method: 'POST', connectTimeout: 12000, readTimeout: 12000, headers: { 'Content-Type': 'application/json' },
-          data: { tokens: toks, msg: { title: st.user + ' ha speso ' + money(e), body: body, kind: 'spesa' } } }).then(function (r) {
+        return H.request({ url: url, method: 'POST', connectTimeout: 12000, readTimeout: 12000, headers: { 'Content-Type': 'application/json' }, data: { tokens: toks, msg: msg } }).then(function (r) {
           var res = r && r.data && (typeof r.data === 'string' ? JSON.parse(r.data) : r.data).results || [];
           res.forEach(function (x, i) { if (x && (x.status === 410 || x.reason === 'BadDeviceToken' || x.reason === 'Unregistered')) col.doc(ids[i]).delete().catch(function () {}); });   // telefono che non esiste piu'
         });
       });
     }).catch(function () {});
+  }
+  function pnExpense(e) {                                // spese: le ricevono tutti tranne chi e' in PN_NOT (Leo)
+    var body = [e.cat, e.desc].filter(function (z) { return !!z; }).join(' · ') || 'Nuova spesa';
+    pnPush({ title: st.user + ' ha speso ' + money(e), body: body, kind: 'spesa' }, function (id) { return PN_NOT.indexOf(id) < 0; });
+  }
+  function pnAsk() {                                     // "Chiedi dove sono": avviso a tutti gli altri; aprendo l'app la posizione si aggiorna da sola
+    pnPush({ title: st.user + ' ti chiede dove sei', body: 'Apri l\'app: la tua posizione si invia da sola.', kind: 'posizione' }, function () { return true; });
   }
   setTimeout(function () { try { ntInfo(); if (st.notifOn) ntPlan(); pnRegister(); } catch (e) {} }, 1500);
 
@@ -3963,6 +4017,16 @@ function LT(it, es) { return ES ? es : it; }
     posAskBanner();
     if (hashView() === 'pos') renderPos();
   }
+  /* ogni volta che si apre l'app (o si torna all'app) un solo rilevamento: gli altri vedono l'ultima posizione e quando e' stata presa.
+     Niente tracciamento in background, quindi la batteria non ne risente. */
+  var posAutoAt = 0;
+  function posAuto() {
+    if (!st.user || document.hidden || Date.now() - posAutoAt < 90000) return;
+    var perm = navigator.permissions && navigator.permissions.query ? navigator.permissions.query({ name: 'geolocation' }).then(function (r) { return r.state; }, function () { return 'prompt'; }) : Promise.resolve('prompt');
+    perm.then(function (sv) { if (!natPlugin('Geolocation') && sv !== 'granted') return; posAutoAt = Date.now(); return getFix(8000).then(function (f) { if (f) posSet(f); }); }).catch(function () {});
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) posAuto(); });
+  setTimeout(posAuto, 2500);
   function posSync(tr, jobs) {
     var p = st.pos; if (!p || p.sent || !st.user) return; var ts = p.ts;
     jobs.push(tr.collection('positions').doc(chkMe()).set({ user: st.user, la: p.la, lo: p.lo, ac: p.ac || 0, ts: p.ts }).then(function () { if (st.pos && st.pos.ts === ts) st.pos.sent = true; }));
@@ -4048,13 +4112,14 @@ function LT(it, es) { return ES ? es : it; }
     if (!st.user) { toast('Scrivi prima il tuo nome in Impostazioni'); return; }
     var me = chkMe(), info = $('posAskInfo'), wa = $('posAskWa'), msg = 'Dove sei? Apri la app Xmas in Texa$ e tocca "Sono qui".';
     fbReady().then(function (d) { return d.collection('trips').doc(st.trip).collection('posreq').doc(me).set({ from: st.user, ts: Date.now() }); }).catch(function () {});
-    info.hidden = false; info.textContent = (navigator.onLine === false ? 'Richiesta in coda: parte quando torna la rete. ' : 'Richiesta inviata. ') + 'Gli altri la vedono come avviso arancione appena aprono l\'app: il telefono non squilla. Per avvisarli subito scrivi su WhatsApp:';
+    try { pnAsk(); } catch (e) {}
+    info.hidden = false; info.textContent = (navigator.onLine === false ? 'Richiesta in coda: parte quando torna la rete. ' : 'Richiesta inviata. ') + 'Chi ha le notifiche attive riceve un avviso e, aprendo l\'app, la sua posizione si aggiorna da sola. Per avvisare anche gli altri scrivi su WhatsApp:';
     wa.innerHTML = '';
     (st.contacts || []).filter(function (c) { return c.wa && slug(c.name) !== 'flavia' && slug(String(c.name).split(/\s+/)[0]) !== me; }).forEach(function (c) {
       var a = document.createElement('a'); a.className = 'btn ghost small'; a.target = '_blank'; a.rel = 'noopener'; a.href = callHref(c) + '?text=' + encodeURIComponent(msg); a.textContent = 'Scrivi a ' + c.name; wa.appendChild(a);
     });
     wa.hidden = !wa.children.length;
-    if (wa.hidden) info.textContent = info.textContent.replace(' Per avvisarli subito scrivi su WhatsApp:', ' Per avvisarli subito aggiungi i loro numeri WhatsApp in Impostazioni.');
+    if (wa.hidden) info.textContent = info.textContent.replace(' Per avvisare anche gli altri scrivi su WhatsApp:', ' Per avvisare anche gli altri aggiungi i loro numeri WhatsApp in Impostazioni.');
   };
   $('posHere').onclick = function () {
     var b = $('posHere'); b.disabled = true; b.textContent = 'Cerco la posizione…';
