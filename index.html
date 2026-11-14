@@ -224,8 +224,8 @@ input::placeholder { color: var(--ink-soft); opacity: .8; }
 .docrow small { color: var(--ink-soft); }
 .viewer.docv { justify-content: flex-start; padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 .docvbody { flex: 1; min-height: 0; width: 100%; overflow: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-.viewer.docv .docvbody > img, .docvbody > canvas { width: 100%; max-width: none; max-height: none; height: auto; border-radius: 6px; flex: none; }
-.viewer.docv .docvbody.zoom > img, .docvbody.zoom > canvas { width: 250%; }
+.viewer.docv .docvbody > img, .docvbody > canvas { width: calc(100% * var(--z, 1)); max-width: none; max-height: none; height: auto; border-radius: 6px; flex: none; }
+.docvbody { touch-action: pan-x pan-y; }
 .docvbody > .vcap { width: 100%; padding: 30px 0; }
 .viewer.docv .btnrow { width: 100%; flex: none; }
 .viewer.docv .btnrow .btn { flex: 1 1 40%; }
@@ -523,6 +523,10 @@ input[type=text], input[type=password], input[type=tel], select, .trarea, .calfo
 .nbin .djbody { padding: 8px 6px 4px; } .nbin .djrow { padding: 16px 6px 8px; }
 .nbin .nbexp { margin-top: 12px; background: #fffef9; border-radius: 3px; padding: 10px 12px; box-shadow: 0 3px 10px rgba(60,40,10,.2); }
 @media (prefers-color-scheme: dark) { .nbin { background-color: #2b2822 !important; background-image: linear-gradient(90deg, transparent 0 41px, rgba(255,120,110,.4) 41px 43px, transparent 43px), repeating-linear-gradient(0deg, transparent 0 31px, rgba(150,180,255,.15) 31px 32px) !important; color: #f1ead9; } .nbin .nbexp { background: #35312a; } }
+/* ===== documento aperto: barra in alto come le altre pagine ===== */
+.viewer.docv { padding-top: calc(env(safe-area-inset-top, 0px) + 58px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); gap: 8px; }
+.viewer.docv .docbtm { width: 100%; max-width: 420px; justify-content: center; gap: 10px; flex: none; }
+.viewer.docv .docbtm .btn { background: rgba(255,255,255,.14); color: #fff; min-height: 40px; }
 /* ===== Foto: card piccola con due icone ===== */
 .albcard { padding: 10px 12px; gap: 6px; }
 .albacts { display: flex; align-items: center; gap: 10px; }
@@ -1219,7 +1223,7 @@ body.nb .diatext2 { background-color: #fffdf3; background-image: repeating-linea
 <div id="toastHost"></div>
 
 <script>
-var APP_VER = 'v86';
+var APP_VER = 'v88';
 var ES = window.APP_LANG === 'es', LOC = ES ? 'es-ES' : 'it-IT';
 function LT(it, es) { return ES ? es : it; }
 (function () {
@@ -3822,7 +3826,7 @@ function LT(it, es) { return ES ? es : it; }
         if (!body.isConnected) return;
         if (i > n) { if (pdf.numPages > MAXP) { var m = document.createElement('div'); m.className = 'vcap'; m.textContent = 'Mostrate le prime ' + MAXP + ' pagine di ' + pdf.numPages + '. Per vederle tutte usa "Condividi".'; body.appendChild(m); } return; }
         return pdf.getPage(i++).then(function (p) {
-          var w = p.getViewport({ scale: 1 }).width, vp = p.getViewport({ scale: Math.min(3, 1200 / w) }), c = document.createElement('canvas');
+          var w = p.getViewport({ scale: 1 }).width, vp = p.getViewport({ scale: Math.min(3.5, (n <= 3 ? 2000 : n <= 8 ? 1500 : 1200) / w) }), c = document.createElement('canvas');
           c.width = Math.round(vp.width); c.height = Math.round(vp.height); body.appendChild(c);
           return p.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
         }).then(next);
@@ -3833,30 +3837,56 @@ function LT(it, es) { return ES ? es : it; }
   /* rec: scheda del documento; buf: contenuto in chiaro; after: cosa ridisegnare dopo rinomina o eliminazione */
   function docView(rec, buf, after) {
     var host = $('viewerHost'), v = document.createElement('div'), body = document.createElement('div'), cap = document.createElement('div'), row = document.createElement('div'), url = null;
-    v.className = 'viewer docv'; body.className = 'docvbody'; cap.className = 'vcap'; row.className = 'btnrow'; cap.textContent = rec.name;
+    v.className = 'viewer docv'; body.className = 'docvbody'; cap.className = 'vcap'; row.className = 'btnrow docbtm'; cap.textContent = rec.name;
     function close() { if (url) { URL.revokeObjectURL(url); url = null; } if (v.parentNode) v.remove(); }
     v._close = close;
     function btn(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.onclick = fn; row.appendChild(b); }
     if (rec.kind === 'pdf') { var w = document.createElement('div'); w.className = 'vcap'; w.textContent = 'Apro il PDF…'; body.appendChild(w); docPdf(buf, body); }
     else { var img = document.createElement('img'); img.alt = rec.name; url = URL.createObjectURL(new Blob([buf], { type: rec.type || 'image/jpeg' })); img.src = url; body.appendChild(img); }
-    body.onclick = function () { body.classList.toggle('zoom'); };
-    btn('Chiudi', close);
-    btn('Condividi', function () {
+    /* zoom con due dita (da 1x a 5x, attorno al punto tra le dita) e doppio tocco per ingrandire o tornare normale */
+    var z = 1, pin = null, lastTap = 0;
+    function setZ(nz, cx, cy) {
+      nz = Math.max(1, Math.min(5, nz)); if (nz === z) return;
+      var w0 = body.scrollWidth || 1, h0 = body.scrollHeight || 1, px = (body.scrollLeft + cx) / w0, py = (body.scrollTop + cy) / h0;
+      z = nz; body.style.setProperty('--z', String(z)); body.scrollLeft = px * body.scrollWidth - cx; body.scrollTop = py * body.scrollHeight - cy;
+    }
+    function two(e) { var a = e.touches[0], b = e.touches[1]; return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 }; }
+    body.addEventListener('touchstart', function (e) { if (e.touches.length === 2) pin = { d: two(e).d, z: z }; }, { passive: true });
+    body.addEventListener('touchmove', function (e) {
+      if (e.touches.length !== 2 || !pin) return; e.preventDefault();
+      var t = two(e), r = body.getBoundingClientRect(); setZ(pin.z * t.d / pin.d, t.x - r.left, t.y - r.top);
+    }, { passive: false });
+    body.addEventListener('touchend', function (e) { if (e.touches.length < 2) pin = null; }, { passive: true });
+    body.addEventListener('click', function (e) {
+      var n = Date.now(); if (n - lastTap > 320) { lastTap = n; return; } lastTap = 0;
+      var r = body.getBoundingClientRect(); setZ(z > 1.05 ? 1 : 2.5, e.clientX - r.left, e.clientY - r.top);
+    });
+    function share() {
       var file = new File([buf], rec.name.replace(/[\/\\:*?"<>|]/g, ' ') + (rec.kind === 'pdf' ? '.pdf' : '.jpg'), { type: rec.type || 'image/jpeg' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: rec.name }).catch(function () {});
       else download(file);
-    });
-    btn('Rinomina', function () {
-      var n = prompt('Nome del documento', rec.name); if (!n || !n.trim()) return;
-      rec.name = n.trim(); cap.textContent = rec.name;
-      docPut(rec).then(after, function () { toast('Non sono riuscito a rinominarlo'); });
-    });
-    btn('Elimina', function () {
-      if (!confirm('Eliminare "' + rec.name + '" da questo telefono?')) return;
-      if (/^m_/.test(rec.id)) { dm.macGone = (dm.macGone || []).concat(rec.id); docMeta(); }
-      docDelMany([rec.id]).then(function () { close(); after(); });
-    });
-    v.appendChild(body); v.appendChild(cap); v.appendChild(row); host.appendChild(v);
+    }
+    /* barra in alto: Indietro a sinistra, nome al centro, Condividi (icona) a destra */
+    var top = document.createElement('div'); top.className = 'vtop';
+    var bk = document.createElement('button'); bk.type = 'button'; bk.className = 'vback'; bk.textContent = '‹ Indietro'; bk.onclick = close; top.appendChild(bk);
+    var cn = document.createElement('span'); cn.className = 'vcnt'; cn.innerHTML = '<b></b><i></i>'; cn.firstChild.textContent = rec.name; cn.lastChild.textContent = rec.mac ? 'Dal Mac' : ''; top.appendChild(cn);
+    var acts = document.createElement('div'); acts.className = 'vacts'; top.appendChild(acts);
+    var sb = document.createElement('button'); sb.type = 'button'; sb.className = 'vib'; sb.setAttribute('aria-label', 'Condividi');
+    sb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>'; sb.onclick = share; acts.appendChild(sb);
+    /* i documenti caricati dal Mac si rinominano ed eliminano solo dal Mac; gli altri hanno ancora Rinomina ed Elimina in basso */
+    if (!rec.mac) {
+      btn('Rinomina', function () {
+        var n = prompt('Nome del documento', rec.name); if (!n || !n.trim()) return;
+        rec.name = n.trim(); cn.firstChild.textContent = rec.name;
+        docPut(rec).then(after, function () { toast('Non sono riuscito a rinominarlo'); });
+      });
+      btn('Elimina', function () {
+        if (!confirm('Eliminare "' + rec.name + '" da questo telefono?')) return;
+        docDelMany([rec.id]).then(function () { close(); after(); });
+      });
+      Array.prototype.forEach.call(row.children, function (b) { b.className = 'btn ghost small'; });
+    }
+    v.appendChild(top); v.appendChild(body); if (!rec.mac) v.appendChild(row); host.appendChild(v);
   }
 
   /* cartella Personali (dietro PIN) */
