@@ -306,6 +306,8 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
 .r { text-align: right; }
 .brc { display: grid; grid-template-columns: 1.6fr 1fr auto; column-gap: 12px; padding: 8px 2px; border-bottom: 1px solid var(--sep); align-items: baseline; }
 .brc .bd { color: var(--ink-soft); font-size: .9rem; } .brc .in { color: var(--good); font-weight: 600; } .brc.tot { border-bottom: 0; border-top: 2px solid var(--ink); font-weight: 700; }
+.bplaf .bset { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; } .bplaf .bset input { flex: 1 1 180px; min-width: 0; min-height: 40px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--field); color: var(--ink); padding: 0 12px; font-size: 1rem; } .bplaf .bset .cur { font-weight: 700; color: var(--ink-soft); }
+.bplaf .left { font-size: 2.6rem; }
 </style>
 </head>
 <body>
@@ -587,8 +589,24 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     var top = 0, sp = 0, topE = 0, spE = 0, per = [], recs = [];
     names.forEach(function (n) { var p = st.people[n], t = sum(p.topups, 'usd'), x = sum(p.expenses, 'usd'); top += t; sp += x; topE += sum(p.topups, 'eur'); spE += sum(p.expenses, 'eur'); per.push({ n: n, t: t, x: x, l: t - x }); p.topups.forEach(function (r) { recs.push({ n: n, r: r }); }); });
     var left = top - sp, pct = top > 0 ? Math.min(100, sp / top * 100) : 0, cls = !top ? '' : pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
+    /* plafond di viaggio: lo imposta Matteo; si scarica a ogni ricarica di Matteo, Leslie o Leo */
+    var P = st.tripBudget || 0, remainP = P - top, pP = P > 0 ? Math.min(100, top / P * 100) : 0, cP = !P ? '' : remainP < 0 ? 'bad' : pP >= 85 ? 'warn' : 'good';
+    var pv = el('section', 'panel glass bhero bplaf');
+    pv.appendChild(el('div', 'label', 'Plafond di viaggio · ancora da ricaricare'));
+    pv.appendChild(el('div', 'left num ' + cP, P ? (remainP < 0 ? '−' : '') + usd(Math.abs(remainP)) : '—'));
+    if (P) {
+      pv.appendChild(el('div', 'bar', '<i class="' + cP + '" style="width:' + pP + '%"></i>'));
+      pv.appendChild(el('div', 'sub2 num', 'Plafond ' + usd(P) + ' · già ricaricato alle persone ' + usd(top) + (remainP < 0 ? ' · oltre il plafond di ' + usd(-remainP) : '')));
+    } else pv.appendChild(el('div', 'sub2', 'Imposta quanto avete a disposizione per il viaggio: scende a ogni ricarica di Matteo, Leslie o Leo.'));
+    var row = el('div', 'bset'), inp = document.createElement('input'), go = el('button', 'btn', P ? 'Cambia' : 'Imposta');
+    inp.type = 'text'; inp.inputMode = 'decimal'; inp.placeholder = 'Importo in dollari, es. 3000'; inp.value = P ? String(P).replace('.', ',') : ''; inp.setAttribute('aria-label', 'Plafond di viaggio in dollari'); go.type = 'button';
+    function save() { var n = parseFloat(String(inp.value).replace(/\s/g, '').replace(',', '.')); if (!isFinite(n) || n < 0) { toast('Scrivi un importo'); return; } st.tripBudget = Math.round(n * 100) / 100; persist(); renderBudgetView(); toast(st.tripBudget ? 'Plafond di viaggio impostato' : 'Plafond di viaggio tolto'); }
+    go.onclick = save; inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') save(); });
+    row.appendChild(el('span', 'cur', '$')); row.appendChild(inp); row.appendChild(go);
+    if (P) { var rm = el('button', 'btn ghost small', 'Togli'); rm.type = 'button'; rm.onclick = function () { st.tripBudget = 0; persist(); renderBudgetView(); toast('Plafond di viaggio tolto'); }; row.appendChild(rm); }
+    pv.appendChild(row); v.appendChild(pv);
     var hero = el('section', 'panel glass bhero');
-    hero.appendChild(el('div', 'label', 'Plafond totale rimasto')); hero.appendChild(el('div', 'left num ' + cls, top || sp ? (left < 0 ? '−' : '') + usd(Math.abs(left)) : '—'));
+    hero.appendChild(el('div', 'label', 'Rimasto da spendere (ricariche di tutti meno spese)')); hero.appendChild(el('div', 'left num ' + cls, top || sp ? (left < 0 ? '−' : '') + usd(Math.abs(left)) : '—'));
     hero.appendChild(el('div', 'sub2 num', (topE - spE < 0 ? '−' : '') + eur(Math.abs(topE - spE))));
     hero.appendChild(el('div', 'bar', '<i class="' + cls + '" style="width:' + pct + '%"></i>'));
     hero.appendChild(el('div', 'sub2 num', 'Ricaricato ' + usd(top) + ' · speso ' + usd(sp) + (top ? ' · ' + Math.round(pct) + '% usato' : '')));
@@ -601,7 +619,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     });
     t.appendChild(el('div', 'btr tot', '<span class="bn">Totale</span><span class="r num">' + usd(top) + '</span><span class="r num">' + usd(sp) + '</span><span class="r num b ' + cls + '">' + (left < 0 ? '−' : '') + usd(Math.abs(left)) + '</span>'));
     tb.appendChild(t); v.appendChild(tb);
-    var rc = el('section', 'panel glass'); rc.appendChild(el('h3', '', 'Ricariche'));
+    var rc = el('section', 'panel glass'); rc.appendChild(el('h3', '', P ? 'Ricariche (scaricano il plafond di viaggio)' : 'Ricariche'));
     if (!recs.length) rc.appendChild(el('div', 'sub2', 'Nessuna ricarica ancora.'));
     recs.sort(function (a, b) { return (b.r.data + b.r.ora).localeCompare(a.r.data + a.r.ora); }).forEach(function (x) {
       rc.appendChild(el('div', 'brc', '<span class="bd">' + esc(dayLabel(x.r.data)) + ' · ' + esc(x.r.ora || '') + '</span><span class="bn"><i style="background:' + personColor(x.n) + '"></i>' + esc(x.n) + '</span><span class="num r in">+ ' + usd(x.r.usd) + '</span>'));
@@ -650,7 +668,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
   $('reset').onclick = function () {
     var b = $('reset');
     if (!rsArmed) { rsArmed = true; b.textContent = 'Conferma azzera'; setTimeout(function () { rsArmed = false; b.textContent = 'Azzera tutto'; }, 3000); return; }
-    st = { people: {}, deleted: [], comments: {} }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
+    st = { people: {}, deleted: [], comments: {}, tripBudget: st.tripBudget || 0 }; persist(); render(); b.textContent = 'Azzera tutto'; rsArmed = false;
   };
 
   /* ---------- Firebase: il Mac scarica spese, foto e diari dai telefoni ---------- */
