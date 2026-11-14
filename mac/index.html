@@ -293,6 +293,14 @@ body { padding: 0; }
 .fchip.who[aria-pressed="true"] .ck::after { content: ""; position: absolute; left: 6px; top: 2.5px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .flink { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 6px 8px; }
 select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
+/* ===== plafond totale in alto ===== */
+.grand { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center; background: var(--card); border-radius: 16px; padding: 16px 22px; margin-bottom: 16px; }
+.grand[hidden] { display: none; }
+.grand .gmain .left { font-size: 2.4rem; }
+.grand .gbar { display: flex; flex-direction: column; gap: 6px; min-width: 200px; } .grand .gbar .bar { height: 10px; }
+.grand .gper { display: flex; gap: 22px; }
+.gp { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; } .gp .gn { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); font-weight: 700; } .gp .num { font-size: 1.15rem; font-weight: 700; } .gp .num.neg { color: var(--bad); } .gp small { color: var(--ink-soft); font-size: .72rem; }
+@media (max-width: 900px) { .grand { grid-template-columns: 1fr; gap: 12px; } .grand .gper { flex-wrap: wrap; } .gp { align-items: flex-start; } }
 </style>
 </head>
 <body>
@@ -328,6 +336,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
   <input type="file" id="file" accept=".csv,text/csv" multiple hidden>
 </div>
 <div class="msg glass" id="msg" hidden></div>
+<section class="grand" id="grand" hidden></section>
 <main class="cols" id="cols"></main>
 <section class="view" id="mapView" hidden></section>
 <section class="view" id="photoView" hidden></section>
@@ -563,12 +572,25 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     return col;
   }
 
+  /* plafond totale di tutti: cresce con le ricariche di ognuno e scala man mano che si spende */
+  function grandBanner(names) {
+    var g = $('grand'); g.innerHTML = '';
+    if (!names.length) { g.hidden = true; return; }
+    var top = 0, sp = 0, spE = 0, topE = 0, per = [];
+    names.forEach(function (n) { var p = st.people[n], t = sum(p.topups, 'usd'), x = sum(p.expenses, 'usd'); top += t; sp += x; topE += sum(p.topups, 'eur'); spE += sum(p.expenses, 'eur'); per.push({ n: n, t: t, x: x, l: t - x }); });
+    var left = top - sp, pct = top > 0 ? Math.min(100, sp / top * 100) : 0, cls = !top ? '' : pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : 'good';
+    g.hidden = false;
+    var a = el('div', 'gmain'); a.appendChild(el('div', 'label', 'Plafond totale rimasto')); a.appendChild(el('div', 'left num ' + cls, top || sp ? usd(left) : '—')); a.appendChild(el('div', 'sub2 num', eur(topE - spE))); g.appendChild(a);
+    var b = el('div', 'gbar'); b.appendChild(el('div', 'bar', '<i class="' + cls + '" style="width:' + pct + '%"></i>'));
+    b.appendChild(el('div', 'sub2 num', 'Ricaricato ' + usd(top) + ' · speso ' + usd(sp) + (top ? ' · ' + Math.round(pct) + '%' : ''))); g.appendChild(b);
+    var c = el('div', 'gper'); per.forEach(function (x) { c.appendChild(el('div', 'gp', '<span class="gn">' + esc(x.n) + '</span><span class="num ' + (x.l < 0 ? 'neg' : '') + '">' + (x.t || x.x ? (x.l < 0 ? '−' : '') + usd(Math.abs(x.l)) : '—') + '</span><small class="num">di ' + usd(x.t) + '</small>')); }); g.appendChild(c);
+  }
   function render() {
     var cols = $('cols'); cols.innerHTML = '';
     var names = Object.keys(st.people).sort();
     names.forEach(function (n) { cols.appendChild(personCol(n)); });
     for (var i = names.length; i < 3; i++) cols.appendChild(el('section', 'col glass empty', 'In attesa del file della persona ' + (i + 1)));
-    cols.appendChild(totalCol(names));
+    cols.appendChild(totalCol(names)); grandBanner(names);
     $('sub').textContent = cloud.last ? names.length + (names.length === 1 ? ' persona' : ' persone') + ' · i dati arrivano da soli dai telefoni. I file CSV restano come copia di sicurezza (Importa file).' : (names.length ? names.length + (names.length === 1 ? ' registro importato' : ' registri importati') + '. Per aggiornare importa di nuovo il file: sostituisce le spese di quella persona.' : 'Collegati con il codice viaggio, oppure trascina qui i file CSV ricevuti dagli iPhone.');
   }
 
