@@ -1335,7 +1335,8 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
   /* mappa piccola (riquadri OpenStreetMap con il punto al centro), uguale a quella dell'elenco del Diario sul telefono */
   function miniMap(lat, lon) {
     var z = 16, n = Math.pow(2, z), px = (lon + 180) / 360 * n, la = lat * Math.PI / 180, py = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
-    var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0, box = el('div', 'djmap'), inn = el('div', 'djmapin'), g = el('div', 'djtiles'); box.appendChild(inn);
+    var x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0, box = el('a', 'djmap'), inn = el('div', 'djmapin'), g = el('div', 'djtiles'); box.appendChild(inn);
+    box.href = 'https://maps.apple.com/?ll=' + lat + ',' + lon; box.target = '_blank'; box.rel = 'noopener'; box.title = 'Apri in Mappe'; box.setAttribute('aria-label', 'Apri il posto in Mappe'); box.style.cssText = 'display:block;cursor:pointer;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent';
     g.style.marginLeft = -(256 + fx * 256) + 'px'; g.style.marginTop = -(256 + fy * 256) + 'px';
     for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) { var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = 'https://tile.openstreetmap.org/' + z + '/' + (x0 + i) + '/' + (y0 + j) + '.png'; g.appendChild(im); }
     inn.appendChild(g); inn.appendChild(el('span', 'djpin')); return box;
