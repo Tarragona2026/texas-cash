@@ -117,11 +117,16 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
 .mk { width: 30px; height: 30px; display: grid; place-items: center; color: #fff; font: 700 .85rem/1 var(--font-body); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
 .mk.s { border-radius: 50%; } .mk.f { border-radius: 8px; } .mk.d { border-radius: 4px; transform: rotate(45deg); } .mk.d span { transform: rotate(-45deg); display: block; }
 .mk.g { border-radius: 50%; background: #333; }
-.lb { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.9); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; }
-.lb img { max-width: 92vw; max-height: 74vh; object-fit: contain; border-radius: 12px; }
-.lb .cap { color: #fff; text-align: center; }
-.lb .btn { background: #fff; color: #111; }
-.lbrow { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.lb { position: fixed; inset: 0; z-index: 30; background: #000; display: block; overflow: hidden; touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.lb .lbbox { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.lb img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0; -webkit-user-drag: none; }
+.lb .vtop { position: absolute; z-index: 3; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px 18px; background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,0)); }
+.lb .vback { border: 0; background: none; color: #5aa9ff; font-size: 1.05rem; font-weight: 500; padding: 6px 4px; min-height: 36px; }
+.lb .vcnt { flex: 1; text-align: center; display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.lb .vcnt b { color: #fff; font-size: .9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .lb .vcnt i { color: rgba(255,255,255,.6); font-size: .75rem; font-style: normal; }
+.lb .vacts { display: flex; gap: 8px; }
+.lb .vib { width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(255,255,255,.16); color: #fff; display: grid; place-items: center; padding: 0; text-decoration: none; cursor: pointer; }
+.lb .vib svg { width: 20px; height: 20px; }
 .sheetm { position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw); z-index: 25; background: var(--glass-strong); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: -8px 0 40px rgba(0,0,0,.35); overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .sheetm h3 { margin: 0; font-family: var(--font-display); }
 .it { padding: 10px 0; border-top: 1px solid var(--glass-line); display: flex; flex-direction: column; gap: 6px; }
@@ -843,26 +848,39 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     });
   }
   function mapsLink(l) { return 'https://maps.apple.com/?ll=' + l.la + ',' + l.lo; }
-  function lightbox(items, i) {                       // items: [{src: Promise<url>|url, cap, link, name}]
-    var lb = el('div', 'lb'), im = document.createElement('img'), cap = el('div', 'cap'), row = el('div', 'lbrow'), idx = i;
+  function lightbox(items, i) {                       // items: [{src: Promise<url>|url, cap, link, name}]; stesso aspetto del visore del telefono
+    var lb = el('div', 'lb'), idx = i, SV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
     function close() { document.removeEventListener('keydown', key); lb.remove(); }
     function key(e) { if (e.key === 'Escape') close(); else if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); }
-    function go(d) { var n = idx + d; if (n < 0 || n >= items.length) return; idx = n; show(); }
-    function show() {
-      var it = items[idx]; cap.textContent = it.cap; im.removeAttribute('src'); im.alt = 'Foto';
-      Promise.resolve(it.src).then(function (u) { if (items[idx] === it && u) im.src = u; });
-      prev.disabled = idx === 0; next.disabled = idx === items.length - 1;
-      dl.onclick = function () { Promise.resolve(it.src).then(function (u) { if (!u) return; var a = document.createElement('a'); a.href = u; a.download = it.name || 'foto.jpg'; document.body.appendChild(a); a.click(); a.remove(); }); };
-      mp.hidden = !it.link; if (it.link) mp.href = it.link;
+    function go(d) { var n = idx + d; if (n < 0 || n >= items.length) return; idx = n; show(d); }
+    function shareFile(it) {
+      Promise.resolve(it.src).then(function (u) {
+        if (!u) { toast('Aspetta che la foto si carichi'); return; }
+        fetch(u).then(function (r) { return r.blob(); }).then(function (bl) {
+          var f = new File([bl], it.name || 'foto.jpg', { type: bl.type || 'image/jpeg' });
+          if (navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f] }).catch(function () {});
+          var a = document.createElement('a'); a.href = u; a.download = it.name || 'foto.jpg'; document.body.appendChild(a); a.click(); a.remove();
+        });
+      });
     }
-    var prev = el('button', 'btn', '‹ Precedente'), next = el('button', 'btn', 'Successiva ›'), dl = el('button', 'btn', 'Scarica'), mp = el('a', 'btn', 'Apri in Mappe'), cl = el('button', 'btn', 'Chiudi');
-    [prev, next, dl, cl].forEach(function (b) { b.type = 'button'; }); mp.target = '_blank'; mp.rel = 'noopener'; mp.style.cssText = 'display:inline-flex;align-items:center;text-decoration:none';
-    prev.onclick = function () { go(-1); }; next.onclick = function () { go(1); }; cl.onclick = close;
-    [prev, next, dl, mp, cl].forEach(function (b) { row.appendChild(b); });
-    lb.appendChild(im); lb.appendChild(cap); lb.appendChild(row);
-    lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
-    document.addEventListener('keydown', key); document.body.appendChild(lb); show();
+    function show(enter) {
+      var it = items[idx]; lb.innerHTML = '';
+      var top = el('div', 'vtop'), bk = el('button', 'vback', '‹ Indietro'); bk.type = 'button'; bk.onclick = close; top.appendChild(bk);
+      var cn = el('span', 'vcnt', '<b></b><i></i>'); cn.firstChild.textContent = it.cap || ''; cn.lastChild.textContent = (idx + 1) + '/' + items.length; top.appendChild(cn);
+      var acts = el('div', 'vacts'); top.appendChild(acts);
+      if (it.link) { var mp = el('a', 'vib', SV + '<path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg>'); mp.href = it.link; mp.target = '_blank'; mp.rel = 'noopener'; mp.setAttribute('aria-label', 'Apri in Mappe'); acts.appendChild(mp); }
+      var sh = el('button', 'vib', SV + '<path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>'); sh.type = 'button'; sh.setAttribute('aria-label', 'Condividi o salva'); sh.onclick = function () { shareFile(it); }; acts.appendChild(sh);
+      lb.appendChild(top);
+      var box = el('div', 'lbbox'), im = document.createElement('img'); im.alt = 'Foto'; im.draggable = false; box.appendChild(im); lb.appendChild(box);
+      if (enter) { box.style.transition = 'none'; box.style.transform = 'translateX(' + (enter * 100) + '%)'; box.style.opacity = '0'; void box.offsetWidth; box.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; box.style.transform = 'translateX(0)'; box.style.opacity = '1'; }
+      Promise.resolve(it.src).then(function (u) { if (items[idx] === it && u) im.src = u; });
+    }
+    var tx = 0, ty = 0, drag = false;
+    lb.addEventListener('touchstart', function (e) { if (e.touches.length !== 1) { drag = false; return; } tx = e.touches[0].clientX; ty = e.touches[0].clientY; drag = true; }, { passive: true });
+    lb.addEventListener('touchend', function (e) { if (!drag) return; drag = false; var t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty; if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.2) go(dx < 0 ? 1 : -1); }, { passive: true });
+    document.addEventListener('keydown', key); document.body.appendChild(lb); show(0);
   }
+
 
 
   /* ---------- checklist: il Mac le vede tutte e tre ---------- */
