@@ -592,6 +592,27 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
       Promise.all(jobs).then(function () { local(); toast('Eliminata: sparisce anche dai telefoni'); }, function () { toast('Non riesco a eliminare: controlla la rete'); });
     } else { local(); toast('Eliminata solo su questo schermo (non arriva dai telefoni)'); }
   }
+  /* elimina in una volta sola tutte le spese e le ricariche di una persona (anche dal suo telefono) */
+  function wipePerson(name) {
+    var p = st.people[name]; if (!p) return;
+    var all = p.expenses.concat(p.italy || []).concat(p.topups), n = all.length;
+    if (!n) { toast('Non c\'è niente da eliminare'); return; }
+    if (!confirm('Eliminare TUTTE le spese e le ricariche di ' + name + ' (' + n + ' voci)?\n\nSpariscono anche dal suo telefono e non si recuperano.')) return;
+    function local() { p.expenses = []; p.italy = []; p.topups = []; persist(); render(); }
+    var refs = [];
+    if (cloud.db && st.trip) {
+      var tr = cloud.db.collection('trips').doc(st.trip);
+      all.forEach(function (o) { if (!o.id) return; refs.push(tr.collection('items').doc(o.id)); if (o.photo) refs.push(tr.collection('photos').doc(o.id)); });
+      if (refs.length) {
+        var chunks = []; for (var i = 0; i < refs.length; i += 400) chunks.push(refs.slice(i, i + 400));
+        Promise.all(chunks.map(function (c) { var b = cloud.db.batch(); c.forEach(function (r) { b.delete(r); }); return b.commit(); }))
+          .then(function () { return tr.collection('removals').doc('u_' + slug(name) + '_' + Date.now()).set({ kind: 'user', user: name, by: 'Mac', ts: Date.now() }); })
+          .then(function () { local(); toast('Tutto eliminato per ' + name + ': sparisce anche dal suo telefono'); }, function () { toast('Non riesco a eliminare: controlla la rete'); });
+        return;
+      }
+    }
+    local(); toast('Eliminato solo su questo schermo');
+  }
   function ledRow(name, x) {
     var o = x.o, isE = x.k === 'e', eu = isE && o.cur === 'EUR', id = (isE ? 'e' : 't') + (o.id || x.ts);
     var amt = isE ? (eu ? '− ' + eur(o.eur) : '− ' + usd(o.usd)) : '+ ' + usd(o.usd);
@@ -663,6 +684,9 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     closeDay(); led.appendChild(list);
     if (show.length) led.appendChild(el('div', 'lfoot ' + (bal < 0 ? 'neg' : 'pos'), '<span>Saldo attuale</span><b class="num">' + (bal < 0 ? '− ' : '') + usd(Math.abs(bal)) + '</b>'));
     var cr = catRows(p.expenses); if (cr && tab === 'spese') led.appendChild(cr);
+    var wp = el('button', 'btn ghost small danger', 'Elimina tutte le spese e le ricariche di ' + esc(name)); wp.type = 'button'; wp.style.cssText = 'margin:8px 12px 10px'; var wpa = false;
+    wp.onclick = function () { if (!wpa) { wpa = true; wp.textContent = 'Tocca ancora per continuare'; setTimeout(function () { wpa = false; wp.textContent = 'Elimina tutte le spese e le ricariche di ' + name; }, 3500); return; } wpa = false; wp.textContent = 'Elimina tutte le spese e le ricariche di ' + name; wipePerson(name); };
+    led.appendChild(wp);
     col.appendChild(led);
     /* in piu' rispetto al telefono: i grafici */
     col.appendChild(statBlock(name, p.topups, p.expenses));
