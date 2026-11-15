@@ -117,9 +117,9 @@ select.sel { min-height: 32px; border-radius: 10px; border: 1px solid var(--glas
 .mk { width: 30px; height: 30px; display: grid; place-items: center; color: #fff; font: 700 .85rem/1 var(--font-body); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
 .mk.s { border-radius: 50%; } .mk.f { border-radius: 8px; } .mk.d { border-radius: 4px; transform: rotate(45deg); } .mk.d span { transform: rotate(-45deg); display: block; }
 .mk.g { border-radius: 50%; background: #333; }
-.lb { position: fixed; inset: 0; z-index: 30; background: #000; display: block; overflow: hidden; touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.lb { position: fixed; inset: 0; z-index: 30; background: #000; display: block; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .lb .lbbox { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.lb img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0; -webkit-user-drag: none; }
+.lb img { will-change: transform; display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0; -webkit-user-drag: none; }
 .lb .vtop { position: absolute; z-index: 3; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px 18px; background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,0)); }
 .lb .vback { border: 0; background: none; color: #5aa9ff; font-size: 1.05rem; font-weight: 500; padding: 6px 4px; min-height: 36px; }
 .lb .vcnt { flex: 1; text-align: center; display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
@@ -318,6 +318,70 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
 .dlist { display: flex; flex-direction: column; } .drow { display: flex; align-items: center; gap: 12px; padding: 9px 2px; border-bottom: 1px solid var(--sep); }
 .drow .dk { flex: none; width: 44px; height: 34px; border-radius: 8px; background: color-mix(in srgb, #a24ee0 16%, var(--card)); color: #a24ee0; font-size: .68rem; font-weight: 700; display: grid; place-items: center; }
 .drow .dn { flex: 1; min-width: 0; } .drow .dn b { display: block; font-weight: 600; overflow-wrap: anywhere; } .drow .dn small { color: var(--ink-soft); font-size: .78rem; }
+.ledger { position: relative; overflow: hidden; background: #fbfbf4; color: #1d2b22; border-radius: 8px; padding: 0 0 4px; box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 8px 22px rgba(30,70,45,.12); font-family: ui-serif, "New York", Georgia, serif; }
+.ledger .num { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.ledger .r { text-align: right; }
+.ltl { font-variant: small-caps; letter-spacing: .14em; font-size: .86rem; font-weight: 700; color: #35584a; padding: 12px 14px 6px; text-transform: lowercase; }
+.lsum { padding-bottom: 8px; border-bottom: 2px solid #35584a; }
+.lsl { display: flex; align-items: baseline; gap: 6px; padding: 5px 14px; font-size: .95rem; }
+.lsl .dots { flex: 1; border-bottom: 1px dotted rgba(40,80,60,.45); transform: translateY(-3px); }
+.lsl .v { font-size: .98rem; font-weight: 600; }
+.lsl small { color: #6a7a70; font-size: .74rem; margin-left: 8px; }
+.lsl.it .k, .lsl.it .v { color: #6a7a70; font-style: italic; font-weight: 400; }
+.lsl.tot { margin-top: 4px; padding-top: 7px; border-top: 1px solid #35584a; font-weight: 700; }
+.lsl.tot .v { font-size: 1.12rem; border-bottom: 3px double #35584a; }
+.lsl.pos .v { color: #1d7a3e; } .lsl.neg .v { color: #c4262e; }
+.lcols, .lrow { display: grid; grid-template-columns: 46px 1fr 78px 86px; column-gap: 6px; padding: 0 12px; }
+.lcols { font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; color: #5d7468; padding-top: 8px; padding-bottom: 5px; border-bottom: 1px solid #35584a; font-weight: 700; }
+.lday { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 14px 3px; font-size: .78rem; font-weight: 700; color: #35584a; background: rgba(53,88,74,.06); border-bottom: 1px solid rgba(53,88,74,.25); font-variant: small-caps; letter-spacing: .04em; }
+.lday .num { font-weight: 500; color: #7a8a80; font-size: .72rem; }
+.lrow { align-items: start; padding-top: 7px; padding-bottom: 7px; border-bottom: 1px solid rgba(70,140,95,.22); cursor: pointer; }
+.lrow.open { background: rgba(255,230,120,.22); }
+.lrow.focus { background: rgba(255,220,80,.5); }
+.lrow .lo { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .7rem; color: #7a8a80; padding-top: 3px; }
+.lrow .ld b { display: block; font-weight: 600; font-size: .92rem; line-height: 1.2; overflow-wrap: anywhere; }
+.lrow .ld small { display: block; color: #6a7a70; font-size: .7rem; margin-top: 1px; }
+.lrow .ld small i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+.lrow .la { font-size: .86rem; font-weight: 600; padding-top: 1px; }
+.lrow .ls { font-size: .8rem; color: #4d6054; padding-top: 2px; }
+.lrow.out .la { color: #b3262d; } .lrow.in .la { color: #1d7a3e; } .lrow.it .la, .lrow.it .ls { color: #8a948e; font-style: italic; }
+.ldet { padding: 8px 14px 10px 58px; border-bottom: 1px solid rgba(70,140,95,.22); background: rgba(255,230,120,.12); display: flex; flex-direction: column; gap: 6px; font-family: -apple-system, system-ui, sans-serif; }
+.ldet[hidden] { display: none; }
+.ldet .linfo { font-size: .76rem; color: #5d7468; }
+.ldet .lth { max-width: 150px; max-height: 190px; object-fit: cover; border-radius: 3px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.lacts { display: flex; gap: 8px; flex-wrap: wrap; }
+.lfoot { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 14px 8px; font-weight: 700; border-top: 2px solid #35584a; margin-top: 2px; }
+.lfoot b { font-size: 1.12rem; border-bottom: 3px double #35584a; }
+.lfoot.pos b { color: #1d7a3e; } .lfoot.neg b { color: #c4262e; }
+.lempty { padding: 24px 16px; text-align: center; color: #6a7a70; font-size: .9rem; }
+.lcat { display: grid; grid-template-columns: 12px 1fr auto 40px; column-gap: 8px; align-items: center; padding: 6px 14px 2px; font-size: .9rem; }
+.lcat i { width: 9px; height: 9px; border-radius: 50%; }
+.lcat .v { font-size: .86rem; font-weight: 600; } .lcat .p { font-size: .74rem; color: #6a7a70; text-align: right; }
+.lcat .bar { grid-column: 2 / 5; height: 3px; background: rgba(53,88,74,.12); border-radius: 2px; margin-bottom: 4px; overflow: hidden; }
+.lcat .bar u { display: block; height: 100%; }
+@media (prefers-color-scheme: dark) {
+  .ledger { background: #1c211d; color: #e6eee8; box-shadow: none; }
+  .ltl, .lday, .lcols, .lfoot, .lsl.tot { color: #9fd0b2; border-color: rgba(159,208,178,.55); }
+  .lsum { border-bottom-color: rgba(159,208,178,.55); } .lsl.tot .v, .lfoot b { border-bottom-color: #9fd0b2; }
+  .lsl .dots { border-bottom-color: rgba(159,208,178,.4); }
+  .lrow, .lday, .ldet { border-bottom-color: rgba(120,190,140,.2); } .lday { background: rgba(159,208,178,.08); }
+  .lrow .lo, .lrow .ld small, .lsl small, .lcat .p, .ldet .linfo, .lcols, .lempty { color: #8fa597; }
+  .lrow .ls { color: #b5c7bb; } .lrow.open, .ldet { background: rgba(255,230,120,.07); }
+  .lrow.out .la, .lsl.neg .v, .lfoot.neg b { color: #ff7b80; } .lrow.in .la, .lsl.pos .v, .lfoot.pos b { color: #5fd88b; }
+}
+
+.lsumh { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-right: 10px; }
+.ledger .ltabs { display: flex; gap: 6px; padding: 6px 12px 8px; }
+.ledger .ltabs button { border: 0; border-radius: 999px; padding: 4px 14px; font-size: .8rem; font-weight: 600; background: rgba(53,88,74,.12); color: #35584a; cursor: pointer; font-family: -apple-system, system-ui, sans-serif; }
+.ledger .ltabs button[aria-pressed="true"] { background: #35584a; color: #fff; }
+.ledger .lacts .btn, .ledger .lacts .cbtn { font-size: .78rem; }
+.ledger .lacts .btn.danger { color: #c4262e; }
+.dchart { display: flex; align-items: flex-end; gap: 3px; height: 92px; padding: 4px 0 0; }
+.dchart .b { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: var(--accent); opacity: .85; position: relative; }
+.dchart .b:hover { opacity: 1; }
+.dlab { display: flex; justify-content: space-between; color: var(--ink-soft); font-size: .72rem; }
+/* Spese a libro contabile: colonne abbastanza larghe per Ora / Descrizione / Importo / Saldo */
+.cols { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)) !important; }
 </style>
 </head>
 <body>
@@ -509,86 +573,125 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     return b;
   }
 
+  /* ---------- Spese: libro contabile come sul telefono (Prima nota), con in piu' i grafici ---------- */
+  var ledTab = {}, ledOpen = '';
+  function tsOf(o) { if (o.ts) return o.ts; var t = Date.parse(o.data + 'T' + (o.ora || '00:00')); return isFinite(t) ? t : 0; }
+  function sline(label, val, cls, sub) { var d = el('div', 'lsl ' + (cls || ''), '<span class="k"></span><span class="dots"></span><span class="v num"></span>'); d.children[0].textContent = label; d.children[2].textContent = val; if (sub) { var sm = el('small', ''); sm.textContent = sub; d.children[2].appendChild(sm); } return d; }
+  function lrowEl(cls, a, c, d) { var r = el('div', 'lrow ' + cls, '<span class="lo"></span><span class="ld"></span><span class="la num r"></span><span class="ls num r"></span>'); r.children[0].textContent = a || ''; r.children[2].textContent = c || ''; r.children[3].textContent = d || ''; return r; }
+  function removeEntry(name, o, isTop) {
+    var p = st.people[name];
+    function local() {
+      if (isTop) { var k = tkey(name, o); if (st.deleted.indexOf(k) < 0) st.deleted.push(k); p.topups = p.topups.filter(function (x) { return tkey(name, x) !== k; }); }
+      else { p.expenses = p.expenses.filter(function (x) { return x !== o && !(o.id && x.id === o.id); }); p.italy = (p.italy || []).filter(function (x) { return x !== o && !(o.id && x.id === o.id); }); }
+      persist(); render();
+    }
+    if (o.id && cloud.db && st.trip) {
+      var tr = cloud.db.collection('trips').doc(st.trip);
+      var jobs = [tr.collection('items').doc(o.id).delete(), tr.collection('removals').doc('i_' + o.id).set({ kind: 'item', id: o.id, by: 'Mac', ts: Date.now() })];
+      if (o.photo) jobs.push(tr.collection('photos').doc(o.id).delete());
+      Promise.all(jobs).then(function () { local(); toast('Eliminata: sparisce anche dai telefoni'); }, function () { toast('Non riesco a eliminare: controlla la rete'); });
+    } else { local(); toast('Eliminata solo su questo schermo (non arriva dai telefoni)'); }
+  }
+  function ledRow(name, x) {
+    var o = x.o, isE = x.k === 'e', eu = isE && o.cur === 'EUR', id = (isE ? 'e' : 't') + (o.id || x.ts);
+    var amt = isE ? (eu ? '− ' + eur(o.eur) : '− ' + usd(o.usd)) : '+ ' + usd(o.usd);
+    var row = lrowEl('lr ' + (isE ? (eu ? 'it' : 'out') : 'in'), hhmm(x.ts), amt, eu ? '·' : usd(x.bal));
+    var dd = row.children[1]; dd.innerHTML = '<b></b><small></small>'; dd.firstChild.textContent = isE ? (o.store || o.desc || o.cat) : (o.desc || 'Ricarica');
+    dd.lastChild.innerHTML = isE ? '<i style="background:' + catColor(o.cat) + '"></i>' + esc(o.cat) + (o.loc ? ' · 📍' : '') + (eu ? ' · Italia' : '') : 'Ricarica';
+    var det = el('div', 'ldet'); det.hidden = ledOpen !== id; if (!det.hidden) row.classList.add('open');
+    row.addEventListener('click', function () { ledOpen = ledOpen === id ? '' : id; det.hidden = ledOpen !== id; row.classList.toggle('open', !det.hidden); });
+    det.appendChild(el('div', 'linfo', esc(eu ? 'Importo in euro, fuori dal plafond.' : eur(isE ? o.eur : o.eur) + ' ' + (isE && o.usd && o.eur ? 'al cambio di ' + (o.eur / o.usd).toFixed(4).replace('.', ',') : ''))));
+    if (isE) { var xi = expItem(name, o); if (xi.firstChild) xi.firstChild.remove(); det.appendChild(xi); }
+    var acts = el('div', 'lacts'); det.appendChild(acts);
+    if (isE && o.loc) { var mp = el('a', 'cbtn', 'Sulla mappa'); mp.href = 'https://maps.apple.com/?ll=' + o.loc.la + ',' + o.loc.lo; mp.target = '_blank'; mp.rel = 'noopener'; mp.addEventListener('click', function (ev) { ev.stopPropagation(); }); acts.appendChild(mp); }
+    var del = el('button', 'btn ghost small danger', 'Elimina'), armed = false; del.type = 'button';
+    del.onclick = function (ev) { ev.stopPropagation(); if (!armed) { armed = true; del.textContent = 'Conferma?'; setTimeout(function () { armed = false; del.textContent = 'Elimina'; }, 3000); return; } removeEntry(name, o, !isE); };
+    acts.appendChild(del);
+    var frag = document.createDocumentFragment(); frag.appendChild(row); frag.appendChild(det); return frag;
+  }
+  function dayChart(exps) {
+    var d = days(exps), keys = Object.keys(d).sort(), box = el('div', 'sect'); box.appendChild(el('div', 'label', 'Spesa per giorno'));
+    if (!keys.length) { box.appendChild(el('div', 'sub2', 'Nessuna spesa')); return box; }
+    var mx = Math.max.apply(null, keys.map(function (k) { return sum(d[k], 'usd'); })) || 1, ch = el('div', 'dchart');
+    keys.forEach(function (k) { var v = sum(d[k], 'usd'), b = el('div', 'b'); b.style.height = Math.max(3, v / mx * 100) + '%'; b.title = dayLabel(k) + ': ' + usd(v); ch.appendChild(b); });
+    box.appendChild(ch); box.appendChild(el('div', 'dlab', '<span>' + esc(dayLabel(keys[0])) + '</span><span>' + esc(dayLabel(keys[keys.length - 1])) + '</span>'));
+    return box;
+  }
+  function catRows(exps) {
+    var by = {}, tot = 0; exps.forEach(function (e) { by[e.cat] = (by[e.cat] || 0) + e.usd; tot += e.usd; });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }), box = el('div', '');
+    if (!keys.length) return null;
+    box.appendChild(el('div', 'ltl', 'Riepilogo per categoria'));
+    keys.forEach(function (k) {
+      var r = el('div', 'lcat', '<i></i><span class="n"></span><span class="v num"></span><span class="p num"></span><span class="bar"><u></u></span>');
+      r.children[0].style.background = catColor(k); r.children[1].textContent = k; r.children[2].textContent = usd(by[k]); r.children[3].textContent = Math.round(by[k] / tot * 100) + '%';
+      var u = r.querySelector('u'); u.style.width = Math.round(by[k] / tot * 100) + '%'; u.style.background = catColor(k); box.appendChild(r);
+    });
+    box.appendChild(sline('Totale', usd(tot), 'tot')); return box;
+  }
   function personCol(name) {
     var p = st.people[name], col = el('section', 'col glass');
-    var h = el('h2', '', '<span>' + esc(name) + '</span>');
+    var h = el('h2', '', '<span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:8px;background:' + personColor(name) + '"></i>' + esc(name) + '</span>');
     var rm = el('button', 'btn ghost small', 'Rimuovi'); var armed = false;
     rm.onclick = function () { if (!armed) { armed = true; rm.textContent = 'Conferma?'; setTimeout(function () { armed = false; rm.textContent = 'Rimuovi'; }, 3000); return; } delete st.people[name]; persist(); render(); };
     h.appendChild(rm); col.appendChild(h);
+    var ent = [];
+    p.topups.forEach(function (t) { ent.push({ k: 't', ts: tsOf(t), o: t }); });
+    p.expenses.forEach(function (e) { ent.push({ k: 'e', ts: tsOf(e), o: e }); });
+    (p.italy || []).forEach(function (e) { ent.push({ k: 'e', ts: tsOf(e), o: e }); });
+    ent.sort(function (a, b) { return a.ts - b.ts; });
+    var bal = 0, itTot = 0;
+    ent.forEach(function (x) { if (x.k === 't') bal += x.o.usd; else if (x.o.cur === 'EUR') itTot += x.o.eur; else bal -= x.o.usd; x.bal = bal; });
+    var tab = ledTab[name] || 'spese', led = el('section', 'ledger');
+    var sm = el('div', 'lsum'); sm.appendChild(el('div', 'ltl', 'Prima nota')); led.appendChild(sm);
+    sm.appendChild(sline('Totale ricaricato', usd(sum(p.topups, 'usd')))); sm.appendChild(sline('Totale speso', '− ' + usd(sum(p.expenses, 'usd'))));
+    if (itTot) sm.appendChild(sline('Spese in Italia (fuori plafond)', eur(itTot), 'it'));
+    sm.appendChild(sline('Saldo', (bal < 0 ? '− ' : '') + usd(Math.abs(bal)), 'tot ' + (bal < 0 ? 'neg' : 'pos'), eur(Math.abs(bal) * (sum(p.topups, 'usd') ? sum(p.topups, 'eur') / sum(p.topups, 'usd') : 0.86))));
+    var tabs = el('div', 'ltabs'); [['spese', 'Spese'], ['ric', 'Ricariche']].forEach(function (t) { var b = el('button', '', t[1]); b.type = 'button'; b.setAttribute('aria-pressed', String(tab === t[0])); b.onclick = function () { ledTab[name] = t[0]; render(); }; tabs.appendChild(b); });
+    led.appendChild(tabs);
+    led.appendChild(el('div', 'lcols', '<span>Ora</span><span>Descrizione</span><span class="r">Importo</span><span class="r">Saldo</span>'));
+    var show = ent.filter(function (x) { return tab === 'ric' ? x.k === 't' : x.k === 'e'; }), list = el('div', '');
+    if (!show.length) list.appendChild(el('div', 'lempty', tab === 'ric' ? 'Nessuna ricarica ancora.' : 'Nessun movimento ancora.'));
+    var curDay = '', dayTot = 0, dayHead = null;
+    function closeDay() { if (dayHead && dayTot) dayHead.lastChild.textContent = '− ' + usd(dayTot); }
+    show.forEach(function (x) {
+      var dk = dkey(x.ts);
+      if (dk !== curDay) { closeDay(); curDay = dk; dayTot = 0; dayHead = el('div', 'lday', '<span></span><span class="num"></span>'); dayHead.firstChild.textContent = dayLabel(dk); list.appendChild(dayHead); }
+      if (x.k === 'e' && x.o.cur !== 'EUR') dayTot += x.o.usd;
+      list.appendChild(ledRow(name, x));
+    });
+    closeDay(); led.appendChild(list);
+    if (show.length) led.appendChild(el('div', 'lfoot ' + (bal < 0 ? 'neg' : 'pos'), '<span>Saldo attuale</span><b class="num">' + (bal < 0 ? '− ' : '') + usd(Math.abs(bal)) + '</b>'));
+    var cr = catRows(p.expenses); if (cr && tab === 'spese') led.appendChild(cr);
+    col.appendChild(led);
+    /* in piu' rispetto al telefono: i grafici */
     col.appendChild(statBlock(name, p.topups, p.expenses));
     col.appendChild(catBlock(p.expenses));
-    /* giorno per giorno */
-    var d = days(p.expenses), keys = Object.keys(d).sort().reverse(), box = el('div', 'sect');
-    box.appendChild(el('div', 'label', 'Giorno per giorno'));
-    if (!keys.length) box.appendChild(el('div', 'sub2', 'Nessuna spesa'));
-    keys.forEach(function (k) {
-      var items = d[k], det = el('details'), tot = sum(items, 'usd');
-      det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + usd(tot) + '</span>'));
-      var it = el('div', 'items');
-      items.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { it.appendChild(expItem(name, e)); });
-      det.appendChild(it); box.appendChild(det);
-    });
-    col.appendChild(box);
-    /* spese fatte in Italia prima della partenza: in euro, fuori dal plafond */
-    var it = p.italy || [];
-    if (it.length) {
-      var ib = el('div', 'sect'); ib.appendChild(el('div', 'label', 'Spese in Italia (fuori plafond)'));
-      ib.appendChild(el('div', 'sub2 num', 'Totale ' + eur(sum(it, 'eur')) + ' · ' + it.length + (it.length === 1 ? ' spesa' : ' spese')));
-      var id = days(it), ik = Object.keys(id).sort().reverse();
-      ik.forEach(function (k) {
-        var items = id[k], det = el('details');
-        det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + eur(sum(items, 'eur')) + '</span>'));
-        var bx = el('div', 'items'); items.sort(function (a, b) { return (a.ora || '').localeCompare(b.ora || ''); }).forEach(function (e) { bx.appendChild(expItem(name, e)); });
-        det.appendChild(bx); ib.appendChild(det);
-      });
-      col.appendChild(ib);
-    }
-    /* ricariche: si eliminano solo da qui */
-    var tb = el('div', 'sect'); tb.appendChild(el('div', 'label', 'Ricariche'));
-    if (!p.topups.length) tb.appendChild(el('div', 'sub2', 'Nessuna ricarica'));
-    p.topups.slice().sort(function (a, b) { return (b.data + b.ora).localeCompare(a.data + a.ora); }).forEach(function (t) {
-      var r = el('div', 'row'), del = el('button', 'btn ghost small', 'Elimina'), a = false;
-      del.onclick = function () {
-        if (!a) { a = true; del.textContent = 'Conferma?'; setTimeout(function () { a = false; del.textContent = 'Elimina'; }, 3000); return; }
-        var k = tkey(name, t); if (st.deleted.indexOf(k) < 0) st.deleted.push(k);
-        p.topups = p.topups.filter(function (x) { return tkey(name, x) !== k; }); persist(); render(); toast('Ricarica eliminata');
-      };
-      r.appendChild(el('div', '', '<div>' + esc(t.desc || 'Ricarica') + '</div><div class="m">' + esc(dayLabel(t.data) + (t.ora ? ' ' + t.ora : '')) + '</div>'));
-      var rt = el('div', 'v num', '+' + usd(t.usd)); rt.appendChild(document.createElement('br')); rt.appendChild(del); r.appendChild(rt);
-      tb.appendChild(r);
-    });
-    col.appendChild(tb);
+    col.appendChild(dayChart(p.expenses));
     return col;
   }
   function totalCol(names) {
     var col = el('section', 'col glass total');
     col.appendChild(el('h2', '', '<span>Totale</span><span class="sub2">' + names.length + (names.length === 1 ? ' persona' : ' persone') + '</span>'));
-    var tops = [], exps = [];
-    names.forEach(function (n) { tops = tops.concat(st.people[n].topups); exps = exps.concat(st.people[n].expenses.map(function (e) { var c = Object.assign({}, e); c.who = n; return c; })); });
-    col.appendChild(statBlock('Totale', tops, exps, true));
-    col.appendChild(catBlock(exps));
+    var tops = [], exps = [], itAll = [];
+    names.forEach(function (n) { var p = st.people[n]; tops = tops.concat(p.topups); exps = exps.concat(p.expenses.map(function (e) { var c = Object.assign({}, e); c.who = n; return c; })); (p.italy || []).forEach(function (e) { itAll.push({ who: n, eur: e.eur }); }); });
+    var top = sum(tops, 'usd'), sp = sum(exps, 'usd'), bal = top - sp, led = el('section', 'ledger'), sm = el('div', 'lsum');
+    sm.appendChild(el('div', 'ltl', 'Prima nota · tutti')); led.appendChild(sm);
+    sm.appendChild(sline('Totale ricaricato', usd(top))); sm.appendChild(sline('Totale speso', '− ' + usd(sp)));
+    if (itAll.length) sm.appendChild(sline('Spese in Italia (fuori plafond)', eur(sum(itAll, 'eur')), 'it'));
+    sm.appendChild(sline('Saldo', (bal < 0 ? '− ' : '') + usd(Math.abs(bal)), 'tot ' + (bal < 0 ? 'neg' : 'pos'), eur(Math.abs(sum(tops, 'eur') - sum(exps, 'eur')))));
+    led.appendChild(el('div', 'lcols', '<span></span><span>Per persona</span><span class="r">Speso</span><span class="r">Saldo</span>'));
+    names.forEach(function (n) { var p = st.people[n], t = sum(p.topups, 'usd'), x = sum(p.expenses, 'usd'), l = t - x, r = lrowEl('lr out', '', '− ' + usd(x), (l < 0 ? '− ' : '') + usd(Math.abs(l))); r.style.cursor = 'default'; var dd = r.children[1]; dd.innerHTML = '<b></b><small></small>'; dd.firstChild.textContent = n; dd.lastChild.textContent = 'ricaricato ' + usd(t); led.appendChild(r); });
     var d = days(exps), keys = Object.keys(d).sort(), run = 0, cum = {};
     keys.forEach(function (k) { run += sum(d[k], 'usd'); cum[k] = run; });
-    var box = el('div', 'sect'); box.appendChild(el('div', 'label', 'Giorno per giorno'));
-    if (!keys.length) box.appendChild(el('div', 'sub2', 'Nessuna spesa'));
-    keys.slice().reverse().forEach(function (k) {
-      var items = d[k], det = el('details'), per = {};
-      items.forEach(function (e) { per[e.who] = (per[e.who] || 0) + e.usd; });
-      det.appendChild(el('summary', '', '<span class="d">' + esc(dayLabel(k)) + '</span><span class="num">' + usd(sum(items, 'usd')) + '</span>'));
-      var it = el('div', 'items');
-      Object.keys(per).forEach(function (w) { it.appendChild(el('div', 'erow', '<span>' + esc(w) + '</span><span class="num">' + usd(per[w]) + '</span>')); });
-      it.appendChild(el('div', 'erow', '<span>Totale progressivo</span><span class="num">' + usd(cum[k]) + '</span>'));
-      det.appendChild(it); box.appendChild(det);
-    });
-    col.appendChild(box);
-    var itAll = []; names.forEach(function (n) { (st.people[n].italy || []).forEach(function (e) { itAll.push({ who: n, eur: e.eur }); }); });
-    if (itAll.length) {
-      var ib = el('div', 'sect'); ib.appendChild(el('div', 'label', 'Spese in Italia (fuori plafond)'));
-      var per = {}; itAll.forEach(function (x) { per[x.who] = (per[x.who] || 0) + x.eur; });
-      Object.keys(per).forEach(function (w) { ib.appendChild(el('div', 'erow', '<span>' + esc(w) + '</span><span class="num">' + eur(per[w]) + '</span>')); });
-      ib.appendChild(el('div', 'erow', '<span>Totale in euro</span><span class="num">' + eur(sum(itAll, 'eur')) + '</span>'));
-      col.appendChild(ib);
-    }
+    led.appendChild(el('div', 'lcols', '<span></span><span>Giorno per giorno</span><span class="r">Speso</span><span class="r">Progressivo</span>'));
+    if (!keys.length) led.appendChild(el('div', 'lempty', 'Nessuna spesa'));
+    keys.slice().reverse().forEach(function (k) { var r = lrowEl('lr out', '', '− ' + usd(sum(d[k], 'usd')), usd(cum[k])); r.style.cursor = 'default'; var dd = r.children[1]; dd.innerHTML = '<b></b>'; dd.firstChild.textContent = dayLabel(k); led.appendChild(r); });
+    var cr = catRows(exps); if (cr) led.appendChild(cr);
+    col.appendChild(led);
+    col.appendChild(statBlock('Totale', tops, exps, true));
+    col.appendChild(catBlock(exps));
+    col.appendChild(dayChart(exps));
     return col;
   }
 
@@ -718,7 +821,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     var cols = $('cols'); cols.innerHTML = '';
     var names = Object.keys(st.people).sort();
     names.forEach(function (n) { cols.appendChild(personCol(n)); });
-    for (var i = names.length; i < 3; i++) cols.appendChild(el('section', 'col glass empty', 'In attesa del file della persona ' + (i + 1)));
+    if (!names.length) cols.appendChild(el('section', 'col glass empty', 'Ancora nessun dato: collegati con il codice viaggio (in basso a sinistra) o importa un file CSV.'));
     cols.appendChild(totalCol(names));
     $('sub').textContent = cloud.last ? names.length + (names.length === 1 ? ' persona' : ' persone') + ' · i dati arrivano da soli dai telefoni. I file CSV restano come copia di sicurezza (Importa file).' : (names.length ? names.length + (names.length === 1 ? ' registro importato' : ' registri importati') + '. Per aggiornare importa di nuovo il file: sostituisce le spese di quella persona.' : 'Collegati con il codice viaggio, oppure trascina qui i file CSV ricevuti dagli iPhone.');
   }
@@ -759,7 +862,7 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
   };
 
   /* ---------- Firebase: il Mac scarica spese, foto e diari dai telefoni ---------- */
-  var cloud = { db: null, unsubs: [], album: [], diaryRaw: [], diary: [], priv: null, full: {}, view: 'spese', status: 'Non collegato.', last: null };
+  var cloud = { db: null, unsubs: [], album: [], diary: [], full: {}, view: 'spese', status: 'Non collegato.', last: null };
   var CLOUD_PAL = ['#c0391f', '#0a84ff', '#1c9b4c', '#bf5af2', '#e07b00'];
   function slug(x) { return String(x || 'utente').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'utente'; }
   function p2(n) { return (n < 10 ? '0' : '') + n; }
@@ -820,14 +923,11 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
         cloud.pos = snap.docs.map(function (x) { return Object.assign({ key: x.id }, x.data()); }).filter(function (v) { return typeof v.la === 'number' && typeof v.lo === 'number'; });
         if (cloud.view === 'posizioni') renderPosView();
       }, function () {}));
-      cloud.unsubs.push(tr.collection('diary').onSnapshot(function (snap) { cloud.diaryRaw = snap.docs.map(function (x) { return Object.assign({ id: x.id }, x.data()); }); decryptDiaries(); }, err));
+      cloud.unsubs.push(tr.collection('diaryShared').onSnapshot(function (snap) {       // fogli che i telefoni hanno scelto di condividere: nessuna chiave, nessun PIN
+        cloud.diary = snap.docs.map(function (x) { var v = x.data(); return { id: x.id, user: v.user, day: v.day, text: v.text || '', photos: v.photos || [], loc: v.loc || null, pl: v.pl || {}, ts: v.ts, upd: v.upd }; });
+        if (cloud.view === 'diario' || cloud.view === 'mappa') showView(cloud.view);
+      }, err));
     }, function () { setCloudStatus('Accesso anonimo non riuscito.'); });
-  }
-  function decryptDiaries() {
-    if (!cloud.priv) { cloud.diary = cloud.diaryRaw.map(function (r) { return { id: r.id, user: r.user, day: r.day, locked: true }; }); if (cloud.view === 'diario') showView('diario'); return Promise.resolve(); }
-    return Promise.all(cloud.diaryRaw.map(function (r) {
-      return DiaryCrypto.decryptJson(cloud.priv, r.pack).then(function (e) { return { id: r.id, user: r.user, day: e.day, text: e.text, photos: e.photos || [], loc: e.loc, pl: e.pl || {}, ts: e.ts, upd: e.upd }; }, function () { return { id: r.id, user: r.user, day: r.day, broken: true }; });
-    })).then(function (list) { cloud.diary = list; if (cloud.view === 'diario' || cloud.view === 'mappa') showView(cloud.view); });
   }
   function fetchFullPhoto(id) {
     if (cloud.full[id]) return Promise.resolve(cloud.full[id]);
@@ -843,12 +943,13 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
   }
   function fetchDiaryPhoto(user, id) {
     var key = 'd_' + user + id; if (cloud.full[key]) return Promise.resolve(cloud.full[key]);
-    return cloud.db.collection('trips').doc(st.trip).collection('diaryPhotos').doc(slug(user) + '_' + id).get().then(function (d) {
-      if (!d.exists) return null; return DiaryCrypto.decryptBlob(cloud.priv, d.data().pack).then(function (b) { return (cloud.full[key] = URL.createObjectURL(b)); });
+    return cloud.db.collection('trips').doc(st.trip).collection('diarySharedPhotos').doc(slug(user) + '_' + id).get().then(function (d) {
+      if (!d.exists) return null; return fetch(d.data().data).then(function (r) { return r.blob(); }).then(function (b) { return (cloud.full[key] = URL.createObjectURL(b)); });
     });
   }
   function mapsLink(l) { return 'https://maps.apple.com/?ll=' + l.la + ',' + l.lo; }
   function lightbox(items, i) {                       // items: [{src: Promise<url>|url, cap, link, name}]; stesso aspetto del visore del telefono
+    var curBox = null, curIm = null, sc = 1, px = 0, py = 0;
     var lb = el('div', 'lb'), idx = i, SV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
     function close() { document.removeEventListener('keydown', key); lb.remove(); }
     function key(e) { if (e.key === 'Escape') close(); else if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); }
@@ -871,13 +972,40 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
       if (it.link) { var mp = el('a', 'vib', SV + '<path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.800C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.800" r="2.600"/></svg>'); mp.href = it.link; mp.target = '_blank'; mp.rel = 'noopener'; mp.setAttribute('aria-label', 'Apri in Mappe'); acts.appendChild(mp); }
       var sh = el('button', 'vib', SV + '<path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>'); sh.type = 'button'; sh.setAttribute('aria-label', 'Condividi o salva'); sh.onclick = function () { shareFile(it); }; acts.appendChild(sh);
       lb.appendChild(top);
-      var box = el('div', 'lbbox'), im = document.createElement('img'); im.alt = 'Foto'; im.draggable = false; box.appendChild(im); lb.appendChild(box);
+      var box = el('div', 'lbbox'), im = document.createElement('img'); im.alt = 'Foto'; im.draggable = false; box.appendChild(im); lb.appendChild(box); curBox = box; curIm = im; sc = 1; px = 0; py = 0;
       if (enter) { box.style.transition = 'none'; box.style.transform = 'translateX(' + (enter * 100) + '%)'; box.style.opacity = '0'; void box.offsetWidth; box.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; box.style.transform = 'translateX(0)'; box.style.opacity = '1'; }
       Promise.resolve(it.src).then(function (u) { if (items[idx] === it && u) im.src = u; });
     }
-    var tx = 0, ty = 0, drag = false;
-    lb.addEventListener('touchstart', function (e) { if (e.touches.length !== 1) { drag = false; return; } tx = e.touches[0].clientX; ty = e.touches[0].clientY; drag = true; }, { passive: true });
-    lb.addEventListener('touchend', function (e) { if (!drag) return; drag = false; var t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty; if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.2) go(dx < 0 ? 1 : -1); }, { passive: true });
+    /* dita: scorri a destra/sinistra per cambiare foto; due dita per ingrandire (da 1x a 5x); con la foto ingrandita un dito la sposta; doppio tocco ingrandisce o torna normale */
+    var mode = '', sx = 0, sy = 0, spx = 0, spy = 0, dx = 0, dy = 0, p0 = null, lastTap = 0;
+    function apply() { if (curIm) curIm.style.transform = 'translate(' + px + 'px,' + py + 'px) scale(' + sc + ')'; }
+    function dist(a, c) { return Math.hypot(a.clientX - c.clientX, a.clientY - c.clientY); }
+    function clampPan() { var w = lb.clientWidth, h = lb.clientHeight, mx = (sc - 1) * w / 2, my = (sc - 1) * h / 2; px = Math.max(-mx, Math.min(mx, px)); py = Math.max(-my, Math.min(my, py)); }
+    function anim(on) { if (curIm) curIm.style.transition = on ? 'transform .2s ease-out' : 'none'; }
+    lb.addEventListener('touchstart', function (e) {
+      if (e.target.closest && e.target.closest('.vtop')) { mode = ''; return; }
+      if (e.touches.length === 2) { mode = 'pinch'; p0 = { d: dist(e.touches[0], e.touches[1]), s: sc }; anim(false); return; }
+      if (e.touches.length !== 1) { mode = ''; return; }
+      var t = e.touches[0]; sx = t.clientX; sy = t.clientY; spx = px; spy = py; dx = 0; dy = 0; mode = sc > 1 ? 'pan' : 'swipe'; anim(false);
+      var now = Date.now();
+      if (now - lastTap < 300) { sc = sc > 1 ? 1 : 2.5; if (sc === 1) { px = 0; py = 0; } anim(true); apply(); lastTap = 0; mode = ''; } else lastTap = now;
+    }, { passive: false });
+    lb.addEventListener('touchmove', function (e) {
+      if (mode === 'pinch' && e.touches.length === 2) { e.preventDefault(); sc = Math.max(1, Math.min(5, p0.s * dist(e.touches[0], e.touches[1]) / p0.d)); if (sc === 1) { px = 0; py = 0; } else clampPan(); apply(); return; }
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0]; dx = t.clientX - sx; dy = t.clientY - sy;
+      if (mode === 'pan') { e.preventDefault(); px = spx + dx; py = spy + dy; clampPan(); apply(); }
+      else if (mode === 'swipe') { e.preventDefault(); if (curBox) { curBox.style.transition = 'none'; var edge = (dx > 0 && idx === 0) || (dx < 0 && idx === items.length - 1); curBox.style.transform = 'translateX(' + (edge ? dx * .25 : dx) + 'px)'; curBox.style.opacity = String(Math.max(.45, 1 - Math.abs(dx) / 500)); } }
+    }, { passive: false });
+    function endTouch(e) {
+      if (mode === 'pinch') { if (sc < 1.05) { sc = 1; px = 0; py = 0; anim(true); apply(); } if (e.touches.length === 1) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; spx = px; spy = py; mode = sc > 1 ? 'pan' : ''; } else mode = ''; return; }
+      if (mode === 'swipe') {
+        mode = '';
+        if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.2 && ((dx < 0 && idx < items.length - 1) || (dx > 0 && idx > 0))) go(dx < 0 ? 1 : -1);
+        else if (curBox) { curBox.style.transition = 'transform .2s ease-out, opacity .2s'; curBox.style.transform = 'translateX(0)'; curBox.style.opacity = '1'; }
+      } else mode = '';
+    }
+    lb.addEventListener('touchend', endTouch, { passive: true }); lb.addEventListener('touchcancel', endTouch, { passive: true });
     document.addEventListener('keydown', key); document.body.appendChild(lb); show(0);
   }
 
@@ -1190,6 +1318,7 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
   }
 
   var albSel = null;
+  var selMode = false, selSet = {};
   function renderPhotoView() {
     var v = $('photoView'); v.innerHTML = '';
     var panel = el('div', 'panel'), key = function (u) { return String(u || '').trim().toLowerCase(); };
@@ -1208,36 +1337,33 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
     var back = el('button', 'btn ghost small', '‹ Album'); back.type = 'button'; back.onclick = function () { albSel = null; renderPhotoView(); };
     var f = el('div', 'filters'); f.appendChild(back); f.appendChild(el('b', '', albSel === '*' ? 'Tutte le foto' : esc((AL.filter(function (A) { return A[0] === albSel; })[0] || [0, albSel])[1]))); panel.appendChild(f);
     var list = cloud.album.filter(function (a) { return albSel === '*' || key(a.user) === albSel; });
+    var selB = el('button', 'btn ghost small', selMode ? 'Fine' : 'Seleziona'); selB.type = 'button'; selB.onclick = function () { selMode = !selMode; selSet = {}; renderPhotoView(); }; f.appendChild(selB);
+    if (selMode) {
+      var nsel = Object.keys(selSet).length, dl = el('button', 'btn ghost small danger', 'Elimina' + (nsel ? ' (' + nsel + ')' : '')); dl.type = 'button'; dl.disabled = !nsel; if (!nsel) dl.style.opacity = '.4';
+      dl.onclick = function () {
+        if (!confirm('Eliminare ' + nsel + (nsel === 1 ? ' foto' : ' foto') + ' dall\'album? Spariscono anche dai telefoni e non si recuperano.')) return;
+        var tr = cloud.db.collection('trips').doc(st.trip), ids = Object.keys(selSet);
+        Promise.all(ids.map(function (id) { return Promise.all([tr.collection('album').doc(id).delete(), tr.collection('albumFull').doc(id).delete(), tr.collection('removals').doc('a_' + id).set({ kind: 'album', id: id, by: 'Mac', ts: Date.now() })]); }))
+          .then(function () { cloud.album = cloud.album.filter(function (a) { return !selSet[a.id]; }); selMode = false; selSet = {}; renderPhotoView(); toast('Foto eliminate: spariscono anche dai telefoni'); }, function () { toast('Non riesco a eliminare: controlla la rete'); });
+      };
+      f.appendChild(dl);
+    }
     var g = el('div', 'pg'); panel.appendChild(g);
     list.forEach(function (a) {
       var b = el('button', ''); b.type = 'button'; var im = document.createElement('img'); im.src = a.thumb; im.alt = 'Foto di ' + (a.user || ''); b.appendChild(im);
       if (albSel === '*') b.appendChild(el('span', 'tag', esc(a.user || '?'))).style.background = personColor(a.user);
-      b.onclick = function () { openAlbumLightbox(a.id); }; g.appendChild(b);
+      if (selMode && selSet[a.id]) b.style.outline = '3px solid var(--accent)';
+      b.onclick = function () { if (selMode) { if (selSet[a.id]) delete selSet[a.id]; else selSet[a.id] = 1; renderPhotoView(); } else openAlbumLightbox(a.id); }; g.appendChild(b);
     });
-    panel.appendChild(el('div', 'sub2', list.length ? list.length + ' foto. Clicca una foto per ingrandirla; frecce della tastiera per scorrere.' : 'Ancora nessuna foto.'));
+    panel.appendChild(el('div', 'sub2', list.length ? list.length + ' foto. Tocca una foto per ingrandirla. "Seleziona" serve per eliminarne: spariscono anche dai telefoni.' : 'Ancora nessuna foto.'));
     v.appendChild(panel);
   }
   function renderDiaryView() {
     var v = $('diaryView'); v.innerHTML = '';
-    if (!cloud.priv) {
-      var c = el('div', 'panel glass lock'); c.appendChild(el('h2', '', 'Apri i diari'));
-      c.appendChild(el('div', 'sub2', 'I diari sono cifrati: solo tu li apri. Scegli il file della chiave e scrivi il PIN. Restano in memoria solo finché la pagina è aperta.'));
-      var fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json'; var pin = document.createElement('input'); pin.type = 'password'; pin.placeholder = 'PIN'; pin.autocomplete = 'off';
-      var go = el('button', 'btn', 'Apri i diari'); go.type = 'button'; var msg = el('div', 'sub2', cloud.diaryRaw.length ? cloud.diaryRaw.length + ' voci di diario nel database.' : 'Nessun diario ancora nel database.');
-      go.onclick = function () {
-        if (!fi.files[0] || !pin.value) { msg.textContent = 'Serve il file della chiave e il PIN.'; return; }
-        msg.textContent = 'Apro…'; fi.files[0].text().then(function (t) { return DiaryCrypto.unlockPrivate(JSON.parse(t), pin.value); })
-          .then(function (k) { cloud.priv = k; pin.value = ''; return decryptDiaries(); }).then(function () { renderDiaryView(); })
-          .catch(function () { msg.textContent = 'PIN o file della chiave non corretti.'; });
-      };
-      pin.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
-      c.appendChild(fi); c.appendChild(pin); c.appendChild(go); c.appendChild(msg); v.appendChild(c); return;
-    }
     var panel = el('div', 'panel glass'), f = el('div', 'filters'); panel.appendChild(f); whoChips(f, renderDiaryView);
-    var lock = el('button', 'btn ghost small', 'Richiudi i diari'); lock.type = 'button'; lock.onclick = function () { cloud.priv = null; decryptDiaries(); renderDiaryView(); }; f.appendChild(lock);
     v.appendChild(panel);
-    var list = cloud.diary.filter(function (d) { return !d.locked && flt.who[d.user] !== false; }).sort(function (a, b) { return (b.day || '').localeCompare(a.day || '') || (a.user || '').localeCompare(b.user || '') || (b.ts || 0) - (a.ts || 0); });
-    if (!list.length) panel.appendChild(el('div', 'sub2', 'Nessuna voce di diario da mostrare.'));
+    var list = cloud.diary.filter(function (d) { return flt.who[d.user] !== false; }).sort(function (a, b) { return (b.day || '').localeCompare(a.day || '') || (a.user || '').localeCompare(b.user || '') || (b.ts || 0) - (a.ts || 0); });
+    if (!list.length) panel.appendChild(el('div', 'sub2', 'Nessun foglio condiviso. Sul telefono apri un foglio del diario e attiva "Condividi questo foglio con Mac e iPad".'));
     var expShown = {};
     list.forEach(function (d) {
       var c = el('div', 'dcard glass');
