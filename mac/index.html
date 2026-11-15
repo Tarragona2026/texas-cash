@@ -795,9 +795,13 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
     setCloudStatus('Mi collego…');
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     firebase.auth().signInAnonymously().then(function () {
-      cloud.db = firebase.firestore(); var tr = cloud.db.collection('trips').doc(code);
-      function err() { setCloudStatus('Non riesco a leggere i dati: controlla rete e codice.'); }
-      cloud.unsubs.push(tr.collection('items').onSnapshot(function (snap) { cloud.last = Date.now(); applyItems(snap.docs); setCloudStatus('Collegato · ' + snap.size + ' voci · aggiornato ' + hhmm(cloud.last)); }, err));
+      cloud.db = firebase.firestore();
+      try { cloud.db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) {}   // reti e iPad dove la connessione normale non passa
+      var tr = cloud.db.collection('trips').doc(code);
+      function err(e) { setCloudStatus('Non riesco a leggere i dati' + (e && e.code ? ' (' + e.code + ')' : '') + ': controlla rete e codice.'); }
+      var gotAny = false; clearTimeout(cloud.wd);
+      cloud.wd = setTimeout(function () { if (!gotAny) setCloudStatus('Nessuna risposta dal database dopo 15 secondi: la rete o Safari bloccano la connessione. Prova un\'altra rete.'); }, 15000);
+      cloud.unsubs.push(tr.collection('items').onSnapshot(function (snap) { gotAny = true; cloud.last = Date.now(); applyItems(snap.docs); setCloudStatus('Collegato · ' + snap.size + ' voci · aggiornato ' + hhmm(cloud.last)); }, err));
       cloud.unsubs.push(tr.collection('album').orderBy('ts', 'desc').limit(500).onSnapshot(function (snap) {
         cloud.album = snap.docs.map(function (x) { var v = x.data(); return { id: x.id, user: v.user, ts: v.ts, loc: v.loc, thumb: v.thumb }; });
         if (cloud.view === 'foto' || cloud.view === 'mappa') showView(cloud.view);
