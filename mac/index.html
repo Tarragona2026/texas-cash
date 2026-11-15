@@ -801,7 +801,10 @@ select.sel { min-height: 34px; padding: 0 12px; font-size: .92rem; }
       function err(e) { setCloudStatus('Non riesco a leggere i dati' + (e && e.code ? ' (' + e.code + ')' : '') + ': controlla rete e codice.'); }
       var gotAny = false; clearTimeout(cloud.wd);
       cloud.wd = setTimeout(function () { if (!gotAny) setCloudStatus('Nessuna risposta dal database dopo 15 secondi: la rete o Safari bloccano la connessione. Prova un\'altra rete.'); }, 15000);
-      cloud.unsubs.push(tr.collection('items').onSnapshot(function (snap) { gotAny = true; cloud.last = Date.now(); applyItems(snap.docs); setCloudStatus('Collegato · ' + snap.size + ' voci · aggiornato ' + hhmm(cloud.last)); }, err));
+      cloud.unsubs.push(tr.collection('items').onSnapshot(function (snap) {
+        if (snap.metadata.fromCache && !snap.size) { setCloudStatus('Il database non risponde: nessun dato arriva dal server (rete o Safari lo bloccano) · codice di ' + code.length + ' caratteri'); return; }
+        gotAny = true; cloud.last = Date.now(); applyItems(snap.docs); setCloudStatus('Collegato · ' + snap.size + ' voci · aggiornato ' + hhmm(cloud.last) + ' · codice di ' + code.length + ' caratteri');
+      }, err));
       cloud.unsubs.push(tr.collection('album').orderBy('ts', 'desc').limit(500).onSnapshot(function (snap) {
         cloud.album = snap.docs.map(function (x) { var v = x.data(); return { id: x.id, user: v.user, ts: v.ts, loc: v.loc, thumb: v.thumb }; });
         if (cloud.view === 'foto' || cloud.view === 'mappa') showView(cloud.view);
