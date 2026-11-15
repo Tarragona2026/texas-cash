@@ -1068,6 +1068,46 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
   }
   function calLink(x) { var q = encodeURIComponent(x.place || x.title); return x.loc ? 'https://maps.apple.com/?ll=' + x.loc.la + ',' + x.loc.lo + '&q=' + q : 'https://maps.apple.com/?q=' + encodeURIComponent((x.place || x.title) + ' Texas'); }
   function longDay(k) { var q = k.split('-'); return new Date(+q[0], +q[1] - 1, +q[2]).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  var calEditId = '';
+  function calSave(x) {
+    if (!cloud.db || !st.trip) { toast('Collegati prima con il codice viaggio'); return; }
+    x.loc = x.loc || null; x.addr = x.addr || ''; x.place = x.place || ''; x.time = x.time || ''; x.order = x.order || 0;
+    x.upd = Date.now(); x.by = 'Mac'; cloud.cal[x.id] = x;
+    cloud.db.collection('trips').doc(st.trip).collection('calendar').doc(x.id).set(x).catch(function () { toast('Non riesco a salvare: controlla la rete'); });
+  }
+  function calMove(items, n, d) {
+    var m = n + d; if (m < 0 || m >= items.length) return;
+    var arr = items.slice(); var t = arr[n]; arr[n] = arr[m]; arr[m] = t;
+    arr.forEach(function (x, i) { var o = (i + 1) * 10; if (x.order !== o) { x.order = o; calSave(x); } });
+    renderCalView();
+  }
+  function calFormRow(x, isNew, items) {
+    var f = el('div', ''); f.style.cssText = 'display:grid;gap:8px;padding:12px 2px;border-bottom:1px solid var(--sep)';
+    function field(label, type, val, ph) {
+      var w = el('label', ''); w.style.cssText = 'display:grid;gap:3px;font-size:.78rem;color:var(--ink-soft);font-weight:600'; w.appendChild(document.createTextNode(label));
+      var i = document.createElement('input'); i.type = type; i.value = val || ''; i.placeholder = ph || ''; i.autocomplete = 'off';
+      i.style.cssText = 'min-height:38px;border-radius:10px;border:0;padding:0 10px;background:var(--field);color:var(--ink);font:inherit;width:100%;min-width:0';
+      w.appendChild(i); f.appendChild(w); return i;
+    }
+    var ti = field('Ora (facoltativa)', 'time', x.time), tt = field('Cosa si fa', 'text', x.title, 'Es. Cena da Terry Black\'s'), pl = field('Luogo (facoltativo)', 'text', x.place, 'Indirizzo o nome del posto');
+    var msg = el('div', 'sub2', ''); f.appendChild(msg);
+    var row = el('div', ''); row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap'; f.appendChild(row);
+    function btn(label, cls, fn) { var q = el('button', cls, label); q.type = 'button'; q.onclick = fn; row.appendChild(q); }
+    btn('Salva', 'btn small', function () {
+      var title = tt.value.trim(); if (!title) { msg.textContent = 'Scrivi cosa si fa.'; return; }
+      var place = pl.value.trim(), time = ti.value;
+      if (place !== (x.place || '')) { x.loc = null; x.addr = ''; }
+      x.title = title; x.time = time; x.place = place;
+      if (isNew) {
+        var idx = time ? items.findIndex(function (z) { return z.time && z.time > time; }) : -1, mx = items.length ? items[items.length - 1].order || 0 : 0;
+        if (idx > 0) x.order = ((items[idx - 1].order || 0) + (items[idx].order || 0)) / 2; else if (idx === 0) x.order = (items[0].order || 0) - 10; else x.order = mx + 10;
+      }
+      calEditId = ''; calSave(x); renderCalView();
+    });
+    btn('Annulla', 'btn ghost small', function () { calEditId = ''; renderCalView(); });
+    if (!isNew) btn('Elimina la tappa', 'btn ghost small', function () { if (!confirm('Eliminare questa tappa? Sparisce per tutti.')) return; x.del = true; calEditId = ''; calSave(x); renderCalView(); });
+    return f;
+  }
   function renderCalView() {
     var v = $('calView'); v.innerHTML = '';
     var all = calAll(), dset = {}; all.forEach(function (x) { dset[x.day] = 1; }); var days = Object.keys(dset).sort();
@@ -1077,13 +1117,22 @@ var CAL_DEF = {"2026-12-22": [["22:00", "Arrivo all'aeroporto di Houston (IAH)",
     days.forEach(function (d) { var q = d.split('-'), b = el('button', 'fchip', Number(q[2]) + '/' + Number(q[1])); b.type = 'button'; b.setAttribute('aria-pressed', String(d === calSel)); b.onclick = function () { calSel = d; renderCalView(); }; f.appendChild(b); });
     var h = el('h2', '', esc(longDay(calSel))); h.style.cssText = 'margin:4px 0 0;text-transform:capitalize'; panel.appendChild(h);
     var items = all.filter(function (x) { return x.day === calSel; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-    if (!items.length) panel.appendChild(el('div', 'sub2', 'Niente in programma questo giorno.'));
-    items.forEach(function (x) {
+    var addBtn = el('button', 'btn small', '+ Aggiungi una tappa'); addBtn.type = 'button'; addBtn.style.alignSelf = 'flex-start'; addBtn.onclick = function () { calEditId = 'new'; renderCalView(); }; panel.appendChild(addBtn);
+    if (calEditId === 'new') panel.appendChild(calFormRow({ id: 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), day: calSel, time: '', title: '', place: '', loc: null, addr: '', order: 0, upd: 0 }, true, items));
+    if (!items.length && calEditId !== 'new') panel.appendChild(el('div', 'sub2', 'Niente in programma questo giorno.'));
+    items.forEach(function (x, n) {
+      if (calEditId === x.id) { panel.appendChild(calFormRow(x, false, items)); return; }
       var r = el('div', 'calrow'); r.appendChild(el('div', 'tm num', esc(x.time || '·')));
       var b = el('div', 'bd', '<b>' + esc(x.title) + '</b>' + (x.place ? '<div class="sub2">' + esc(x.place) + '</div>' : ''));
-      var a = el('a', 'cbtn', 'Apri in Mappe'); a.href = calLink(x); a.target = '_blank'; a.rel = 'noopener'; b.appendChild(a); r.appendChild(b); panel.appendChild(r);
+      var acts = el('div', ''); acts.style.cssText = 'display:flex;gap:12px;align-items:center;flex-wrap:wrap';
+      var a = el('a', 'cbtn', 'Apri in Mappe'); a.href = calLink(x); a.target = '_blank'; a.rel = 'noopener'; acts.appendChild(a);
+      function act(label, fn, dis) { var q = el('button', 'cbtn', label); q.type = 'button'; if (dis) { q.disabled = true; q.style.opacity = '.35'; } q.onclick = fn; acts.appendChild(q); }
+      act('Modifica', function () { calEditId = x.id; renderCalView(); });
+      act('↑ Su', function () { calMove(items, n, -1); }, n === 0);
+      act('↓ Giù', function () { calMove(items, n, 1); }, n === items.length - 1);
+      b.appendChild(acts); r.appendChild(b); panel.appendChild(r);
     });
-    panel.appendChild(el('div', 'sub2', 'Il programma si modifica dai telefoni: qui si vede con le ultime modifiche.'));
+    panel.appendChild(el('div', 'sub2', 'Le modifiche fatte qui arrivano subito sui telefoni (e quelle dei telefoni arrivano qui). Se cambi il luogo, sul telefono usa "Trova sulla mappa i luoghi mancanti" per rimetterlo sulla mappa.'));
     v.appendChild(panel);
   }
 
